@@ -2,6 +2,12 @@ manifest:
   remotes:
     - name: denisbohm
       url-base: https://github.com/denisbohm
+  remotes:
+    - name: zephyrproject-rtos
+      url-base: https://github.com/zephyrproject-rtos
+  projects:
+    - name: zephyr
+      remote: zephyrproject-rtos
+      import: true
   self:
       path: firefly-zephyr
-
