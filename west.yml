@@ -2,7 +2,6 @@ manifest:
   remotes:
     - name: denisbohm
       url-base: https://github.com/denisbohm
-  projects:
   self:
       path: firefly-zephyr
 
