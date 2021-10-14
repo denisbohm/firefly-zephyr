@@ -1,0 +1,378 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		922492D125F6C146003668D6 /* Graphics_ConverterApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 922492D025F6C146003668D6 /* Graphics_ConverterApp.swift */; };
+		922492D325F6C146003668D6 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 922492D225F6C146003668D6 /* ContentView.swift */; };
+		922492D525F6C146003668D6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 922492D425F6C146003668D6 /* Assets.xcassets */; };
+		922492D825F6C146003668D6 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 922492D725F6C146003668D6 /* Preview Assets.xcassets */; };
+		922492E525F6C209003668D6 /* FontConverter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 922492E125F6C209003668D6 /* FontConverter.swift */; };
+		922492E625F6C209003668D6 /* FreeType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 922492E225F6C209003668D6 /* FreeType.swift */; };
+		922492E725F6C209003668D6 /* ConverterModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 922492E425F6C209003668D6 /* ConverterModel.swift */; };
+		922492F225F6C4A0003668D6 /* libfreetype.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 922492F125F6C4A0003668D6 /* libfreetype.a */; };
+		922492F625F6C5FF003668D6 /* MerriweatherSans-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 922492F525F6C5FF003668D6 /* MerriweatherSans-Regular.ttf */; };
+		92D34D86271732B0007BCFCF /* B612-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 92D34D85271732B0007BCFCF /* B612-Regular.ttf */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		922492CD25F6C146003668D6 /* Graphics Converter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Graphics Converter.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		922492D025F6C146003668D6 /* Graphics_ConverterApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Graphics_ConverterApp.swift; sourceTree = "<group>"; };
+		922492D225F6C146003668D6 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		922492D425F6C146003668D6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		922492D725F6C146003668D6 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		922492D925F6C146003668D6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		922492DA25F6C146003668D6 /* Graphics_Converter.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Graphics_Converter.entitlements; sourceTree = "<group>"; };
+		922492E125F6C209003668D6 /* FontConverter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FontConverter.swift; sourceTree = "<group>"; };
+		922492E225F6C209003668D6 /* FreeType.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FreeType.swift; sourceTree = "<group>"; };
+		922492E325F6C209003668D6 /* Graphics-Converter-Bridging-Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Graphics-Converter-Bridging-Header.h"; sourceTree = "<group>"; };
+		922492E425F6C209003668D6 /* ConverterModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConverterModel.swift; sourceTree = "<group>"; };
+		922492F125F6C4A0003668D6 /* libfreetype.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfreetype.a; path = ../../../../../../../usr/local/lib/libfreetype.a; sourceTree = "<group>"; };
+		922492F525F6C5FF003668D6 /* MerriweatherSans-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "MerriweatherSans-Regular.ttf"; path = "Merriweather_Sans/static/MerriweatherSans-Regular.ttf"; sourceTree = "<group>"; };
+		92D34D85271732B0007BCFCF /* B612-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "B612-Regular.ttf"; path = "B612/B612-Regular.ttf"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		922492CA25F6C146003668D6 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				922492F225F6C4A0003668D6 /* libfreetype.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		922492C425F6C146003668D6 = {
+			isa = PBXGroup;
+			children = (
+				922492CF25F6C146003668D6 /* Graphics Converter */,
+				922492CE25F6C146003668D6 /* Products */,
+				922492EB25F6C348003668D6 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		922492CE25F6C146003668D6 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				922492CD25F6C146003668D6 /* Graphics Converter.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		922492CF25F6C146003668D6 /* Graphics Converter */ = {
+			isa = PBXGroup;
+			children = (
+				92D34D85271732B0007BCFCF /* B612-Regular.ttf */,
+				922492F525F6C5FF003668D6 /* MerriweatherSans-Regular.ttf */,
+				922492E425F6C209003668D6 /* ConverterModel.swift */,
+				922492E125F6C209003668D6 /* FontConverter.swift */,
+				922492E225F6C209003668D6 /* FreeType.swift */,
+				922492E325F6C209003668D6 /* Graphics-Converter-Bridging-Header.h */,
+				922492D025F6C146003668D6 /* Graphics_ConverterApp.swift */,
+				922492D225F6C146003668D6 /* ContentView.swift */,
+				922492D425F6C146003668D6 /* Assets.xcassets */,
+				922492D925F6C146003668D6 /* Info.plist */,
+				922492DA25F6C146003668D6 /* Graphics_Converter.entitlements */,
+				922492D625F6C146003668D6 /* Preview Content */,
+			);
+			path = "Graphics Converter";
+			sourceTree = "<group>";
+		};
+		922492D625F6C146003668D6 /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				922492D725F6C146003668D6 /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		922492EB25F6C348003668D6 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				922492F125F6C4A0003668D6 /* libfreetype.a */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		922492CC25F6C146003668D6 /* Graphics Converter */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 922492DD25F6C146003668D6 /* Build configuration list for PBXNativeTarget "Graphics Converter" */;
+			buildPhases = (
+				922492C925F6C146003668D6 /* Sources */,
+				922492CA25F6C146003668D6 /* Frameworks */,
+				922492CB25F6C146003668D6 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Graphics Converter";
+			productName = "Graphics Converter";
+			productReference = 922492CD25F6C146003668D6 /* Graphics Converter.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		922492C525F6C146003668D6 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 1240;
+				LastUpgradeCheck = 1240;
+				TargetAttributes = {
+					922492CC25F6C146003668D6 = {
+						CreatedOnToolsVersion = 12.4;
+					};
+				};
+			};
+			buildConfigurationList = 922492C825F6C146003668D6 /* Build configuration list for PBXProject "Graphics Converter" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 922492C425F6C146003668D6;
+			productRefGroup = 922492CE25F6C146003668D6 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				922492CC25F6C146003668D6 /* Graphics Converter */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		922492CB25F6C146003668D6 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				922492D825F6C146003668D6 /* Preview Assets.xcassets in Resources */,
+				922492D525F6C146003668D6 /* Assets.xcassets in Resources */,
+				92D34D86271732B0007BCFCF /* B612-Regular.ttf in Resources */,
+				922492F625F6C5FF003668D6 /* MerriweatherSans-Regular.ttf in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		922492C925F6C146003668D6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				922492D325F6C146003668D6 /* ContentView.swift in Sources */,
+				922492E725F6C209003668D6 /* ConverterModel.swift in Sources */,
+				922492E625F6C209003668D6 /* FreeType.swift in Sources */,
+				922492E525F6C209003668D6 /* FontConverter.swift in Sources */,
+				922492D125F6C146003668D6 /* Graphics_ConverterApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		922492DB25F6C146003668D6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LIBRARY_SEARCH_PATHS = /usr/local/lib;
+				MACOSX_DEPLOYMENT_TARGET = 11.1;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		922492DC25F6C146003668D6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LIBRARY_SEARCH_PATHS = /usr/local/lib;
+				MACOSX_DEPLOYMENT_TARGET = 11.1;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = Release;
+		};
+		922492DE25F6C146003668D6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Graphics Converter/Graphics_Converter.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_ASSET_PATHS = "\"Graphics Converter/Preview Content\"";
+				DEVELOPMENT_TEAM = TVNL896ZKT;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				HEADER_SEARCH_PATHS = /usr/local/include/freetype2;
+				INFOPLIST_FILE = "Graphics Converter/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.fireflydesign.Graphics-Converter";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "Graphics Converter/Graphics-Converter-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		922492DF25F6C146003668D6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Graphics Converter/Graphics_Converter.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_ASSET_PATHS = "\"Graphics Converter/Preview Content\"";
+				DEVELOPMENT_TEAM = TVNL896ZKT;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				HEADER_SEARCH_PATHS = /usr/local/include/freetype2;
+				INFOPLIST_FILE = "Graphics Converter/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.fireflydesign.Graphics-Converter";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "Graphics Converter/Graphics-Converter-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		922492C825F6C146003668D6 /* Build configuration list for PBXProject "Graphics Converter" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				922492DB25F6C146003668D6 /* Debug */,
+				922492DC25F6C146003668D6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		922492DD25F6C146003668D6 /* Build configuration list for PBXNativeTarget "Graphics Converter" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				922492DE25F6C146003668D6 /* Debug */,
+				922492DF25F6C146003668D6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 922492C525F6C146003668D6 /* Project object */;
+}

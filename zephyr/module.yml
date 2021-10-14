@@ -1,3 +1,4 @@
+name: firefly
 build:
   cmake: .
   kconfig: Kconfig

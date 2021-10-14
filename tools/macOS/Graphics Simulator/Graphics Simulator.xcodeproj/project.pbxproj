@@ -1,0 +1,854 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		922A3ACC2718C64E00347847 /* fd_timing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 922A3ACB2718C64E00347847 /* fd_timing.swift */; };
+		92308D3A2718BEAE00C97B35 /* fd_delay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92308D372718BEAE00C97B35 /* fd_delay.swift */; };
+		92308D3B2718BEAE00C97B35 /* fd_gpio.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92308D382718BEAE00C97B35 /* fd_gpio.swift */; };
+		92308D3C2718BEAE00C97B35 /* fd_ssd1327_bus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92308D392718BEAE00C97B35 /* fd_ssd1327_bus.swift */; };
+		9270D75B2716668000F3981C /* Graphics_SimulatorApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9270D75A2716668000F3981C /* Graphics_SimulatorApp.swift */; };
+		9270D75D2716668000F3981C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9270D75C2716668000F3981C /* ContentView.swift */; };
+		9270D75F2716668100F3981C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9270D75E2716668100F3981C /* Assets.xcassets */; };
+		9270D7622716668100F3981C /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9270D7612716668100F3981C /* Preview Assets.xcassets */; };
+		9270D76E2716668100F3981C /* Graphics_SimulatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9270D76D2716668100F3981C /* Graphics_SimulatorTests.swift */; };
+		9270D7792716668100F3981C /* Graphics_SimulatorUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9270D7782716668100F3981C /* Graphics_SimulatorUITests.swift */; };
+		9270D7AE27166EA400F3981C /* DeviceModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9270D7AD27166EA400F3981C /* DeviceModel.swift */; };
+		929BD2A42718BFB30018CA6B /* fd_cobs.c in Sources */ = {isa = PBXBuildFile; fileRef = 929BD2882718BFB20018CA6B /* fd_cobs.c */; };
+		929BD2A52718BFB30018CA6B /* fd_binary.c in Sources */ = {isa = PBXBuildFile; fileRef = 929BD28B2718BFB20018CA6B /* fd_binary.c */; };
+		929BD2A72718BFB30018CA6B /* fd_error.c in Sources */ = {isa = PBXBuildFile; fileRef = 929BD28F2718BFB20018CA6B /* fd_error.c */; };
+		929BD2A82718BFB30018CA6B /* fd_event.c in Sources */ = {isa = PBXBuildFile; fileRef = 929BD2902718BFB20018CA6B /* fd_event.c */; };
+		929BD2AA2718BFB30018CA6B /* fd_assert.c in Sources */ = {isa = PBXBuildFile; fileRef = 929BD2932718BFB20018CA6B /* fd_assert.c */; };
+		929BD2AB2718BFB30018CA6B /* fd_fifo.c in Sources */ = {isa = PBXBuildFile; fileRef = 929BD2942718BFB20018CA6B /* fd_fifo.c */; };
+		929BD2AC2718BFB30018CA6B /* fd_calendar.c in Sources */ = {isa = PBXBuildFile; fileRef = 929BD2982718BFB20018CA6B /* fd_calendar.c */; };
+		929BD2AD2718BFB30018CA6B /* fd_packet.c in Sources */ = {isa = PBXBuildFile; fileRef = 929BD29B2718BFB20018CA6B /* fd_packet.c */; };
+		929BD2AE2718BFB30018CA6B /* fd_crc32.c in Sources */ = {isa = PBXBuildFile; fileRef = 929BD29D2718BFB30018CA6B /* fd_crc32.c */; };
+		929BD2AF2718BFB30018CA6B /* fd_timing.c in Sources */ = {isa = PBXBuildFile; fileRef = 929BD29E2718BFB30018CA6B /* fd_timing.c */; };
+		929BD2B02718BFB30018CA6B /* fd_ieee754.c in Sources */ = {isa = PBXBuildFile; fileRef = 929BD29F2718BFB30018CA6B /* fd_ieee754.c */; };
+		929BD2DA2718BFCD0018CA6B /* fd_view.c in Sources */ = {isa = PBXBuildFile; fileRef = 929BD2B52718BFCC0018CA6B /* fd_view.c */; };
+		929BD2DB2718BFCD0018CA6B /* fd_graphics_ssd1327.c in Sources */ = {isa = PBXBuildFile; fileRef = 929BD2B62718BFCC0018CA6B /* fd_graphics_ssd1327.c */; };
+		929BD2DC2718BFCD0018CA6B /* fd_drawing_icon.c in Sources */ = {isa = PBXBuildFile; fileRef = 929BD2B82718BFCC0018CA6B /* fd_drawing_icon.c */; };
+		929BD2DD2718BFCD0018CA6B /* fd_ssd1327.c in Sources */ = {isa = PBXBuildFile; fileRef = 929BD2BA2718BFCC0018CA6B /* fd_ssd1327.c */; };
+		929BD2DE2718BFCD0018CA6B /* fd_view_icon.c in Sources */ = {isa = PBXBuildFile; fileRef = 929BD2BB2718BFCC0018CA6B /* fd_view_icon.c */; };
+		929BD2DF2718BFCD0018CA6B /* fd_view_rectangle.c in Sources */ = {isa = PBXBuildFile; fileRef = 929BD2BC2718BFCC0018CA6B /* fd_view_rectangle.c */; };
+		929BD2E02718BFCD0018CA6B /* fd_drawing_rectangle.c in Sources */ = {isa = PBXBuildFile; fileRef = 929BD2BD2718BFCC0018CA6B /* fd_drawing_rectangle.c */; };
+		929BD2E12718BFCD0018CA6B /* fd_drawing.c in Sources */ = {isa = PBXBuildFile; fileRef = 929BD2BF2718BFCC0018CA6B /* fd_drawing.c */; };
+		929BD2E22718BFCD0018CA6B /* fd_font_b612_regular_6.c in Sources */ = {isa = PBXBuildFile; fileRef = 929BD2C02718BFCC0018CA6B /* fd_font_b612_regular_6.c */; };
+		929BD2E32718BFCD0018CA6B /* fd_graphics.c in Sources */ = {isa = PBXBuildFile; fileRef = 929BD2C32718BFCC0018CA6B /* fd_graphics.c */; };
+		929BD2E42718BFCD0018CA6B /* fd_drawing_text.c in Sources */ = {isa = PBXBuildFile; fileRef = 929BD2C82718BFCC0018CA6B /* fd_drawing_text.c */; };
+		929BD2E52718BFCD0018CA6B /* fd_view_image.c in Sources */ = {isa = PBXBuildFile; fileRef = 929BD2C92718BFCC0018CA6B /* fd_view_image.c */; };
+		929BD2E62718BFCD0018CA6B /* fd_graphics_ili9341.c in Sources */ = {isa = PBXBuildFile; fileRef = 929BD2CA2718BFCD0018CA6B /* fd_graphics_ili9341.c */; };
+		929BD2E72718BFCD0018CA6B /* fd_font_merriweather_sans_regular_6.c in Sources */ = {isa = PBXBuildFile; fileRef = 929BD2CC2718BFCD0018CA6B /* fd_font_merriweather_sans_regular_6.c */; };
+		929BD2E82718BFCD0018CA6B /* fd_ili9341_bus_8bit.c in Sources */ = {isa = PBXBuildFile; fileRef = 929BD2CD2718BFCD0018CA6B /* fd_ili9341_bus_8bit.c */; };
+		929BD2E92718BFCD0018CA6B /* fd_drawing_image.c in Sources */ = {isa = PBXBuildFile; fileRef = 929BD2D12718BFCD0018CA6B /* fd_drawing_image.c */; };
+		929BD2EA2718BFCD0018CA6B /* fd_ili9341.c in Sources */ = {isa = PBXBuildFile; fileRef = 929BD2D22718BFCD0018CA6B /* fd_ili9341.c */; };
+		929BD2EB2718BFCD0018CA6B /* fd_view_text.c in Sources */ = {isa = PBXBuildFile; fileRef = 929BD2D32718BFCD0018CA6B /* fd_view_text.c */; };
+		929BD2EC2718BFCD0018CA6B /* fd_canvas.c in Sources */ = {isa = PBXBuildFile; fileRef = 929BD2D62718BFCD0018CA6B /* fd_canvas.c */; };
+		929BD2F52718C1140018CA6B /* fd_sdcard.c in Sources */ = {isa = PBXBuildFile; fileRef = 929BD2F02718C1140018CA6B /* fd_sdcard.c */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		9270D76A2716668100F3981C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9270D74F2716667F00F3981C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9270D7562716668000F3981C;
+			remoteInfo = "Graphics Simulator";
+		};
+		9270D7752716668100F3981C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9270D74F2716667F00F3981C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9270D7562716668000F3981C;
+			remoteInfo = "Graphics Simulator";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		922A3ACB2718C64E00347847 /* fd_timing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = fd_timing.swift; sourceTree = "<group>"; };
+		92308D372718BEAE00C97B35 /* fd_delay.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = fd_delay.swift; sourceTree = "<group>"; };
+		92308D382718BEAE00C97B35 /* fd_gpio.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = fd_gpio.swift; sourceTree = "<group>"; };
+		92308D392718BEAE00C97B35 /* fd_ssd1327_bus.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = fd_ssd1327_bus.swift; sourceTree = "<group>"; };
+		9270D7572716668000F3981C /* Graphics Simulator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Graphics Simulator.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		9270D75A2716668000F3981C /* Graphics_SimulatorApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Graphics_SimulatorApp.swift; sourceTree = "<group>"; };
+		9270D75C2716668000F3981C /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		9270D75E2716668100F3981C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		9270D7612716668100F3981C /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		9270D7632716668100F3981C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		9270D7642716668100F3981C /* Graphics_Simulator.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Graphics_Simulator.entitlements; sourceTree = "<group>"; };
+		9270D7692716668100F3981C /* Graphics SimulatorTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Graphics SimulatorTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		9270D76D2716668100F3981C /* Graphics_SimulatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Graphics_SimulatorTests.swift; sourceTree = "<group>"; };
+		9270D76F2716668100F3981C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		9270D7742716668100F3981C /* Graphics SimulatorUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Graphics SimulatorUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		9270D7782716668100F3981C /* Graphics_SimulatorUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Graphics_SimulatorUITests.swift; sourceTree = "<group>"; };
+		9270D77A2716668100F3981C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		9270D7872716675500F3981C /* Graphics Simulator-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Graphics Simulator-Bridging-Header.h"; sourceTree = "<group>"; };
+		9270D7AD27166EA400F3981C /* DeviceModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceModel.swift; sourceTree = "<group>"; };
+		929BD2882718BFB20018CA6B /* fd_cobs.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fd_cobs.c; path = ../../../../subsys/base/src/fd_cobs.c; sourceTree = "<group>"; };
+		929BD2892718BFB20018CA6B /* fd_error.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_error.h; path = ../../../../subsys/base/src/fd_error.h; sourceTree = "<group>"; };
+		929BD28A2718BFB20018CA6B /* fd_ieee754.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_ieee754.h; path = ../../../../subsys/base/src/fd_ieee754.h; sourceTree = "<group>"; };
+		929BD28B2718BFB20018CA6B /* fd_binary.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fd_binary.c; path = ../../../../subsys/base/src/fd_binary.c; sourceTree = "<group>"; };
+		929BD28C2718BFB20018CA6B /* fd_timing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_timing.h; path = ../../../../subsys/base/src/fd_timing.h; sourceTree = "<group>"; };
+		929BD28D2718BFB20018CA6B /* fd_packet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_packet.h; path = ../../../../subsys/base/src/fd_packet.h; sourceTree = "<group>"; };
+		929BD28F2718BFB20018CA6B /* fd_error.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fd_error.c; path = ../../../../subsys/base/src/fd_error.c; sourceTree = "<group>"; };
+		929BD2902718BFB20018CA6B /* fd_event.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fd_event.c; path = ../../../../subsys/base/src/fd_event.c; sourceTree = "<group>"; };
+		929BD2912718BFB20018CA6B /* fd_calendar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_calendar.h; path = ../../../../subsys/base/src/fd_calendar.h; sourceTree = "<group>"; };
+		929BD2932718BFB20018CA6B /* fd_assert.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fd_assert.c; path = ../../../../subsys/base/src/fd_assert.c; sourceTree = "<group>"; };
+		929BD2942718BFB20018CA6B /* fd_fifo.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fd_fifo.c; path = ../../../../subsys/base/src/fd_fifo.c; sourceTree = "<group>"; };
+		929BD2952718BFB20018CA6B /* fd_cobs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_cobs.h; path = ../../../../subsys/base/src/fd_cobs.h; sourceTree = "<group>"; };
+		929BD2962718BFB20018CA6B /* fd_gpio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_gpio.h; path = ../../../../subsys/base/src/fd_gpio.h; sourceTree = "<group>"; };
+		929BD2972718BFB20018CA6B /* fd_delay.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_delay.h; path = ../../../../subsys/base/src/fd_delay.h; sourceTree = "<group>"; };
+		929BD2982718BFB20018CA6B /* fd_calendar.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fd_calendar.c; path = ../../../../subsys/base/src/fd_calendar.c; sourceTree = "<group>"; };
+		929BD2992718BFB20018CA6B /* fd_assert.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_assert.h; path = ../../../../subsys/base/src/fd_assert.h; sourceTree = "<group>"; };
+		929BD29A2718BFB20018CA6B /* fd_unused.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_unused.h; path = ../../../../subsys/base/src/fd_unused.h; sourceTree = "<group>"; };
+		929BD29B2718BFB20018CA6B /* fd_packet.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fd_packet.c; path = ../../../../subsys/base/src/fd_packet.c; sourceTree = "<group>"; };
+		929BD29C2718BFB20018CA6B /* fd_crc32.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_crc32.h; path = ../../../../subsys/base/src/fd_crc32.h; sourceTree = "<group>"; };
+		929BD29D2718BFB30018CA6B /* fd_crc32.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fd_crc32.c; path = ../../../../subsys/base/src/fd_crc32.c; sourceTree = "<group>"; };
+		929BD29E2718BFB30018CA6B /* fd_timing.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fd_timing.c; path = ../../../../subsys/base/src/fd_timing.c; sourceTree = "<group>"; };
+		929BD29F2718BFB30018CA6B /* fd_ieee754.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fd_ieee754.c; path = ../../../../subsys/base/src/fd_ieee754.c; sourceTree = "<group>"; };
+		929BD2A02718BFB30018CA6B /* fd_binary.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_binary.h; path = ../../../../subsys/base/src/fd_binary.h; sourceTree = "<group>"; };
+		929BD2A12718BFB30018CA6B /* fd_event.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_event.h; path = ../../../../subsys/base/src/fd_event.h; sourceTree = "<group>"; };
+		929BD2A22718BFB30018CA6B /* fd_fifo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_fifo.h; path = ../../../../subsys/base/src/fd_fifo.h; sourceTree = "<group>"; };
+		929BD2B22718BFCC0018CA6B /* fd_ili9341.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_ili9341.h; path = ../../../../subsys/graphics/src/fd_ili9341.h; sourceTree = "<group>"; };
+		929BD2B32718BFCC0018CA6B /* fd_view_image.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_view_image.h; path = ../../../../subsys/graphics/src/fd_view_image.h; sourceTree = "<group>"; };
+		929BD2B42718BFCC0018CA6B /* fd_font_merriweather_sans_regular_6.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_font_merriweather_sans_regular_6.h; path = ../../../../subsys/graphics/src/fd_font_merriweather_sans_regular_6.h; sourceTree = "<group>"; };
+		929BD2B52718BFCC0018CA6B /* fd_view.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fd_view.c; path = ../../../../subsys/graphics/src/fd_view.c; sourceTree = "<group>"; };
+		929BD2B62718BFCC0018CA6B /* fd_graphics_ssd1327.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fd_graphics_ssd1327.c; path = ../../../../subsys/graphics/src/fd_graphics_ssd1327.c; sourceTree = "<group>"; };
+		929BD2B72718BFCC0018CA6B /* fd_view_rectangle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_view_rectangle.h; path = ../../../../subsys/graphics/src/fd_view_rectangle.h; sourceTree = "<group>"; };
+		929BD2B82718BFCC0018CA6B /* fd_drawing_icon.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fd_drawing_icon.c; path = ../../../../subsys/graphics/src/fd_drawing_icon.c; sourceTree = "<group>"; };
+		929BD2B92718BFCC0018CA6B /* fd_ssd1327_bus.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_ssd1327_bus.h; path = ../../../../subsys/graphics/src/fd_ssd1327_bus.h; sourceTree = "<group>"; };
+		929BD2BA2718BFCC0018CA6B /* fd_ssd1327.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fd_ssd1327.c; path = ../../../../subsys/graphics/src/fd_ssd1327.c; sourceTree = "<group>"; };
+		929BD2BB2718BFCC0018CA6B /* fd_view_icon.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fd_view_icon.c; path = ../../../../subsys/graphics/src/fd_view_icon.c; sourceTree = "<group>"; };
+		929BD2BC2718BFCC0018CA6B /* fd_view_rectangle.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fd_view_rectangle.c; path = ../../../../subsys/graphics/src/fd_view_rectangle.c; sourceTree = "<group>"; };
+		929BD2BD2718BFCC0018CA6B /* fd_drawing_rectangle.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fd_drawing_rectangle.c; path = ../../../../subsys/graphics/src/fd_drawing_rectangle.c; sourceTree = "<group>"; };
+		929BD2BE2718BFCC0018CA6B /* fd_drawing_rectangle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_drawing_rectangle.h; path = ../../../../subsys/graphics/src/fd_drawing_rectangle.h; sourceTree = "<group>"; };
+		929BD2BF2718BFCC0018CA6B /* fd_drawing.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fd_drawing.c; path = ../../../../subsys/graphics/src/fd_drawing.c; sourceTree = "<group>"; };
+		929BD2C02718BFCC0018CA6B /* fd_font_b612_regular_6.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fd_font_b612_regular_6.c; path = ../../../../subsys/graphics/src/fd_font_b612_regular_6.c; sourceTree = "<group>"; };
+		929BD2C12718BFCC0018CA6B /* fd_canvas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_canvas.h; path = ../../../../subsys/graphics/src/fd_canvas.h; sourceTree = "<group>"; };
+		929BD2C22718BFCC0018CA6B /* fd_ili9341_bus.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_ili9341_bus.h; path = ../../../../subsys/graphics/src/fd_ili9341_bus.h; sourceTree = "<group>"; };
+		929BD2C32718BFCC0018CA6B /* fd_graphics.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fd_graphics.c; path = ../../../../subsys/graphics/src/fd_graphics.c; sourceTree = "<group>"; };
+		929BD2C42718BFCC0018CA6B /* fd_ssd1327.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_ssd1327.h; path = ../../../../subsys/graphics/src/fd_ssd1327.h; sourceTree = "<group>"; };
+		929BD2C52718BFCC0018CA6B /* fd_font_b612_regular_6.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_font_b612_regular_6.h; path = ../../../../subsys/graphics/src/fd_font_b612_regular_6.h; sourceTree = "<group>"; };
+		929BD2C62718BFCC0018CA6B /* fd_view_icon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_view_icon.h; path = ../../../../subsys/graphics/src/fd_view_icon.h; sourceTree = "<group>"; };
+		929BD2C72718BFCC0018CA6B /* fd_drawing_image.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_drawing_image.h; path = ../../../../subsys/graphics/src/fd_drawing_image.h; sourceTree = "<group>"; };
+		929BD2C82718BFCC0018CA6B /* fd_drawing_text.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fd_drawing_text.c; path = ../../../../subsys/graphics/src/fd_drawing_text.c; sourceTree = "<group>"; };
+		929BD2C92718BFCC0018CA6B /* fd_view_image.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fd_view_image.c; path = ../../../../subsys/graphics/src/fd_view_image.c; sourceTree = "<group>"; };
+		929BD2CA2718BFCD0018CA6B /* fd_graphics_ili9341.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fd_graphics_ili9341.c; path = ../../../../subsys/graphics/src/fd_graphics_ili9341.c; sourceTree = "<group>"; };
+		929BD2CB2718BFCD0018CA6B /* fd_drawing_icon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_drawing_icon.h; path = ../../../../subsys/graphics/src/fd_drawing_icon.h; sourceTree = "<group>"; };
+		929BD2CC2718BFCD0018CA6B /* fd_font_merriweather_sans_regular_6.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fd_font_merriweather_sans_regular_6.c; path = ../../../../subsys/graphics/src/fd_font_merriweather_sans_regular_6.c; sourceTree = "<group>"; };
+		929BD2CD2718BFCD0018CA6B /* fd_ili9341_bus_8bit.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fd_ili9341_bus_8bit.c; path = ../../../../subsys/graphics/src/fd_ili9341_bus_8bit.c; sourceTree = "<group>"; };
+		929BD2CE2718BFCD0018CA6B /* fd_drawing_text.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_drawing_text.h; path = ../../../../subsys/graphics/src/fd_drawing_text.h; sourceTree = "<group>"; };
+		929BD2CF2718BFCD0018CA6B /* fd_graphics_ili9341.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_graphics_ili9341.h; path = ../../../../subsys/graphics/src/fd_graphics_ili9341.h; sourceTree = "<group>"; };
+		929BD2D02718BFCD0018CA6B /* fd_drawing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_drawing.h; path = ../../../../subsys/graphics/src/fd_drawing.h; sourceTree = "<group>"; };
+		929BD2D12718BFCD0018CA6B /* fd_drawing_image.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fd_drawing_image.c; path = ../../../../subsys/graphics/src/fd_drawing_image.c; sourceTree = "<group>"; };
+		929BD2D22718BFCD0018CA6B /* fd_ili9341.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fd_ili9341.c; path = ../../../../subsys/graphics/src/fd_ili9341.c; sourceTree = "<group>"; };
+		929BD2D32718BFCD0018CA6B /* fd_view_text.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fd_view_text.c; path = ../../../../subsys/graphics/src/fd_view_text.c; sourceTree = "<group>"; };
+		929BD2D42718BFCD0018CA6B /* fd_graphics.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_graphics.h; path = ../../../../subsys/graphics/src/fd_graphics.h; sourceTree = "<group>"; };
+		929BD2D52718BFCD0018CA6B /* fd_view.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_view.h; path = ../../../../subsys/graphics/src/fd_view.h; sourceTree = "<group>"; };
+		929BD2D62718BFCD0018CA6B /* fd_canvas.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fd_canvas.c; path = ../../../../subsys/graphics/src/fd_canvas.c; sourceTree = "<group>"; };
+		929BD2D82718BFCD0018CA6B /* fd_graphics_ssd1327.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_graphics_ssd1327.h; path = ../../../../subsys/graphics/src/fd_graphics_ssd1327.h; sourceTree = "<group>"; };
+		929BD2D92718BFCD0018CA6B /* fd_view_text.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_view_text.h; path = ../../../../subsys/graphics/src/fd_view_text.h; sourceTree = "<group>"; };
+		929BD2F02718C1140018CA6B /* fd_sdcard.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fd_sdcard.c; path = ../../../../subsys/storage/src/fd_sdcard.c; sourceTree = "<group>"; };
+		929BD2F12718C1140018CA6B /* fd_sdcard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_sdcard.h; path = ../../../../subsys/storage/src/fd_sdcard.h; sourceTree = "<group>"; };
+		929BD2F22718C1140018CA6B /* fd_sdcard_spi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_sdcard_spi.h; path = ../../../../subsys/storage/src/fd_sdcard_spi.h; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		9270D7542716668000F3981C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9270D7662716668100F3981C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9270D7712716668100F3981C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		9207841A271762F500901470 /* base */ = {
+			isa = PBXGroup;
+			children = (
+				929BD2932718BFB20018CA6B /* fd_assert.c */,
+				929BD2992718BFB20018CA6B /* fd_assert.h */,
+				929BD28B2718BFB20018CA6B /* fd_binary.c */,
+				929BD2A02718BFB30018CA6B /* fd_binary.h */,
+				929BD2982718BFB20018CA6B /* fd_calendar.c */,
+				929BD2912718BFB20018CA6B /* fd_calendar.h */,
+				929BD2882718BFB20018CA6B /* fd_cobs.c */,
+				929BD2952718BFB20018CA6B /* fd_cobs.h */,
+				929BD29D2718BFB30018CA6B /* fd_crc32.c */,
+				929BD29C2718BFB20018CA6B /* fd_crc32.h */,
+				929BD2972718BFB20018CA6B /* fd_delay.h */,
+				929BD28F2718BFB20018CA6B /* fd_error.c */,
+				929BD2892718BFB20018CA6B /* fd_error.h */,
+				929BD2902718BFB20018CA6B /* fd_event.c */,
+				929BD2A12718BFB30018CA6B /* fd_event.h */,
+				929BD2942718BFB20018CA6B /* fd_fifo.c */,
+				929BD2A22718BFB30018CA6B /* fd_fifo.h */,
+				929BD2962718BFB20018CA6B /* fd_gpio.h */,
+				929BD29F2718BFB30018CA6B /* fd_ieee754.c */,
+				929BD28A2718BFB20018CA6B /* fd_ieee754.h */,
+				929BD29B2718BFB20018CA6B /* fd_packet.c */,
+				929BD28D2718BFB20018CA6B /* fd_packet.h */,
+				929BD29E2718BFB30018CA6B /* fd_timing.c */,
+				929BD28C2718BFB20018CA6B /* fd_timing.h */,
+				929BD29A2718BFB20018CA6B /* fd_unused.h */,
+			);
+			name = base;
+			sourceTree = "<group>";
+		};
+		9207841B2717630B00901470 /* graphics */ = {
+			isa = PBXGroup;
+			children = (
+				929BD2D62718BFCD0018CA6B /* fd_canvas.c */,
+				929BD2C12718BFCC0018CA6B /* fd_canvas.h */,
+				929BD2B82718BFCC0018CA6B /* fd_drawing_icon.c */,
+				929BD2CB2718BFCD0018CA6B /* fd_drawing_icon.h */,
+				929BD2D12718BFCD0018CA6B /* fd_drawing_image.c */,
+				929BD2C72718BFCC0018CA6B /* fd_drawing_image.h */,
+				929BD2BD2718BFCC0018CA6B /* fd_drawing_rectangle.c */,
+				929BD2BE2718BFCC0018CA6B /* fd_drawing_rectangle.h */,
+				929BD2C82718BFCC0018CA6B /* fd_drawing_text.c */,
+				929BD2CE2718BFCD0018CA6B /* fd_drawing_text.h */,
+				929BD2BF2718BFCC0018CA6B /* fd_drawing.c */,
+				929BD2D02718BFCD0018CA6B /* fd_drawing.h */,
+				929BD2C02718BFCC0018CA6B /* fd_font_b612_regular_6.c */,
+				929BD2C52718BFCC0018CA6B /* fd_font_b612_regular_6.h */,
+				929BD2CC2718BFCD0018CA6B /* fd_font_merriweather_sans_regular_6.c */,
+				929BD2B42718BFCC0018CA6B /* fd_font_merriweather_sans_regular_6.h */,
+				929BD2CA2718BFCD0018CA6B /* fd_graphics_ili9341.c */,
+				929BD2CF2718BFCD0018CA6B /* fd_graphics_ili9341.h */,
+				929BD2B62718BFCC0018CA6B /* fd_graphics_ssd1327.c */,
+				929BD2D82718BFCD0018CA6B /* fd_graphics_ssd1327.h */,
+				929BD2C32718BFCC0018CA6B /* fd_graphics.c */,
+				929BD2D42718BFCD0018CA6B /* fd_graphics.h */,
+				929BD2CD2718BFCD0018CA6B /* fd_ili9341_bus_8bit.c */,
+				929BD2C22718BFCC0018CA6B /* fd_ili9341_bus.h */,
+				929BD2D22718BFCD0018CA6B /* fd_ili9341.c */,
+				929BD2B22718BFCC0018CA6B /* fd_ili9341.h */,
+				929BD2B92718BFCC0018CA6B /* fd_ssd1327_bus.h */,
+				929BD2BA2718BFCC0018CA6B /* fd_ssd1327.c */,
+				929BD2C42718BFCC0018CA6B /* fd_ssd1327.h */,
+				929BD2BB2718BFCC0018CA6B /* fd_view_icon.c */,
+				929BD2C62718BFCC0018CA6B /* fd_view_icon.h */,
+				929BD2C92718BFCC0018CA6B /* fd_view_image.c */,
+				929BD2B32718BFCC0018CA6B /* fd_view_image.h */,
+				929BD2BC2718BFCC0018CA6B /* fd_view_rectangle.c */,
+				929BD2B72718BFCC0018CA6B /* fd_view_rectangle.h */,
+				929BD2D32718BFCD0018CA6B /* fd_view_text.c */,
+				929BD2D92718BFCD0018CA6B /* fd_view_text.h */,
+				929BD2B52718BFCC0018CA6B /* fd_view.c */,
+				929BD2D52718BFCD0018CA6B /* fd_view.h */,
+			);
+			name = graphics;
+			sourceTree = "<group>";
+		};
+		9270D74E2716667F00F3981C = {
+			isa = PBXGroup;
+			children = (
+				9270D7592716668000F3981C /* Graphics Simulator */,
+				9270D76C2716668100F3981C /* Graphics SimulatorTests */,
+				9270D7772716668100F3981C /* Graphics SimulatorUITests */,
+				9270D7582716668000F3981C /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		9270D7582716668000F3981C /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				9270D7572716668000F3981C /* Graphics Simulator.app */,
+				9270D7692716668100F3981C /* Graphics SimulatorTests.xctest */,
+				9270D7742716668100F3981C /* Graphics SimulatorUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		9270D7592716668000F3981C /* Graphics Simulator */ = {
+			isa = PBXGroup;
+			children = (
+				9270D7A32716699D00F3981C /* simulations */,
+				9270D786271666E400F3981C /* firmware */,
+				9270D75A2716668000F3981C /* Graphics_SimulatorApp.swift */,
+				9270D75C2716668000F3981C /* ContentView.swift */,
+				9270D75E2716668100F3981C /* Assets.xcassets */,
+				9270D7632716668100F3981C /* Info.plist */,
+				9270D7642716668100F3981C /* Graphics_Simulator.entitlements */,
+				9270D7602716668100F3981C /* Preview Content */,
+				9270D7AD27166EA400F3981C /* DeviceModel.swift */,
+			);
+			path = "Graphics Simulator";
+			sourceTree = "<group>";
+		};
+		9270D7602716668100F3981C /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				9270D7612716668100F3981C /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		9270D76C2716668100F3981C /* Graphics SimulatorTests */ = {
+			isa = PBXGroup;
+			children = (
+				9270D76D2716668100F3981C /* Graphics_SimulatorTests.swift */,
+				9270D76F2716668100F3981C /* Info.plist */,
+			);
+			path = "Graphics SimulatorTests";
+			sourceTree = "<group>";
+		};
+		9270D7772716668100F3981C /* Graphics SimulatorUITests */ = {
+			isa = PBXGroup;
+			children = (
+				9270D7782716668100F3981C /* Graphics_SimulatorUITests.swift */,
+				9270D77A2716668100F3981C /* Info.plist */,
+			);
+			path = "Graphics SimulatorUITests";
+			sourceTree = "<group>";
+		};
+		9270D786271666E400F3981C /* firmware */ = {
+			isa = PBXGroup;
+			children = (
+				929BD2EE2718C1010018CA6B /* storage */,
+				9207841B2717630B00901470 /* graphics */,
+				9207841A271762F500901470 /* base */,
+			);
+			name = firmware;
+			sourceTree = "<group>";
+		};
+		9270D7A32716699D00F3981C /* simulations */ = {
+			isa = PBXGroup;
+			children = (
+				9270D7872716675500F3981C /* Graphics Simulator-Bridging-Header.h */,
+				92308D372718BEAE00C97B35 /* fd_delay.swift */,
+				92308D382718BEAE00C97B35 /* fd_gpio.swift */,
+				92308D392718BEAE00C97B35 /* fd_ssd1327_bus.swift */,
+				922A3ACB2718C64E00347847 /* fd_timing.swift */,
+			);
+			name = simulations;
+			sourceTree = "<group>";
+		};
+		929BD2EE2718C1010018CA6B /* storage */ = {
+			isa = PBXGroup;
+			children = (
+				929BD2F22718C1140018CA6B /* fd_sdcard_spi.h */,
+				929BD2F02718C1140018CA6B /* fd_sdcard.c */,
+				929BD2F12718C1140018CA6B /* fd_sdcard.h */,
+			);
+			name = storage;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		9270D7562716668000F3981C /* Graphics Simulator */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9270D77D2716668100F3981C /* Build configuration list for PBXNativeTarget "Graphics Simulator" */;
+			buildPhases = (
+				9270D7532716668000F3981C /* Sources */,
+				9270D7542716668000F3981C /* Frameworks */,
+				9270D7552716668000F3981C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Graphics Simulator";
+			productName = "Graphics Simulator";
+			productReference = 9270D7572716668000F3981C /* Graphics Simulator.app */;
+			productType = "com.apple.product-type.application";
+		};
+		9270D7682716668100F3981C /* Graphics SimulatorTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9270D7802716668100F3981C /* Build configuration list for PBXNativeTarget "Graphics SimulatorTests" */;
+			buildPhases = (
+				9270D7652716668100F3981C /* Sources */,
+				9270D7662716668100F3981C /* Frameworks */,
+				9270D7672716668100F3981C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				9270D76B2716668100F3981C /* PBXTargetDependency */,
+			);
+			name = "Graphics SimulatorTests";
+			productName = "Graphics SimulatorTests";
+			productReference = 9270D7692716668100F3981C /* Graphics SimulatorTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		9270D7732716668100F3981C /* Graphics SimulatorUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9270D7832716668100F3981C /* Build configuration list for PBXNativeTarget "Graphics SimulatorUITests" */;
+			buildPhases = (
+				9270D7702716668100F3981C /* Sources */,
+				9270D7712716668100F3981C /* Frameworks */,
+				9270D7722716668100F3981C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				9270D7762716668100F3981C /* PBXTargetDependency */,
+			);
+			name = "Graphics SimulatorUITests";
+			productName = "Graphics SimulatorUITests";
+			productReference = 9270D7742716668100F3981C /* Graphics SimulatorUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		9270D74F2716667F00F3981C /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 1250;
+				LastUpgradeCheck = 1250;
+				TargetAttributes = {
+					9270D7562716668000F3981C = {
+						CreatedOnToolsVersion = 12.5.1;
+						LastSwiftMigration = 1250;
+					};
+					9270D7682716668100F3981C = {
+						CreatedOnToolsVersion = 12.5.1;
+						TestTargetID = 9270D7562716668000F3981C;
+					};
+					9270D7732716668100F3981C = {
+						CreatedOnToolsVersion = 12.5.1;
+						TestTargetID = 9270D7562716668000F3981C;
+					};
+				};
+			};
+			buildConfigurationList = 9270D7522716667F00F3981C /* Build configuration list for PBXProject "Graphics Simulator" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 9270D74E2716667F00F3981C;
+			productRefGroup = 9270D7582716668000F3981C /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				9270D7562716668000F3981C /* Graphics Simulator */,
+				9270D7682716668100F3981C /* Graphics SimulatorTests */,
+				9270D7732716668100F3981C /* Graphics SimulatorUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		9270D7552716668000F3981C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9270D7622716668100F3981C /* Preview Assets.xcassets in Resources */,
+				9270D75F2716668100F3981C /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9270D7672716668100F3981C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9270D7722716668100F3981C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		9270D7532716668000F3981C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				929BD2A72718BFB30018CA6B /* fd_error.c in Sources */,
+				92308D3B2718BEAE00C97B35 /* fd_gpio.swift in Sources */,
+				929BD2E42718BFCD0018CA6B /* fd_drawing_text.c in Sources */,
+				929BD2E72718BFCD0018CA6B /* fd_font_merriweather_sans_regular_6.c in Sources */,
+				92308D3A2718BEAE00C97B35 /* fd_delay.swift in Sources */,
+				929BD2A82718BFB30018CA6B /* fd_event.c in Sources */,
+				929BD2E52718BFCD0018CA6B /* fd_view_image.c in Sources */,
+				929BD2DD2718BFCD0018CA6B /* fd_ssd1327.c in Sources */,
+				929BD2DF2718BFCD0018CA6B /* fd_view_rectangle.c in Sources */,
+				929BD2DE2718BFCD0018CA6B /* fd_view_icon.c in Sources */,
+				929BD2A52718BFB30018CA6B /* fd_binary.c in Sources */,
+				929BD2E62718BFCD0018CA6B /* fd_graphics_ili9341.c in Sources */,
+				929BD2E92718BFCD0018CA6B /* fd_drawing_image.c in Sources */,
+				929BD2AE2718BFB30018CA6B /* fd_crc32.c in Sources */,
+				929BD2AB2718BFB30018CA6B /* fd_fifo.c in Sources */,
+				9270D75D2716668000F3981C /* ContentView.swift in Sources */,
+				929BD2E22718BFCD0018CA6B /* fd_font_b612_regular_6.c in Sources */,
+				929BD2F52718C1140018CA6B /* fd_sdcard.c in Sources */,
+				929BD2DB2718BFCD0018CA6B /* fd_graphics_ssd1327.c in Sources */,
+				929BD2DC2718BFCD0018CA6B /* fd_drawing_icon.c in Sources */,
+				929BD2E32718BFCD0018CA6B /* fd_graphics.c in Sources */,
+				929BD2AC2718BFB30018CA6B /* fd_calendar.c in Sources */,
+				929BD2B02718BFB30018CA6B /* fd_ieee754.c in Sources */,
+				929BD2E02718BFCD0018CA6B /* fd_drawing_rectangle.c in Sources */,
+				929BD2EC2718BFCD0018CA6B /* fd_canvas.c in Sources */,
+				929BD2DA2718BFCD0018CA6B /* fd_view.c in Sources */,
+				929BD2AA2718BFB30018CA6B /* fd_assert.c in Sources */,
+				922A3ACC2718C64E00347847 /* fd_timing.swift in Sources */,
+				9270D75B2716668000F3981C /* Graphics_SimulatorApp.swift in Sources */,
+				92308D3C2718BEAE00C97B35 /* fd_ssd1327_bus.swift in Sources */,
+				929BD2E12718BFCD0018CA6B /* fd_drawing.c in Sources */,
+				929BD2EB2718BFCD0018CA6B /* fd_view_text.c in Sources */,
+				929BD2AD2718BFB30018CA6B /* fd_packet.c in Sources */,
+				929BD2A42718BFB30018CA6B /* fd_cobs.c in Sources */,
+				9270D7AE27166EA400F3981C /* DeviceModel.swift in Sources */,
+				929BD2EA2718BFCD0018CA6B /* fd_ili9341.c in Sources */,
+				929BD2E82718BFCD0018CA6B /* fd_ili9341_bus_8bit.c in Sources */,
+				929BD2AF2718BFB30018CA6B /* fd_timing.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9270D7652716668100F3981C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9270D76E2716668100F3981C /* Graphics_SimulatorTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9270D7702716668100F3981C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9270D7792716668100F3981C /* Graphics_SimulatorUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		9270D76B2716668100F3981C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9270D7562716668000F3981C /* Graphics Simulator */;
+			targetProxy = 9270D76A2716668100F3981C /* PBXContainerItemProxy */;
+		};
+		9270D7762716668100F3981C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9270D7562716668000F3981C /* Graphics Simulator */;
+			targetProxy = 9270D7752716668100F3981C /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		9270D77B2716668100F3981C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 11.3;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		9270D77C2716668100F3981C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 11.3;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = Release;
+		};
+		9270D77E2716668100F3981C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = "Graphics Simulator/Graphics_Simulator.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_ASSET_PATHS = "\"Graphics Simulator/Preview Content\"";
+				DEVELOPMENT_TEAM = TVNL896ZKT;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				INFOPLIST_FILE = "Graphics Simulator/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.fireflydesign.Graphics-Simulator";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "Graphics Simulator/Graphics Simulator-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		9270D77F2716668100F3981C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = "Graphics Simulator/Graphics_Simulator.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_ASSET_PATHS = "\"Graphics Simulator/Preview Content\"";
+				DEVELOPMENT_TEAM = TVNL896ZKT;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				INFOPLIST_FILE = "Graphics Simulator/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.fireflydesign.Graphics-Simulator";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "Graphics Simulator/Graphics Simulator-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		9270D7812716668100F3981C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = TVNL896ZKT;
+				INFOPLIST_FILE = "Graphics SimulatorTests/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.fireflydesign.Graphics-SimulatorTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Graphics Simulator.app/Contents/MacOS/Graphics Simulator";
+			};
+			name = Debug;
+		};
+		9270D7822716668100F3981C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = TVNL896ZKT;
+				INFOPLIST_FILE = "Graphics SimulatorTests/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.fireflydesign.Graphics-SimulatorTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Graphics Simulator.app/Contents/MacOS/Graphics Simulator";
+			};
+			name = Release;
+		};
+		9270D7842716668100F3981C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = TVNL896ZKT;
+				INFOPLIST_FILE = "Graphics SimulatorUITests/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.fireflydesign.Graphics-SimulatorUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = "Graphics Simulator";
+			};
+			name = Debug;
+		};
+		9270D7852716668100F3981C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = TVNL896ZKT;
+				INFOPLIST_FILE = "Graphics SimulatorUITests/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.fireflydesign.Graphics-SimulatorUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = "Graphics Simulator";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		9270D7522716667F00F3981C /* Build configuration list for PBXProject "Graphics Simulator" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9270D77B2716668100F3981C /* Debug */,
+				9270D77C2716668100F3981C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		9270D77D2716668100F3981C /* Build configuration list for PBXNativeTarget "Graphics Simulator" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9270D77E2716668100F3981C /* Debug */,
+				9270D77F2716668100F3981C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		9270D7802716668100F3981C /* Build configuration list for PBXNativeTarget "Graphics SimulatorTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9270D7812716668100F3981C /* Debug */,
+				9270D7822716668100F3981C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		9270D7832716668100F3981C /* Build configuration list for PBXNativeTarget "Graphics SimulatorUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9270D7842716668100F3981C /* Debug */,
+				9270D7852716668100F3981C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 9270D74F2716667F00F3981C /* Project object */;
+}
