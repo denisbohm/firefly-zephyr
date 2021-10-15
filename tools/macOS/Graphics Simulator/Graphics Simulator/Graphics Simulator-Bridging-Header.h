@@ -10,3 +10,4 @@
 #include "fd_graphics.h"
 #include "fd_graphics_ssd1327.h"
 #include "fd_ssd1327_bus.h"
+#include "fd_ux.h"

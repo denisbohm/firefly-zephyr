@@ -106,6 +106,11 @@ const uint8_t fd_font_b612_regular_6_data_0035[] = {
     0x51, 0x3f, 0x20, 0x00, 0x1e, 0x30, 0x15, 0xca, 0x00, 0xfc, 0x61, 0x00,
 };
 
+const uint8_t fd_font_b612_regular_6_data_0036[] = {
+    0x00, 0x6d, 0xa0, 0x06, 0xd2, 0x00, 0x1e, 0x20, 0x00, 0x4d, 0xcf, 0xb1,
+    0x6d, 0x31, 0xb8, 0x5b, 0x00, 0x79, 0x1e, 0x21, 0xc5, 0x05, 0xde, 0x80,
+};
+
 const uint8_t fd_font_b612_regular_6_data_0037[] = {
     0x88, 0x88, 0x40, 0x55, 0x5d, 0x60, 0x00, 0x4d, 0x10, 0x01, 0xd5, 0x00,
     0x05, 0xc0, 0x00, 0x0b, 0x50, 0x00, 0x0f, 0x20, 0x00, 0x0f, 0x10, 0x00,
@@ -709,6 +714,17 @@ const fd_graphics_glyph_t fd_font_b612_regular_6_glyphs[] = {
             .depth = 4,
             .origin = { .x = -1, .y = 8},
             .data = fd_font_b612_regular_6_data_0035,
+        },
+    },
+    {
+        .character = 0x0036,
+        .advance = 7,
+        .bitmap = {
+            .width = 6,
+            .height = 8,
+            .depth = 4,
+            .origin = { .x = 0, .y = 8},
+            .data = fd_font_b612_regular_6_data_0036,
         },
     },
     {
@@ -1510,6 +1526,7 @@ const fd_graphics_font_t fd_font_b612_regular_6 = {
     .height = 6.0f,
     .advance = 4,
     .ascent = 0,
-    .glyph_count = 93,
+    .glyph_count = 94,
     .glyphs = fd_font_b612_regular_6_glyphs,
 };
+

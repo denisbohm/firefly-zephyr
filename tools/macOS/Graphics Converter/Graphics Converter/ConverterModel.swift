@@ -31,7 +31,7 @@ class ConverterModel: ObservableObject {
         let fileName = Bundle.main.path(forResource: "B612-Regular", ofType: "ttf")!
         let characters =
             "!\"#$%&'()*+,-./" +
-            "012345789" +
+            "0123456789" +
             ":;<=>?@" +
             "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
             "[\\]^_`" +

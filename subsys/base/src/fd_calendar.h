@@ -18,8 +18,8 @@ typedef struct {
     unsigned hour;
 } fd_calendar_12_hour_t;
 
-int32_t fd_calendar_to_time(fd_calendar_t calendar);
-fd_calendar_t fd_calendar_from_time(int32_t time);
+int64_t fd_calendar_to_time(fd_calendar_t calendar);
+fd_calendar_t fd_calendar_from_time(int64_t time);
 
 fd_calendar_12_hour_t fd_calendar_get_12_hour(const fd_calendar_t *date_time);
 

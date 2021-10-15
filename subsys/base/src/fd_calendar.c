@@ -30,13 +30,13 @@ static int32_t ydays(int m) {
     return 0;
 }
 
-int32_t fd_calendar_to_time(fd_calendar_t calendar) {
+int64_t fd_calendar_to_time(fd_calendar_t calendar) {
     int32_t years;
     int32_t days;
     int32_t hour;
     int32_t min;
     int32_t sec;
-    int32_t time;
+    int64_t time;
 
     years = calendar.year + 1900;
     days = calendar.mday - 1; // 1..31 -> 0..30
@@ -45,13 +45,13 @@ int32_t fd_calendar_to_time(fd_calendar_t calendar) {
         ++days;
     }
     days = days + 365 * (years - 1970) + nleap(years);
-    time = 86400 * days;
+    time = 86400 * (int64_t)days;
     hour = calendar.hour;
     time += 3600 * hour;
     min = calendar.min;
     time += 60 * min;
     sec = calendar.sec;
-    time +=    sec;
+    time += sec;
     return time;
 }
 
@@ -100,7 +100,7 @@ static int32_t ymdays(int ym) {
     return 31; // should never reach here
 }
 
-fd_calendar_t fd_calendar_from_time(int32_t time) {
+fd_calendar_t fd_calendar_from_time(int64_t time) {
     fd_calendar_t calendar;
     int32_t dayclock;
     int32_t dayno;
@@ -110,12 +110,12 @@ fd_calendar_t fd_calendar_from_time(int32_t time) {
     int32_t ys;
     int32_t sec;
 
-    dayclock = time % 86400;
+    dayclock = (int32_t)(time % 86400);
     sec = dayclock % 60;
     calendar.sec = (int) (sec);
     calendar.min = (int) ((dayclock % 3600) / 60);
     calendar.hour = (int) (dayclock / 3600);
-    dayno = time / 86400;
+    dayno = (int32_t)(time / 86400);
     calendar.wday = (int) ((dayno + 4) % 7); // day 0 was a thursday
     year = 1970;
     while (dayno >= (ys = yearsize(year))) {
