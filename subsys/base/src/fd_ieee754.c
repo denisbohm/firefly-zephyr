@@ -172,6 +172,7 @@ static int singles2halfp(void *target, void *source, int numel)
     return 0;
 }
 
+#if 0
 //-----------------------------------------------------------------------------
 //
 // Routine:  doubles2halfp
@@ -267,6 +268,8 @@ static int doubles2halfp(void *target, void *source, int numel)
     return 0;
 }
 
+#endif
+
 //-----------------------------------------------------------------------------
 //
 // Routine:  halfp2singles
@@ -351,6 +354,8 @@ static int halfp2singles(void *target, void *source, int numel)
     }
     return 0;
 }
+
+#if 0
 
 //-----------------------------------------------------------------------------
 //
@@ -439,6 +444,8 @@ static int halfp2doubles(void *target, void *source, int numel)
     }
     return 0;
 }
+
+#endif
 
 uint16_t fd_ieee754_float_to_uint16(float value) {
     uint16_t iv;
