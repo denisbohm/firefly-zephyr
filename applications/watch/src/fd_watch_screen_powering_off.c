@@ -81,7 +81,7 @@ void fd_watch_screen_powering_off_initialize(fd_ux_screen_t *screen) {
         .visible = true,
         .location = { .x = 64, .y = 64 },
         .alignments = { .x = fd_view_alignment_center, .y = fd_view_alignment_center },
-        .string = { .string = "Powering Off In:", .length = 16 },
+        .string = { .string = "Powering Off", .length = 12 },
         .font.font = &fd_font_b612_regular_6,
         .color = { .argb = 0xffffffff },
     };

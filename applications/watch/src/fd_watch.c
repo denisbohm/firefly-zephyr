@@ -26,8 +26,10 @@ void fd_watch_power_off(void) {
 
 void fd_watch_button_event(const fd_ux_button_event_t *event) {
     if (!fd_ux_is_powered_on()) {
-        fd_watch_power_on();
-        fd_ux_set_screen(fd_watch_screen_id_time);
+        if (fd_ux_button_is_any_activated(event, fd_watch_button_both)) {
+            fd_watch_power_on();
+            fd_ux_set_screen(fd_watch_screen_id_time);
+        }
     } else
     if (fd_ux_button_is_all_activated(event, fd_watch_button_both)) {
         fd_ux_set_screen(fd_watch_screen_id_powering_off);

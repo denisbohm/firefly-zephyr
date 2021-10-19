@@ -30,6 +30,30 @@ class SimulateSSD1327 {
         
     }
     
+    class CommandSetDisplayOn: Command {
+        
+        init() {
+            super.init(code: CODE_SET_DISPLAY_ON)
+        }
+        
+        override func decode(bytes: [UInt8]) {
+            simulateSSD1327.set_display_on()
+        }
+        
+    }
+    
+    class CommandSetDisplayOff: Command {
+        
+        init() {
+            super.init(code: CODE_SET_DISPLAY_OFF)
+        }
+        
+        override func decode(bytes: [UInt8]) {
+            simulateSSD1327.set_display_off()
+        }
+        
+    }
+    
     class CommandSetAddress: Command {
 
         var start: Int = 0
@@ -73,6 +97,8 @@ class SimulateSSD1327 {
         let commands: [Command] = [
             columnAddress,
             rowAddress,
+            CommandSetDisplayOn(),
+            CommandSetDisplayOff(),
             Command(code: 0x81, length: 1),
             Command(code: 0xa0, length: 1),
             Command(code: 0xa1, length: 1),
@@ -80,8 +106,6 @@ class SimulateSSD1327 {
             Command(code: 0xa4),
             Command(code: 0xa8, length: 1),
             Command(code: 0xab, length: 1),
-            Command(code: 0xae),
-            Command(code: 0xaf),
             Command(code: 0xb1, length: 1),
             Command(code: 0xb3, length: 1),
             Command(code: 0xb6, length: 1),
@@ -95,20 +119,34 @@ class SimulateSSD1327 {
         }
         
         imageRep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: 128, pixelsHigh: 128, bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false, colorSpaceName: NSColorSpaceName.deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)
+        self.clear()
+        
+        image = NSImage(size: imageRep.size)
+        image.addRepresentation(imageRep)
+    }
+    
+    func clear() {
         var bitmapData = imageRep.bitmapData!
         for _ in 0 ..< 128 * 128 {
-            bitmapData.pointee = UInt8(0xff)
+            bitmapData.pointee = UInt8(0x00)
             bitmapData += 1
-            bitmapData.pointee = UInt8(0xff)
+            bitmapData.pointee = UInt8(0x00)
             bitmapData += 1
             bitmapData.pointee = UInt8(0x00)
             bitmapData += 1
             bitmapData.pointee = UInt8(0x00)
             bitmapData += 1
         }
-        
-        image = NSImage(size: imageRep.size)
-        image.addRepresentation(imageRep)
+    }
+    
+    func set_display_on() {
+        modified = true
+    }
+
+    func set_display_off() {
+        self.clear()
+
+        modified = true
     }
 
     func writePixel(x: Int, y: Int, r: UInt8, g: UInt8, b: UInt8) {
