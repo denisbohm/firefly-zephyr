@@ -11,8 +11,8 @@ class SimulateGPIO {
     
     class Port {
         
-        var input: UInt32 = 0
-        var output: UInt32 = 0
+        var input: UInt32 = 0xffffffff
+        var output: UInt32 = 0xffffffff
         var callbacks = [fd_gpio_callback_t?](repeating: nil, count: 32)
         
         init() {

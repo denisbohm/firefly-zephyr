@@ -2,33 +2,37 @@
 #define fd_ux_h
 
 #include "fd_drawing.h"
+#include "fd_graphics.h"
+#include "fd_ux_button.h"
 
 typedef struct {
-    
-} fd_button_event_t;
-
-typedef enum {
-    fd_ux_screen_id_splash,
-    fd_ux_screen_id_watch,
-    fd_ux_screen_id_count
-} fd_ux_screen_id_t;
-
-typedef struct {
-    fd_ux_screen_id_t id;
+    uint32_t id;
     fd_drawing_plane_t *planes[10];
     uint32_t plane_count;
     void (*preview)(void);
     void (*activate)(void);
     void (*deactivate)(void);
-    bool (*button)(fd_button_event_t event);
+    bool (*button)(const fd_ux_button_event_t *event);
     bool (*animate)(void);
 } fd_ux_screen_t;
 
-void fd_ux_initialize(void);
+typedef struct {
+    fd_graphics_t *graphics;
+    fd_ux_screen_t *screens;
+    uint32_t screen_count;
+} fd_ux_configuration_t;
+
+void fd_ux_initialize(fd_ux_configuration_t *configuration);
+
+void fd_ux_button_event(const fd_ux_button_event_t *event);
+
+bool fd_ux_is_powered_on(void);
+void fd_ux_power_on(void);
+void fd_ux_power_off(void);
 
 void fd_ux_set_animation(bool animation);
 
-void fd_ux_set_screen(fd_ux_screen_id_t id);
-void fd_ux_set_screen_preview(fd_ux_screen_id_t id);
+void fd_ux_set_screen(uint32_t id);
+void fd_ux_set_screen_preview(uint32_t id);
 
 #endif

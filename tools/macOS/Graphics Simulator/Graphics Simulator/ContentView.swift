@@ -11,7 +11,9 @@ struct ContentView: View {
     
     @EnvironmentObject var deviceModel: DeviceModel
     
-    let timer = Timer.publish(every: 0.02, on: .main, in: .common).autoconnect()
+    static let interval: Float = 0.02
+    
+    let timer = Timer.publish(every: Double(interval), on: .main, in: .common).autoconnect()
 
     var body: some View {
         VStack {
@@ -24,6 +26,7 @@ struct ContentView: View {
     }
     
     func tick() {
+        fd_timer_update(ContentView.interval)
         let tick_event = fd_event_get_identifier("fd_ux.tick")
         fd_event_set(tick_event)
         fd_event_process()

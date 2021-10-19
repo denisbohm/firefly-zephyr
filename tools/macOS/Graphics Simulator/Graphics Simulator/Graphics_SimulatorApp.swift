@@ -10,6 +10,11 @@ import SwiftUI
 @main
 struct Graphics_SimulatorApp: App {
     
+    static let buttons_gpios = [
+        fd_gpio_t(port: 0, pin: 9),
+        fd_gpio_t(port: 1, pin: 10),
+    ]
+    
     let deviceModel = DeviceModel()
 
     var body: some Scene {
@@ -19,12 +24,7 @@ struct Graphics_SimulatorApp: App {
     }
     
     init() {
-        fd_gpio_initialize()
-        fd_event_initialize()
-        fd_graphics_ssd1327_initialize();
-        fd_event_initialize();
-        
-        fd_ux_initialize();
+        fd_watch_initialize();
 
         deviceModel.setScreen(image: simulateSSD1327.image)
     }

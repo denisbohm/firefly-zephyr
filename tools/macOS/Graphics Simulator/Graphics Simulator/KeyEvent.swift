@@ -21,17 +21,23 @@ class KeyEventView: NSView {
             simulateGPIO.set_input(gpio: fd_gpio_t(port: 0, pin: 9), value: value)
         case 0x007c: // Right Arrow
             simulateGPIO.set_input(gpio: fd_gpio_t(port: 1, pin: 10), value: value)
+/*
+        case 0x007d: // Down Arrow
+            simulateGPIO.set_input(gpio: fd_gpio_t(port: 1, pin: 10), value: value)
+        case 0x007e: // Up Arrow
+            simulateGPIO.set_input(gpio: fd_gpio_t(port: 1, pin: 10), value: value)
+ */
         default:
             break
         }
     }
     
     override func keyDown(with event: NSEvent) {
-        key(event: event, value: true)
+        key(event: event, value: false)
     }
     
     override func keyUp(with event: NSEvent) {
-        key(event: event, value: false)
+        key(event: event, value: true)
     }
     
 }
