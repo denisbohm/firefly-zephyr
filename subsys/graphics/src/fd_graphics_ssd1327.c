@@ -145,9 +145,6 @@ void fd_graphics_ssd1327_initialize(void) {
     memset(&fd_graphics_ssd1327, 0, sizeof(fd_graphics_ssd1327));
     fd_graphics_ssd1327.graphics.impl = &fd_graphics_ssd1327;
 
-    fd_ssd1327_initialize();
-    fd_ssd1327_display_on();
-
     fd_graphics_backend_t backend = {
         .write_background = fd_graphics_ssd1327_write_background,
         .write_area = fd_graphics_ssd1327_write_area,

@@ -1,5 +1,6 @@
 #include "fd_ssd1327_bus.h"
 
+#include "fd_ssd1327_bus_4_wire_spi_zephyr.h"
 #include "fd_assert.h"
 
 #include <drivers/spi.h>
@@ -7,6 +8,10 @@
 #include <string.h>
 
 // 4-wire SPI interface
+
+fd_ssd1327_bus_4_wire_spi_zephyr_configuration_t fd_ssd1327_bus_4_wire_spi_zephyr_configuration = {
+    .spi_device_name = "SPI_1",
+};
 
 typedef struct {
     const struct device *spi_device;
@@ -32,9 +37,17 @@ void fd_ssd1327_bus_write(const uint8_t *data, uint32_t length) {
     spi_write(fd_ssd1327_bus_4_wire_spi.spi_device, &fd_ssd1327_bus_4_wire_spi_config, &tx_bufs);
 }
 
+void fd_ssd1327_bus_4_wire_spi_zephyr_configure(
+    fd_ssd1327_bus_4_wire_spi_zephyr_configuration_t configuration
+) {
+    fd_ssd1327_bus_4_wire_spi_zephyr_configuration = configuration;
+}
+
 void fd_ssd1327_bus_initialize(void) {
     memset(&fd_ssd1327_bus_4_wire_spi, 0, sizeof(fd_ssd1327_bus_4_wire_spi));
 
-    fd_ssd1327_bus_4_wire_spi.spi_device = device_get_binding("SPI_1");
+    fd_ssd1327_bus_4_wire_spi.spi_device = device_get_binding(
+        fd_ssd1327_bus_4_wire_spi_zephyr_configuration.spi_device_name
+    );
     fd_assert(fd_ssd1327_bus_4_wire_spi.spi_device != NULL);
 }

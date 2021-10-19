@@ -82,8 +82,7 @@ class SimulateSSD1327 {
 
     }
     
-    
-    let dcxGpio = fd_gpio_t(port: 0, pin: 26)
+    var dcxGpio = fd_gpio_t(port: 0, pin: 26)
     var commandsByCode: [UInt8:Command] = [:]
     var command: Command? = nil
     var bytes: [UInt8] = []

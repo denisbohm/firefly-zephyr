@@ -9,9 +9,7 @@
 #include <string.h>
 
 typedef struct {
-    fd_gpio_t gpio_resx;
-    fd_gpio_t gpio_csx;
-    fd_gpio_t gpio_dcx;
+    fd_ssd1327_configuration_t configuration;
 } fd_ssd1327_t;
 
 fd_ssd1327_t fd_ssd1327;
@@ -22,27 +20,27 @@ fd_ssd1327_t fd_ssd1327;
 #define fd_SSD1327_SET_DISPLAY_ON     0xAF
 
 static void fd_ssd1327_cs_enable(void) {
-    fd_gpio_set(fd_ssd1327.gpio_csx, false);
+    fd_gpio_set(fd_ssd1327.configuration.csx, false);
 }
 
 static void fd_ssd1327_cs_disable(void) {
-    fd_gpio_set(fd_ssd1327.gpio_csx, true);
+    fd_gpio_set(fd_ssd1327.configuration.csx, true);
 }
 
 static void fd_ssd1327_command_mode(void) {
-    fd_gpio_set(fd_ssd1327.gpio_dcx, false);
+    fd_gpio_set(fd_ssd1327.configuration.dcx, false);
 }
 
 static void fd_ssd1327_data_mode(void) {
-    fd_gpio_set(fd_ssd1327.gpio_dcx, true);
+    fd_gpio_set(fd_ssd1327.configuration.dcx, true);
 }
 
 static void fd_ssd1327_reset(void) {
-    fd_gpio_set(fd_ssd1327.gpio_resx, true);
+    fd_gpio_set(fd_ssd1327.configuration.resx, true);
     fd_delay_us(100);
-    fd_gpio_set(fd_ssd1327.gpio_resx, false);
+    fd_gpio_set(fd_ssd1327.configuration.resx, false);
     fd_delay_us(100);
-    fd_gpio_set(fd_ssd1327.gpio_resx, true);
+    fd_gpio_set(fd_ssd1327.configuration.resx, true);
 }
 
 static void fd_ssd1327_write_command(const uint8_t *data, uint32_t length) {
@@ -117,19 +115,16 @@ void fd_ssd1327_display_off(void) {
     fd_ssd1327_cs_disable();
 }
 
-void fd_ssd1327_initialize(void) {
+void fd_ssd1327_initialize(fd_ssd1327_configuration_t configuration) {
     memset(&fd_ssd1327, 0, sizeof(fd_ssd1327));
+    fd_ssd1327.configuration = configuration;
 
-    fd_ssd1327.gpio_resx = (fd_gpio_t) { .port = 0, .pin = 25 };
-    fd_ssd1327.gpio_csx = (fd_gpio_t) { .port = 0, .pin = 27 };
-    fd_ssd1327.gpio_dcx = (fd_gpio_t) { .port = 0, .pin = 26 };
-
-    fd_gpio_configure_output(fd_ssd1327.gpio_resx);
-    fd_gpio_set(fd_ssd1327.gpio_resx, true);
-    fd_gpio_configure_output(fd_ssd1327.gpio_csx);
-    fd_gpio_set(fd_ssd1327.gpio_csx, true);
-    fd_gpio_configure_output(fd_ssd1327.gpio_dcx);
-    fd_gpio_set(fd_ssd1327.gpio_dcx, true);
+    fd_gpio_configure_output(fd_ssd1327.configuration.resx);
+    fd_gpio_set(fd_ssd1327.configuration.resx, true);
+    fd_gpio_configure_output(fd_ssd1327.configuration.csx);
+    fd_gpio_set(fd_ssd1327.configuration.csx, true);
+    fd_gpio_configure_output(fd_ssd1327.configuration.dcx);
+    fd_gpio_set(fd_ssd1327.configuration.dcx, true);
 
     fd_ssd1327_bus_initialize();
 

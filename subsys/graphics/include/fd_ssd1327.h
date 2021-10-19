@@ -1,9 +1,17 @@
 #ifndef fd_ssd1327_h
 #define fd_ssd1327_h
 
+#include "fd_gpio.h"
+
 #include <stdint.h>
 
-void fd_ssd1327_initialize(void);
+typedef struct {
+    fd_gpio_t resx;
+    fd_gpio_t csx;
+    fd_gpio_t dcx;
+} fd_ssd1327_configuration_t;
+
+void fd_ssd1327_initialize(fd_ssd1327_configuration_t configuration);
 
 void fd_ssd1327_display_on(void);
 void fd_ssd1327_display_off(void);
