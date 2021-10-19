@@ -74,10 +74,10 @@
 
 // Prototypes -----------------------------------------------------------------
 
-int singles2halfp(void *target, void *source, int numel);
-int doubles2halfp(void *target, void *source, int numel);
-int halfp2singles(void *target, void *source, int numel);
-int halfp2doubles(void *target, void *source, int numel);
+static int singles2halfp(void *target, void *source, int numel);
+static int doubles2halfp(void *target, void *source, int numel);
+static int halfp2singles(void *target, void *source, int numel);
+static int halfp2doubles(void *target, void *source, int numel);
 
 //-----------------------------------------------------------------------------
 //
@@ -94,7 +94,7 @@ int halfp2doubles(void *target, void *source, int numel);
 //
 //-----------------------------------------------------------------------------
 
-int singles2halfp(void *target, void *source, int numel)
+static int singles2halfp(void *target, void *source, int numel)
 {
     UINT16_TYPE *hp = (UINT16_TYPE *) target; // Type pun output as an unsigned 16-bit int
     UINT32_TYPE *xp = (UINT32_TYPE *) source; // Type pun input as an unsigned 32-bit int
@@ -187,7 +187,7 @@ int singles2halfp(void *target, void *source, int numel)
 //
 //-----------------------------------------------------------------------------
 
-int doubles2halfp(void *target, void *source, int numel)
+static int doubles2halfp(void *target, void *source, int numel)
 {
     UINT16_TYPE *hp = (UINT16_TYPE *) target; // Type pun output as an unsigned 16-bit int
     UINT32_TYPE *xp = (UINT32_TYPE *) source; // Type pun input as an unsigned 32-bit int
@@ -282,7 +282,7 @@ int doubles2halfp(void *target, void *source, int numel)
 //
 //-----------------------------------------------------------------------------
 
-int halfp2singles(void *target, void *source, int numel)
+static int halfp2singles(void *target, void *source, int numel)
 {
     UINT16_TYPE *hp = (UINT16_TYPE *) source; // Type pun input as an unsigned 16-bit int
     UINT32_TYPE *xp = (UINT32_TYPE *) target; // Type pun output as an unsigned 32-bit int
@@ -367,7 +367,7 @@ int halfp2singles(void *target, void *source, int numel)
 //
 //-----------------------------------------------------------------------------
 
-int halfp2doubles(void *target, void *source, int numel)
+static int halfp2doubles(void *target, void *source, int numel)
 {
     UINT16_TYPE *hp = (UINT16_TYPE *) source; // Type pun input as an unsigned 16-bit int
     UINT32_TYPE *xp = (UINT32_TYPE *) target; // Type pun output as an unsigned 32-bit int
