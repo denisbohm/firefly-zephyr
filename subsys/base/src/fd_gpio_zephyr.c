@@ -32,6 +32,9 @@ static const struct device *fd_gpio_get_device(int port) {
     return fd_gpio_port_metadatas[port].device;
 }
 
+void fd_gpio_set_callback(fd_gpio_t gpio, fd_gpio_callback_t callback) {
+}
+
 void fd_gpio_configure_output(fd_gpio_t gpio) {
     gpio_pin_configure(fd_gpio_get_device(gpio.port), gpio.pin, GPIO_OUTPUT_ACTIVE);
 }
