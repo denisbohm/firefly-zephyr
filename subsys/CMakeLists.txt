@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.13.1)
+
+add_subdirectory(base)
+add_subdirectory(graphics)
+add_subdirectory(storage)
+add_subdirectory(ux)

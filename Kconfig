@@ -1,0 +1,5 @@
+menu "firefly"
+
+rsource "subsys/Kconfig"
+
+endmenu

@@ -1,0 +1,4 @@
+menuconfig FIREFLY_SUBSYS_GRAPHICS
+	bool "graphics"
+	help
+	  Include graphics firmware in the system configuration.

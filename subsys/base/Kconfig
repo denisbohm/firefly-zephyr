@@ -1,0 +1,4 @@
+menuconfig FIREFLY_SUBSYS_BASE
+	bool "base"
+	help
+	  Include base firmware in the system configuration.

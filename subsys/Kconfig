@@ -1,0 +1,8 @@
+menu "subsys"
+
+rsource "base/Kconfig"
+rsource "graphics/Kconfig"
+rsource "storage/Kconfig"
+rsource "ux/Kconfig"
+
+endmenu

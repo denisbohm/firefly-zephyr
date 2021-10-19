@@ -1,0 +1,4 @@
+menuconfig FIREFLY_SUBSYS_STORAGE
+	bool "storage"
+	help
+	  Include storage firmware in the system configuration.

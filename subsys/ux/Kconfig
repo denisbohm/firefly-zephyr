@@ -1,0 +1,4 @@
+menuconfig FIREFLY_SUBSYS_UX
+	bool "ux"
+	help
+	  Include ux firmware in the system configuration.
