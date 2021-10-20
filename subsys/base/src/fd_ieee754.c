@@ -65,6 +65,13 @@
 #include <string.h>
 #include <stdint.h>
 
+#ifndef INFINITY
+    #define INFINITY (1.0/0.0)
+#endif
+#ifndef NAN
+    #define NAN (INFINITY-INFINITY)
+#endif
+
 // Macros ---------------------------------------------------------------------
 
 #define  INT16_TYPE int16_t
