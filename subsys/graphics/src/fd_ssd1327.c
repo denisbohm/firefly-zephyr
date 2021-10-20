@@ -74,10 +74,16 @@ static void fd_ssd1327_set_row_address(int start, int count) {
     fd_ssd1327_write_command(data, sizeof(data));
 }
 
+void fd_ssd1327_send_commands(const uint8_t *data, size_t length) {
+    fd_ssd1327_cs_enable();
+    fd_ssd1327_command_mode();
+    fd_ssd1327_bus_write(data, length);
+    fd_ssd1327_cs_disable();
+}
+
 static void fd_ssd1327_send_init_sequence(void) {
     fd_ssd1327_reset();
 
-    fd_ssd1327_cs_enable();
     uint8_t data[] = {
         0xfd, 0x12,       // unlock 
         0xae,             // display off
@@ -97,9 +103,7 @@ static void fd_ssd1327_send_init_sequence(void) {
         0xbc, 0x08,       // set precharge voltage
         0xd5, 0x62,       // function selection b
     };
-    fd_ssd1327_command_mode();
-    fd_ssd1327_bus_write(data, sizeof(data));
-    fd_ssd1327_cs_disable();
+    fd_ssd1327_send_commands(data, sizeof(data));
     fd_delay_ms(100);
 }
 
