@@ -77,7 +77,7 @@ static void fd_ssd1327_set_row_address(int start, int count) {
 void fd_ssd1327_send_commands(const uint8_t *data, size_t length) {
     fd_ssd1327_cs_enable();
     fd_ssd1327_command_mode();
-    fd_ssd1327_bus_write(data, length);
+    fd_ssd1327_bus_write(data, (uint32_t)length);
     fd_ssd1327_cs_disable();
 }
 
