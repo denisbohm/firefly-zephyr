@@ -13,36 +13,8 @@ void fd_drawing_rectangle_layout(fd_drawing_rectangle_t *drawing, fd_graphics_t 
     
     drawing->area = drawing->view.area;
     fd_graphics_point_t location = drawing->view.location;
-    fd_graphics_point_t origin = { .x = 0, .y = 0 };
-    switch (view->alignments.x) {
-        case fd_view_alignment_origin:
-            origin.x = location.x;
-            break;
-        case fd_view_alignment_min:
-            origin.x = location.x - drawing->area.x;
-            break;
-        case fd_view_alignment_max:
-            origin.x = location.x - (drawing->area.x + drawing->area.width);
-            break;
-        case fd_view_alignment_center:
-            origin.x = location.x - (drawing->area.x + drawing->area.width / 2);
-            break;
-    }
+    fd_graphics_point_t origin = fd_drawing_align(drawing->area, location, view->alignments);
     drawing->area.x += origin.x;
-    switch (view->alignments.y) {
-        case fd_view_alignment_origin:
-            origin.y = location.y;
-            break;
-        case fd_view_alignment_min:
-            origin.y = location.y - drawing->area.y;
-            break;
-        case fd_view_alignment_max:
-            origin.y = location.y - (drawing->area.y + drawing->area.height);
-            break;
-        case fd_view_alignment_center:
-            origin.y = location.y - (drawing->area.y + drawing->area.height / 2);
-            break;
-    }
     drawing->area.y += origin.y;
 }
 
