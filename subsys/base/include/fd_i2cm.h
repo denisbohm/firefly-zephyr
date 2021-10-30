@@ -24,7 +24,7 @@ typedef struct {
 } fd_i2cm_io_t;
 
 typedef struct {
-    uint32_t instance;
+    const char *i2c_device_name;
     fd_gpio_t scl;
     fd_gpio_t sda;
     bool pullup;
