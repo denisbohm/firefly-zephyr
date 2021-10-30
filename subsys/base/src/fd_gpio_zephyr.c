@@ -47,6 +47,10 @@ void fd_gpio_configure_output_open_drain(fd_gpio_t gpio) {
     gpio_pin_configure(fd_gpio_get_device(gpio.port), gpio.pin, GPIO_INPUT | GPIO_OPEN_DRAIN);
 }
 
+void fd_gpio_configure_output_open_drain_pull_up(fd_gpio_t gpio) {
+    gpio_pin_configure(fd_gpio_get_device(gpio.port), gpio.pin, GPIO_OUTPUT | GPIO_OPEN_DRAIN | GPIO_PULL_UP);
+}
+
 void fd_gpio_configure_input(fd_gpio_t gpio) {
     gpio_pin_configure(fd_gpio_get_device(gpio.port), gpio.pin, GPIO_INPUT);
 }

@@ -2,3 +2,13 @@ menuconfig FIREFLY_SUBSYS_BASE
 	bool "base"
 	help
 	  Include base firmware in the system configuration.
+
+if FIREFLY_SUBSYS_BASE
+
+config FIREFLY_SUBSYS_BASE_I2C_BITBANG
+        bool "base I2C bitbang"
+        default n
+	help
+	  Bitbang I2C rather than using hardware peripherals.
+
+endif
