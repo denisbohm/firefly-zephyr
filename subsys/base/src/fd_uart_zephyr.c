@@ -201,7 +201,7 @@ bool fd_uart_instance_rx(fd_uart_instance_t *instance, uint8_t *data, size_t len
     return true;
 }
 
-void fd_uart_instance_initialize(fd_uart_instance_t *instance, const char *device_name) {
+void fd_uart_instance_initialize(fd_uart_instance_t *instance) {
     fd_assert(fd_uart.info_count < fd_uart_info_limit);
     fd_uart_info_t *info = &fd_uart.infos[fd_uart.info_count++];
 
