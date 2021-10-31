@@ -163,17 +163,20 @@ fd_uart_info_t *fd_uart_get_info(fd_uart_instance_t *instance) {
     return 0;
 }
 
-// !!! need to add error checks and timeout -denis
-bool fd_uart_instance_tx(fd_uart_instance_t *instance, const uint8_t *data, size_t length, fd_error_t *error) {
+size_t fd_uart_instance_tx(fd_uart_instance_t *instance, const uint8_t *data, size_t length) {
     fd_uart_info_t *info = fd_uart_get_info(instance);
+    size_t count = 0;
     bool start = info->tx_fifo.head == info->tx_fifo.tail;
     for (size_t i = 0; i < length; ++i) {
-        fd_fifo_put(&info->tx_fifo, data[i]);
+        if (!fd_fifo_put(&info->tx_fifo, data[i])) {
+            break;
+        }
+        ++count;
     }
     if (start) {
         fd_uart_info_tx_start(info);
     }
-    return true;
+    return count;
 }
 
 void fd_uart_instance_tx_flush(fd_uart_instance_t *instance) {
@@ -181,24 +184,18 @@ void fd_uart_instance_tx_flush(fd_uart_instance_t *instance) {
     fd_uart_info_tx_flush(info);
 }
 
-// !!! need to add error checks and timeout -denis
-bool fd_uart_instance_rx(fd_uart_instance_t *instance, uint8_t *data, size_t length, fd_error_t *error) {
+size_t fd_uart_instance_rx(fd_uart_instance_t *instance, uint8_t *data, size_t length) {
     fd_uart_info_t *info = fd_uart_get_info(instance);
-    int64_t start = k_uptime_get();
+    size_t count = 0;
     for (size_t i = 0; i < length; ++i) {
         uint8_t byte = 0;
-        while (!fd_fifo_get(&info->rx_fifo, &byte)) {
-            int64_t now = k_uptime_get();
-            int64_t elapsed = now - start;
-            if (elapsed > 100) {
-                error->status = 0;
-                snprintf(error->message, sizeof(error->message), "rx timeout");
-                return false;
-            }
+        if (!fd_fifo_get(&info->rx_fifo, &byte)) {
+            break;
         }
         data[i] = byte;
+        ++count;
     }
-    return true;
+    return count;
 }
 
 void fd_uart_instance_initialize(fd_uart_instance_t *instance) {
