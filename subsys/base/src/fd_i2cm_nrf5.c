@@ -34,34 +34,18 @@ void fd_i2cm_clear_bus(const fd_i2cm_bus_t *bus) {
         fd_i2cm_bus_disable(bus);
     }
 
+    fd_gpio_configure_default(bus->sda);
+
     fd_gpio_configure_output_open_drain(bus->scl);
     fd_gpio_set(bus->scl, true);
-    fd_gpio_configure_input(bus->sda);
-
     fd_delay_us(4);
     for (int i = 0; i < 9; i++) {
-#if 0
-        if (fd_gpio_get(bus->sda)) {
-            if (i == 0) {
-                return;
-            } else {
-                break;
-            }
-        }
-#endif
         fd_gpio_set(bus->scl, false);
         fd_delay_us(4);
         fd_gpio_set(bus->scl, true);
         fd_delay_us(4);
     }
-    fd_gpio_configure_output_open_drain(bus->sda);
-    fd_gpio_set(bus->sda, false);
-    fd_delay_us(4);
-    fd_gpio_set(bus->sda, true);
-    fd_delay_us(4);
-
     fd_gpio_configure_default(bus->scl);
-    fd_gpio_configure_default(bus->sda);
 
     if (enabled) {
         fd_i2cm_bus_enable(bus);
