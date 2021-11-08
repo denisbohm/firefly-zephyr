@@ -42,6 +42,11 @@ void fd_watch_initialize(void) {
     fd_gpio_initialize();
     fd_event_initialize();
     fd_timer_initialize();
+    fd_ssd1327_initialize((fd_ssd1327_configuration_t) {
+        .resx = { .port = 0, .pin = 0 },
+        .csx = { .port = 0, .pin = 1 },
+        .dcx = { .port = 0, .pin = 26 },
+    });
     fd_graphics_ssd1327_initialize();
     
     static fd_ux_screen_t screens[fd_watch_screen_id_count] = {

@@ -7,8 +7,8 @@
 void fd_rtc_initialize(void);
 
 bool fd_rtc_is_set(void);
-void fd_rtc_set_utc(uint64_t utc);
+void fd_rtc_set_utc(int64_t utc);
 
-uint64_t fd_rtc_get_utc(void);
+int64_t fd_rtc_get_utc(void);
 
 #endif

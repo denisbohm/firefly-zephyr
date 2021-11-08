@@ -11,7 +11,7 @@
 typedef struct {
     NRF_RTC_Type *nrf_rtc;
     bool is_set;
-    volatile uint64_t utc_base;
+    volatile int64_t utc_base;
 } fd_rtc_t;
 
 fd_rtc_t fd_rtc;
@@ -44,7 +44,7 @@ bool fd_rtc_is_set(void) {
     return fd_rtc.is_set;
 }
 
-void fd_rtc_set_utc(uint64_t utc) {
+void fd_rtc_set_utc(int64_t utc) {
     NRF_RTC_Type *nrf_rtc = fd_rtc.nrf_rtc;
     nrf_rtc->TASKS_STOP = 1;
     nrf_rtc->TASKS_CLEAR = 1;
@@ -53,12 +53,12 @@ void fd_rtc_set_utc(uint64_t utc) {
     fd_rtc.is_set = true;
 }
 
-uint64_t fd_rtc_get_utc(void) {
+int64_t fd_rtc_get_utc(void) {
     NRF_RTC_Type *nrf_rtc = fd_rtc.nrf_rtc;
     nrf_rtc->INTENCLR = RTC_INTENSET_OVRFLW_Msk;
-    uint64_t base = fd_rtc.utc_base;
+    int64_t base = fd_rtc.utc_base;
     uint32_t offset = nrf_rtc->COUNTER;
     nrf_rtc->INTENSET = RTC_INTENSET_OVRFLW_Msk;
-    uint64_t utc = base + (uint64_t)(offset >> 15);
+    int64_t utc = base + (int64_t)(offset >> 15);
     return utc;
 }

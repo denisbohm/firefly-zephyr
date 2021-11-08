@@ -14,7 +14,7 @@ func fd_rtc_initialize() {
 
 // int64_t fd_rtc_get_utc(void);
 @_cdecl("fd_rtc_set_utc")
-func fd_rtc_set_utc(utc: UInt64) {
+func fd_rtc_set_utc(utc: Int64) {
 }
 
 // bool fd_rtc_is_set(void);
@@ -25,6 +25,6 @@ func fd_rtc_is_set() -> Bool {
 
 // int64_t fd_rtc_get_utc(void);
 @_cdecl("fd_rtc_get_utc")
-func fd_rtc_get_utc() -> UInt64 {
-    return UInt64(Date().timeIntervalSince1970)
+func fd_rtc_get_utc() -> Int64 {
+    return Int64(Date().timeIntervalSince1970)
 }

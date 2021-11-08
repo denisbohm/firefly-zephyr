@@ -7,6 +7,7 @@
 
 #include "fd_assert.h"
 #include "fd_calendar.h"
+#include "fd_rtc.h"
 #include "fd_unused.h"
 
 #include <stdio.h>
@@ -30,8 +31,6 @@ void fd_watch_screen_time_add_drawing(void *object, fd_drawing_class_t *class) {
     fd_watch_screen_time.drawings[fd_watch_screen_time.plane.drawing_count] = (fd_drawing_t) { .object = object, .class =  class };
     ++fd_watch_screen_time.plane.drawing_count;
 }
-
-int64_t fd_rtc_get_utc(void);
 
 #define UTC_2001 978307200
 
