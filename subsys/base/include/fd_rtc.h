@@ -10,5 +10,6 @@ bool fd_rtc_is_set(void);
 void fd_rtc_set_utc(int64_t utc);
 
 int64_t fd_rtc_get_utc(void);
+double fd_rtc_get_utc_precise(void);
 
 #endif

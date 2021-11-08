@@ -53,12 +53,28 @@ void fd_rtc_set_utc(int64_t utc) {
     fd_rtc.is_set = true;
 }
 
-int64_t fd_rtc_get_utc(void) {
+typedef struct {
+    int64_t base;
+    uint32_t offset;
+} fd_rtc_count_t;
+
+fd_rtc_count_t fd_rtc_get_count(void) {
     NRF_RTC_Type *nrf_rtc = fd_rtc.nrf_rtc;
     nrf_rtc->INTENCLR = RTC_INTENSET_OVRFLW_Msk;
     int64_t base = fd_rtc.utc_base;
     uint32_t offset = nrf_rtc->COUNTER;
     nrf_rtc->INTENSET = RTC_INTENSET_OVRFLW_Msk;
-    int64_t utc = base + (int64_t)(offset >> 15);
+    return (fd_rtc_count_t) { .base = base, .offset = offset };
+}
+
+int64_t fd_rtc_get_utc(void) {
+    fd_rtc_count_t count = fd_rtc_get_count();
+    int64_t utc = count.base + (int64_t)(count.offset >> 15);
+    return utc;
+}
+
+double fd_rtc_get_utc_precise(void) {
+    fd_rtc_count_t count = fd_rtc_get_count();
+    double utc = ((double)count.base) + ((double)count.offset) / 32768.0;
     return utc;
 }
