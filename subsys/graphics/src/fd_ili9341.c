@@ -144,12 +144,9 @@ void fd_ili9341_initialize(void) {
     fd_ili9341_gpio_csx = (fd_gpio_t) { .port = 1, .pin = 4 };
     fd_ili9341_gpio_dcx = (fd_gpio_t) { .port = 1, .pin = 5 };
 
-    fd_gpio_configure_output(fd_ili9341_gpio_resx);
-    fd_gpio_set(fd_ili9341_gpio_resx, true);
-    fd_gpio_configure_output(fd_ili9341_gpio_csx);
-    fd_gpio_set(fd_ili9341_gpio_csx, true);
-    fd_gpio_configure_output(fd_ili9341_gpio_dcx);
-    fd_gpio_set(fd_ili9341_gpio_dcx, true);
+    fd_gpio_configure_output(fd_ili9341_gpio_resx, true);
+    fd_gpio_configure_output(fd_ili9341_gpio_csx, true);
+    fd_gpio_configure_output(fd_ili9341_gpio_dcx, true);
 
     fd_ili9341_bus_initialize();
 

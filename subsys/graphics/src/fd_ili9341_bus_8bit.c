@@ -26,7 +26,7 @@ static void fd_ili9341_configure_data_as_inputs(void) {
 
 static void fd_ili9341_configure_data_as_outputs(void) {
     for (uint32_t i = 0; i < 8; ++i) {
-        fd_gpio_configure_output(fd_ili9341_gpio_data[i]);
+        fd_gpio_configure_output(fd_ili9341_gpio_data[i], false);
     }
 }
 
@@ -92,10 +92,8 @@ void fd_ili9341_bus_initialize(void) {
         fd_ili9341_gpio_data[i] = (fd_gpio_t) { .port = fd_ili9341_port, .pin = fd_ili9341_d0_pin + i };
     }
 
-    fd_gpio_configure_output(fd_ili9341_gpio_wrx);
-    fd_gpio_set(fd_ili9341_gpio_wrx, true);
-    fd_gpio_configure_output(fd_ili9341_gpio_rdx);
-    fd_gpio_set(fd_ili9341_gpio_rdx, true);
+    fd_gpio_configure_output(fd_ili9341_gpio_wrx, true);
+    fd_gpio_configure_output(fd_ili9341_gpio_rdx, true);
     fd_ili9341_configure_data_as_outputs();
     for (uint32_t i = 0; i < 8; ++i) {
         fd_gpio_set(fd_ili9341_gpio_data[i], false);

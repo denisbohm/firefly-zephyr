@@ -36,8 +36,7 @@ void fd_i2cm_clear_bus(const fd_i2cm_bus_t *bus) {
 
     fd_gpio_configure_default(bus->sda);
 
-    fd_gpio_configure_output_open_drain(bus->scl);
-    fd_gpio_set(bus->scl, true);
+    fd_gpio_configure_output_open_drain(bus->scl, true);
     fd_delay_us(4);
     for (int i = 0; i < 9; i++) {
         fd_gpio_set(bus->scl, false);
@@ -99,17 +98,15 @@ void fd_i2cm_bus_enable(const fd_i2cm_bus_t *bus) {
         return;
     }
 
-    fd_gpio_set(bus->scl, true);
     if (bus->pullup) {
-        fd_gpio_configure_output_open_drain_pull_up(bus->scl);
+        fd_gpio_configure_output_open_drain_pull_up(bus->scl, true);
     } else {
-        fd_gpio_configure_output_open_drain(bus->scl);
+        fd_gpio_configure_output_open_drain(bus->scl, true);
     }
-    fd_gpio_set(bus->sda, true);
     if (bus->pullup) {
-        fd_gpio_configure_output_open_drain_pull_up(bus->sda);
+        fd_gpio_configure_output_open_drain_pull_up(bus->sda, true);
     } else {
-        fd_gpio_configure_output_open_drain(bus->sda);
+        fd_gpio_configure_output_open_drain(bus->sda, true);
     }
 
     fd_i2cm_bus_info_t *bus_info = fd_i2cm_get_bus_info(bus);

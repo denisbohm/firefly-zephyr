@@ -60,8 +60,7 @@ void fd_sdcard_spi_zephyr_initialize(void) {
     fd_assert(fd_sdcard_spi_zephyr_device != NULL);
 
     fd_sdcard_spi_zephyr_csn = (fd_gpio_t) { .port = 0, .pin = 4 };
-    fd_gpio_configure_output(fd_sdcard_spi_zephyr_csn);
-    fd_gpio_set(fd_sdcard_spi_zephyr_csn, true);
+    fd_gpio_configure_output(fd_sdcard_spi_zephyr_csn, true);
 
     fd_sdcard_spi_zephyr_config = &fd_sdcard_spi_zephyr_config_slow;
 }

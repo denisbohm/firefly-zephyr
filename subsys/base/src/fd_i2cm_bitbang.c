@@ -17,9 +17,9 @@ void fd_i2cm_bitbang_configure_in(const fd_i2cm_bus_t *bus) {
 
 void fd_i2cm_bitbang_configure_out(const fd_i2cm_bus_t *bus) {
     if (bus->pullup) {
-        fd_gpio_configure_output_open_drain_pull_up(bus->sda);
+        fd_gpio_configure_output_open_drain_pull_up(bus->sda, true);
     } else {
-        fd_gpio_configure_output_open_drain(bus->sda);
+        fd_gpio_configure_output_open_drain(bus->sda, true);
     }
 }
 

@@ -123,12 +123,9 @@ void fd_ssd1327_initialize(fd_ssd1327_configuration_t configuration) {
     memset(&fd_ssd1327, 0, sizeof(fd_ssd1327));
     fd_ssd1327.configuration = configuration;
 
-    fd_gpio_configure_output(fd_ssd1327.configuration.resx);
-    fd_gpio_set(fd_ssd1327.configuration.resx, true);
-    fd_gpio_configure_output(fd_ssd1327.configuration.csx);
-    fd_gpio_set(fd_ssd1327.configuration.csx, true);
-    fd_gpio_configure_output(fd_ssd1327.configuration.dcx);
-    fd_gpio_set(fd_ssd1327.configuration.dcx, true);
+    fd_gpio_configure_output(fd_ssd1327.configuration.resx, true);
+    fd_gpio_configure_output(fd_ssd1327.configuration.csx, true);
+    fd_gpio_configure_output(fd_ssd1327.configuration.dcx, true);
 
     fd_ssd1327_bus_initialize();
 

@@ -36,10 +36,8 @@ void fd_ssd1327_bus_initialize(void) {
     fd_gpio_t mosi = fd_ssd1327_bus_4_wire_spi_configuration.mosi;
     fd_gpio_t miso = fd_ssd1327_bus_4_wire_spi_configuration.miso;
 
-    fd_gpio_configure_output(sclk);
-    fd_gpio_set(sclk, true);
-    fd_gpio_configure_output(mosi);
-    fd_gpio_set(mosi, true);
+    fd_gpio_configure_output(sclk, true);
+    fd_gpio_configure_output(mosi, true);
     fd_gpio_configure_input(miso);
 
     NRF_SPIM_Type *spim = 0;
