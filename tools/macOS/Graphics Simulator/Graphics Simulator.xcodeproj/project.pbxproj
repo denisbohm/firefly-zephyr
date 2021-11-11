@@ -24,6 +24,7 @@
 		9270D76E2716668100F3981C /* Graphics_SimulatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9270D76D2716668100F3981C /* Graphics_SimulatorTests.swift */; };
 		9270D7792716668100F3981C /* Graphics_SimulatorUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9270D7782716668100F3981C /* Graphics_SimulatorUITests.swift */; };
 		9270D7AE27166EA400F3981C /* DeviceModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9270D7AD27166EA400F3981C /* DeviceModel.swift */; };
+		92758A9D273DC6A800728B73 /* fd_adc.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92758A9C273DC6A800728B73 /* fd_adc.swift */; };
 		928532C2273DC466009B1D1B /* fd_log.swift in Sources */ = {isa = PBXBuildFile; fileRef = 928532C1273DC466009B1D1B /* fd_log.swift */; };
 		928532C5273DC47F009B1D1B /* fd_i2cm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 928532C3273DC47F009B1D1B /* fd_i2cm.swift */; };
 		928532C6273DC47F009B1D1B /* fd_uart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 928532C4273DC47F009B1D1B /* fd_uart.swift */; };
@@ -110,6 +111,7 @@
 		9270D77A2716668100F3981C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		9270D7872716675500F3981C /* Graphics Simulator-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Graphics Simulator-Bridging-Header.h"; sourceTree = "<group>"; };
 		9270D7AD27166EA400F3981C /* DeviceModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceModel.swift; sourceTree = "<group>"; };
+		92758A9C273DC6A800728B73 /* fd_adc.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = fd_adc.swift; sourceTree = "<group>"; };
 		927D4F5427397D2800C4199D /* fd_event.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_event.h; path = ../../../../subsys/base/include/fd_event.h; sourceTree = "<group>"; };
 		927D4F5527397D2800C4199D /* fd_gpio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_gpio.h; path = ../../../../subsys/base/include/fd_gpio.h; sourceTree = "<group>"; };
 		927D4F5627397D2800C4199D /* fd_uart.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_uart.h; path = ../../../../subsys/base/include/fd_uart.h; sourceTree = "<group>"; };
@@ -405,6 +407,7 @@
 		9270D7A32716699D00F3981C /* simulations */ = {
 			isa = PBXGroup;
 			children = (
+				92758A9C273DC6A800728B73 /* fd_adc.swift */,
 				92308D372718BEAE00C97B35 /* fd_delay.swift */,
 				92308D382718BEAE00C97B35 /* fd_gpio.swift */,
 				928532C3273DC47F009B1D1B /* fd_i2cm.swift */,
@@ -583,6 +586,7 @@
 				929BD2A82718BFB30018CA6B /* fd_event.c in Sources */,
 				929BD2E52718BFCD0018CA6B /* fd_view_image.c in Sources */,
 				929BD2DD2718BFCD0018CA6B /* fd_ssd1327.c in Sources */,
+				92758A9D273DC6A800728B73 /* fd_adc.swift in Sources */,
 				929BD2DF2718BFCD0018CA6B /* fd_view_rectangle.c in Sources */,
 				929BD2DE2718BFCD0018CA6B /* fd_view_icon.c in Sources */,
 				929BD2A52718BFB30018CA6B /* fd_binary.c in Sources */,

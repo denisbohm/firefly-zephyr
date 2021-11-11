@@ -28,3 +28,9 @@ func fd_rtc_is_set() -> Bool {
 func fd_rtc_get_utc() -> Int64 {
     return Int64(Date().timeIntervalSince1970)
 }
+
+// double fd_rtc_get_utc_precise(void);
+@_cdecl("fd_rtc_get_utc_precise")
+func fd_rtc_get_utc_precise() -> Double {
+    return Double(Date().timeIntervalSince1970)
+}

@@ -79,14 +79,29 @@ var simulateGPIO = SimulateGPIO()
 func fd_gpio_initialize() {
 }
 
-// void fd_gpio_configure_output(fd_gpio_t gpio);
+// void fd_gpio_configure_output(fd_gpio_t gpio, bool value);
 @_cdecl("fd_gpio_configure_output")
-func fd_gpio_configure_output(gpio: fd_gpio_t) {
+func fd_gpio_configure_output(gpio: fd_gpio_t, value: Bool) {
+}
+
+// void fd_gpio_configure_output_open_drain(fd_gpio_t gpio, bool value);
+@_cdecl("fd_gpio_configure_output_open_drain")
+func fd_gpio_configure_output_open_drain(gpio: fd_gpio_t, value: Bool) {
+}
+
+// void fd_gpio_configure_output_open_drain_pull_up(fd_gpio_t gpio, bool value);
+@_cdecl("fd_gpio_configure_output_open_drain_pull_up")
+func fd_gpio_configure_output_open_drain_pull_up(gpio: fd_gpio_t, value: Bool) {
 }
 
 //void fd_gpio_configure_input(fd_gpio_t gpio);
 @_cdecl("fd_gpio_configure_input")
 func fd_gpio_configure_input(gpio: fd_gpio_t) {
+}
+
+//void fd_gpio_configure_input_pull_up(fd_gpio_t gpio);
+@_cdecl("fd_gpio_configure_input_pull_up")
+func fd_gpio_configure_input_pull_up(gpio: fd_gpio_t) {
 }
 
 // void fd_gpio_set_callback(fd_gpio_t gpio, fd_gpio_callback_t callback);
