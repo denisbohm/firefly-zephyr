@@ -1,7 +1,9 @@
 #include "fd_delay.h"
+#include "fd_log.h"
 #include "fd_rtc.h"
 
 void main(void) {
+    fd_log_initialize();
     fd_rtc_initialize();
     fd_rtc_set_utc(1636381101); // 8:18 AM CST
     while (1) {
