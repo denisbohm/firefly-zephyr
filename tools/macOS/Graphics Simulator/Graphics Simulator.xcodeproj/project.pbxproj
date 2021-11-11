@@ -24,6 +24,9 @@
 		9270D76E2716668100F3981C /* Graphics_SimulatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9270D76D2716668100F3981C /* Graphics_SimulatorTests.swift */; };
 		9270D7792716668100F3981C /* Graphics_SimulatorUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9270D7782716668100F3981C /* Graphics_SimulatorUITests.swift */; };
 		9270D7AE27166EA400F3981C /* DeviceModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9270D7AD27166EA400F3981C /* DeviceModel.swift */; };
+		928532C2273DC466009B1D1B /* fd_log.swift in Sources */ = {isa = PBXBuildFile; fileRef = 928532C1273DC466009B1D1B /* fd_log.swift */; };
+		928532C5273DC47F009B1D1B /* fd_i2cm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 928532C3273DC47F009B1D1B /* fd_i2cm.swift */; };
+		928532C6273DC47F009B1D1B /* fd_uart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 928532C4273DC47F009B1D1B /* fd_uart.swift */; };
 		929BD2A42718BFB30018CA6B /* fd_cobs.c in Sources */ = {isa = PBXBuildFile; fileRef = 929BD2882718BFB20018CA6B /* fd_cobs.c */; };
 		929BD2A52718BFB30018CA6B /* fd_binary.c in Sources */ = {isa = PBXBuildFile; fileRef = 929BD28B2718BFB20018CA6B /* fd_binary.c */; };
 		929BD2A72718BFB30018CA6B /* fd_error.c in Sources */ = {isa = PBXBuildFile; fileRef = 929BD28F2718BFB20018CA6B /* fd_error.c */; };
@@ -154,6 +157,11 @@
 		927D4F8227397D9100C4199D /* fd_sdcard_spi_zephyr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_sdcard_spi_zephyr.h; path = ../../../../subsys/storage/include/fd_sdcard_spi_zephyr.h; sourceTree = "<group>"; };
 		927D4F8327397D9100C4199D /* fd_sdcard_spi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_sdcard_spi.h; path = ../../../../subsys/storage/include/fd_sdcard_spi.h; sourceTree = "<group>"; };
 		927D4F8427397D9100C4199D /* fd_sdcard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_sdcard.h; path = ../../../../subsys/storage/include/fd_sdcard.h; sourceTree = "<group>"; };
+		928532C1273DC466009B1D1B /* fd_log.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = fd_log.swift; sourceTree = "<group>"; };
+		928532C3273DC47F009B1D1B /* fd_i2cm.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = fd_i2cm.swift; sourceTree = "<group>"; };
+		928532C4273DC47F009B1D1B /* fd_uart.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = fd_uart.swift; sourceTree = "<group>"; };
+		928532C7273DC50E009B1D1B /* fd_adc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_adc.h; path = ../../../../subsys/base/include/fd_adc.h; sourceTree = "<group>"; };
+		928532C8273DC50E009B1D1B /* fd_log.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fd_log.h; path = ../../../../subsys/base/include/fd_log.h; sourceTree = "<group>"; };
 		929BD2882718BFB20018CA6B /* fd_cobs.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fd_cobs.c; path = ../../../../subsys/base/src/fd_cobs.c; sourceTree = "<group>"; };
 		929BD28B2718BFB20018CA6B /* fd_binary.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fd_binary.c; path = ../../../../subsys/base/src/fd_binary.c; sourceTree = "<group>"; };
 		929BD28F2718BFB20018CA6B /* fd_error.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = fd_error.c; path = ../../../../subsys/base/src/fd_error.c; sourceTree = "<group>"; };
@@ -233,6 +241,8 @@
 		9207841A271762F500901470 /* base */ = {
 			isa = PBXGroup;
 			children = (
+				928532C7273DC50E009B1D1B /* fd_adc.h */,
+				928532C8273DC50E009B1D1B /* fd_log.h */,
 				927D4F6527397D2800C4199D /* fd_assert.h */,
 				927D4F6327397D2800C4199D /* fd_binary.h */,
 				927D4F5F27397D2800C4199D /* fd_calendar.h */,
@@ -395,12 +405,15 @@
 		9270D7A32716699D00F3981C /* simulations */ = {
 			isa = PBXGroup;
 			children = (
-				9270D7872716675500F3981C /* Graphics Simulator-Bridging-Header.h */,
 				92308D372718BEAE00C97B35 /* fd_delay.swift */,
 				92308D382718BEAE00C97B35 /* fd_gpio.swift */,
+				928532C3273DC47F009B1D1B /* fd_i2cm.swift */,
+				928532C1273DC466009B1D1B /* fd_log.swift */,
+				92E7500627191B01000FE1C4 /* fd_rtc.swift */,
 				92308D392718BEAE00C97B35 /* fd_ssd1327_bus.swift */,
 				922A3ACB2718C64E00347847 /* fd_timing.swift */,
-				92E7500627191B01000FE1C4 /* fd_rtc.swift */,
+				928532C4273DC47F009B1D1B /* fd_uart.swift */,
+				9270D7872716675500F3981C /* Graphics Simulator-Bridging-Header.h */,
 			);
 			name = simulations;
 			sourceTree = "<group>";
@@ -558,11 +571,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				929BD2A72718BFB30018CA6B /* fd_error.c in Sources */,
+				928532C6273DC47F009B1D1B /* fd_uart.swift in Sources */,
 				92308D3B2718BEAE00C97B35 /* fd_gpio.swift in Sources */,
+				928532C2273DC466009B1D1B /* fd_log.swift in Sources */,
 				929BD2E42718BFCD0018CA6B /* fd_drawing_text.c in Sources */,
 				92E7500727191B01000FE1C4 /* fd_rtc.swift in Sources */,
 				92012332271E531E009E607E /* fd_watch_screen_time.c in Sources */,
 				929BD2E72718BFCD0018CA6B /* fd_font_merriweather_sans_regular_6.c in Sources */,
+				928532C5273DC47F009B1D1B /* fd_i2cm.swift in Sources */,
 				92308D3A2718BEAE00C97B35 /* fd_delay.swift in Sources */,
 				929BD2A82718BFB30018CA6B /* fd_event.c in Sources */,
 				929BD2E52718BFCD0018CA6B /* fd_view_image.c in Sources */,
