@@ -11,6 +11,8 @@
 
 typedef struct {
     const struct device *device;
+    fd_gpio_callback_t callbacks[32];
+    struct gpio_callback gpio_callbacks[32];
 } fd_gpio_port_metadata_t;
 
 #define fd_gpio_port_metadata_count 2
@@ -27,12 +29,46 @@ void fd_gpio_initialize(void) {
     }
 }
 
+static fd_gpio_port_metadata_t *fd_gpio_get_metadata_for_device(const struct device *device) {
+    for (int i = 0; i < fd_gpio_port_metadata_count; ++i) {
+        fd_gpio_port_metadata_t *metadata = &fd_gpio_port_metadatas[i];
+        if (metadata->device == device) {
+            return metadata;
+        }
+    }
+    return 0;
+}
+
+static fd_gpio_port_metadata_t *fd_gpio_get_metadata(int port) {
+    fd_assert(port < fd_gpio_port_metadata_count);
+    return &fd_gpio_port_metadatas[port];
+}
+
 static const struct device *fd_gpio_get_device(int port) {
     fd_assert(port < fd_gpio_port_metadata_count);
     return fd_gpio_port_metadatas[port].device;
 }
 
+void fd_gpio_callback_handler(const struct device *device, struct gpio_callback *gpio_callback, gpio_port_pins_t pins) {
+    fd_gpio_port_metadata_t *metadata = fd_gpio_get_metadata_for_device(device);
+    for (int i = 0; i < 32; ++i) {
+        if (pins & (1 << i)) {
+            fd_gpio_callback_t callback = metadata->callbacks[i];
+            callback();
+        }
+    }
+}
+
 void fd_gpio_set_callback(fd_gpio_t gpio, fd_gpio_callback_t callback) {
+    fd_gpio_port_metadata_t *metadata = fd_gpio_get_metadata(gpio.port);
+    int result = gpio_pin_interrupt_configure(metadata->device, gpio.pin, GPIO_INT_EDGE_BOTH);
+    fd_assert(result == 0);
+    
+    metadata->callbacks[gpio.pin] = callback;
+    struct gpio_callback *gpio_callback = &metadata->gpio_callbacks[gpio.pin];
+    gpio_init_callback(gpio_callback, fd_gpio_callback_handler, 1 << gpio.pin);
+    result = gpio_add_callback(metadata->device, gpio_callback);
+    fd_assert(result == 0);
 }
 
 void fd_gpio_configure_default(fd_gpio_t gpio) {
