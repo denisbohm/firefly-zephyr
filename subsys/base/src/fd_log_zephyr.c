@@ -56,9 +56,6 @@ void fd_log_panic(const struct log_backend *const backend) {
 }
 
 void fd_log_init(const struct log_backend *const backend) {
-    memset(&fd_log, 0, sizeof(fd_log));
-
-    k_pipe_init(&fd_log.pipe, fd_log.pipe_buffer, sizeof(fd_log.pipe_buffer));
 }
 
 const struct log_backend_api fd_log_backend_api = {
@@ -71,10 +68,14 @@ const struct log_backend_api fd_log_backend_api = {
     .init = fd_log_init,
 };
 
-LOG_BACKEND_DEFINE(fd_log_backend, fd_log_backend_api, true);
+LOG_BACKEND_DEFINE(fd_log_backend, fd_log_backend_api, false);
 
 void fd_log_initialize(void) {
-    // log_backend_activate(&fd_log_backend, 0);
+    memset(&fd_log, 0, sizeof(fd_log));
+
+    k_pipe_init(&fd_log.pipe, fd_log.pipe_buffer, sizeof(fd_log.pipe_buffer));
+
+//    log_backend_activate(&fd_log_backend, 0);
 }
 
 size_t fd_log_get(uint8_t *data, size_t size) {
