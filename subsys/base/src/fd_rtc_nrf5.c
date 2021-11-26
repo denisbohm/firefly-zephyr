@@ -28,7 +28,12 @@ ISR_DIRECT_DECLARE(fd_rtc_irq_handler) {
 void fd_rtc_initialize(void) {
     memset(&fd_rtc, 0, sizeof(fd_rtc));
 
+#ifdef NRF52_SERIES
+    fd_rtc.nrf_rtc = NRF_RTC0;
+#endif
+#ifdef NRF53_SERIES
     fd_rtc.nrf_rtc = NRF_RTC0_S;
+#endif
 
     NRF_RTC_Type *nrf_rtc = fd_rtc.nrf_rtc;
     nrf_rtc->PRESCALER = 0;

@@ -69,6 +69,15 @@ void fd_i2cm_initialize(
         if (name == 0) {
             info->twim = 0;
         } else
+#ifdef NRF52_SERIES
+        if (strcmp(name, "NRF_TWIM0") == 0) {
+            info->twim = NRF_TWIM0;
+        } else
+        if (strcmp(name, "NRF_TWIM1") == 0) {
+            info->twim = NRF_TWIM1;
+        }
+#endif
+#ifdef NRF53_SERIES
         if (strcmp(name, "NRF_TWIM0_S") == 0) {
             info->twim = NRF_TWIM0_S;
         } else
@@ -81,6 +90,7 @@ void fd_i2cm_initialize(
         if (strcmp(name, "NRF_TWIM3_S") == 0) {
             info->twim = NRF_TWIM3_S;
         }
+#endif
     }
 }
 

@@ -10,21 +10,28 @@ float fd_adc_convert(int channel, float max_voltage) {
     // Gain 1/3
 
     int16_t result = 0;
-    NRF_SAADC_S->ENABLE = 1;
-    NRF_SAADC_S->CH[0].PSELP = channel << SAADC_CH_PSELP_PSELP_Pos;
-    NRF_SAADC_S->CH[0].CONFIG = 
+    NRF_SAADC_Type *nrf_saadc;
+#ifdef NRF52_SERIES
+    nrf_saadc = NRF_SAADC;
+#endif
+#ifdef NRF53_SERIES
+    nrf_saadc = NRF_SAADC_S;
+#endif
+    nrf_saadc->ENABLE = 1;
+    nrf_saadc->CH[0].PSELP = channel << SAADC_CH_PSELP_PSELP_Pos;
+    nrf_saadc->CH[0].CONFIG = 
         (SAADC_CH_CONFIG_GAIN_Gain1_3 << SAADC_CH_CONFIG_GAIN_Pos) |
         (SAADC_CH_CONFIG_TACQ_40us << SAADC_CH_CONFIG_TACQ_Pos);
-    NRF_SAADC_S->RESOLUTION = SAADC_RESOLUTION_VAL_12bit;
-    NRF_SAADC_S->RESULT.PTR = (uint32_t)&result;
-    NRF_SAADC_S->RESULT.MAXCNT = 1;
-    NRF_SAADC_S->EVENTS_RESULTDONE = 0;
-    NRF_SAADC_S->TASKS_START = 1;
-    NRF_SAADC_S->TASKS_SAMPLE = 1;
-    while (NRF_SAADC_S->EVENTS_RESULTDONE == 0) {
+    nrf_saadc->RESOLUTION = SAADC_RESOLUTION_VAL_12bit;
+    nrf_saadc->RESULT.PTR = (uint32_t)&result;
+    nrf_saadc->RESULT.MAXCNT = 1;
+    nrf_saadc->EVENTS_RESULTDONE = 0;
+    nrf_saadc->TASKS_START = 1;
+    nrf_saadc->TASKS_SAMPLE = 1;
+    while (nrf_saadc->EVENTS_RESULTDONE == 0) {
     }
-    NRF_SAADC_S->TASKS_STOP = 1;
-    NRF_SAADC_S->ENABLE = 0;
+    nrf_saadc->TASKS_STOP = 1;
+    nrf_saadc->ENABLE = 0;
     float voltage = ((float)result) * 3.0f * 0.6f / 4096.0f;
     return voltage;
 }

@@ -42,6 +42,21 @@ void fd_ssd1327_bus_initialize(void) {
 
     NRF_SPIM_Type *spim = 0;
     const char *name = fd_ssd1327_bus_4_wire_spi_configuration.spi_device_name;
+#ifdef NRF52_SERIES
+    if (strcmp(name, "NRF_SPIM0") == 0) {
+        spim = NRF_SPIM0;
+    } else
+    if (strcmp(name, "NRF_SPIM1") == 0) {
+        spim = NRF_SPIM1;
+    } else
+    if (strcmp(name, "NRF_SPIM2") == 0) {
+        spim = NRF_SPIM2;
+    } else
+    if (strcmp(name, "NRF_SPIM3") == 0) {
+        spim = NRF_SPIM3;
+    }
+#endif
+#ifdef NRF53_SERIES
     if (strcmp(name, "NRF_SPIM0_S") == 0) {
         spim = NRF_SPIM0_S;
     } else
@@ -57,6 +72,7 @@ void fd_ssd1327_bus_initialize(void) {
     if (strcmp(name, "NRF_SPIM4_S") == 0) {
         spim = NRF_SPIM4_S;
     }
+#endif
     fd_assert(spim != 0);
     fd_ssd1327_bus_4_wire_spi.spim = spim;
     spim->CONFIG = (SPIM_CONFIG_CPOL_ActiveLow << SPIM_CONFIG_CPOL_Pos) | (SPIM_CONFIG_CPHA_Trailing << SPIM_CONFIG_CPHA_Pos);
