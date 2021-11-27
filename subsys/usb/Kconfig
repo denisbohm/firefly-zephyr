@@ -1,0 +1,18 @@
+menuconfig FIREFLY_SUBSYS_USB
+	bool "USB"
+	help
+	  Include USB firmware in the system configuration.
+
+if FIREFLY_SUBSYS_USB
+
+config FIREFLY_SUBSYS_USB_CDC
+	bool "USB CDC"
+	help
+	  Enable Firefly USB CDC.
+
+config FIREFLY_SUBSYS_USB_MSC
+	bool "USB MSC"
+	help
+	  Enable Firefly USB MSC.
+
+endif
