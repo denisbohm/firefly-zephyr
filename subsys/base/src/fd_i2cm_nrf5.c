@@ -60,6 +60,7 @@ void fd_i2cm_initialize(
     fd_i2cm.bus_count = bus_count;
     fd_i2cm.devices = devices;
     fd_i2cm.device_count = device_count;
+
     for (uint32_t i = 0; i < bus_count; ++i) {
         const fd_i2cm_bus_t *bus = &buses[i];
         fd_i2cm_bus_disable(bus);
@@ -92,6 +93,20 @@ void fd_i2cm_initialize(
         }
 #endif
     }
+}
+
+const fd_i2cm_bus_t *fd_i2cm_get_bus(int index) {
+    if (index >= fd_i2cm.bus_count) {
+        return 0;
+    }
+    return &fd_i2cm.buses[index];
+}
+
+const fd_i2cm_device_t *fd_i2cm_get_device(int index) {
+    if (index >= fd_i2cm.device_count) {
+        return 0;
+    }
+    return &fd_i2cm.devices[index];
 }
 
 fd_i2cm_bus_info_t *fd_i2cm_get_bus_info(const fd_i2cm_bus_t *bus) {

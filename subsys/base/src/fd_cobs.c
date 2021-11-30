@@ -2,21 +2,21 @@
 
 #include <string.h>
 
-size_t fd_cobs_encode(uint8_t *data, size_t length, uint8_t *buffer, size_t size) {
+size_t fd_cobs_encode(uint8_t *data, size_t length, size_t size, uint8_t *buffer, size_t buffer_size) {
     uint8_t *dst = data;
     uint8_t *code_pointer = dst++;
     uint8_t code = 1;
     size_t offset = 0;
     size_t n = length - offset;
-    if (n > size) {
-        n = size;
+    if (n > buffer_size) {
+        n = buffer_size;
     }
     memcpy(buffer, &data[offset], n);
     for (const uint8_t *src = buffer; length-- != 0; ++src) {
-        if (src >= (buffer + size)) {
+        if (src >= (buffer + buffer_size)) {
             size_t n = length - offset;
-            if (n > size) {
-                n = size;
+            if (n > buffer_size) {
+                n = buffer_size;
             }
             memcpy(buffer, &data[offset], n);
             offset += n;

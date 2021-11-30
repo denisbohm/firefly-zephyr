@@ -46,6 +46,9 @@ void fd_spim_initialize(
     const fd_spim_device_t *devices, uint32_t device_count
 );
 
+const fd_spim_bus_t *fd_spim_get_bus(int index);
+const fd_spim_device_t *fd_spim_get_device(int index);
+
 void fd_spim_bus_enable(const fd_spim_bus_t *bus);
 void fd_spim_bus_disable(const fd_spim_bus_t *bus);
 bool fd_spim_bus_is_enabled(const fd_spim_bus_t *bus);

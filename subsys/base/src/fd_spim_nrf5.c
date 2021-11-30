@@ -5,9 +5,25 @@
 #include "nrf.h"
 #include "hal/nrf_gpio.h"
 
+#include <string.h>
+
+typedef struct {
+    const fd_spim_bus_t *buses;
+    uint32_t bus_count;
+    const fd_spim_device_t *devices;
+    uint32_t device_count;
+} fd_spim_t;
+
+fd_spim_t fd_spim;
+
 static inline
 NRF_GPIO_Type *fd_spim_get_nrf_gpio(uint32_t port) {
+#ifdef NRF52_SERIES
     return (NRF_GPIO_Type *)(NRF_P0_BASE + port * 0x300UL);
+#endif
+#ifdef NRF53_SERIES
+    return (NRF_GPIO_Type *)(NRF_P0_S_BASE + port * 0x300UL);
+#endif
 }
 
 static
@@ -41,6 +57,12 @@ void fd_spim_initialize(
     const fd_spim_bus_t *buses, uint32_t bus_count,
     const fd_spim_device_t *devices, uint32_t device_count
 ) {
+    memset(&fd_spim, 0, sizeof(fd_spim));
+    fd_spim.buses = buses;
+    fd_spim.bus_count = bus_count;
+    fd_spim.devices = devices;
+    fd_spim.device_count = device_count;
+
     for (uint32_t i = 0; i < device_count; ++i) {
         const fd_spim_device_t *device = &devices[i];
         fd_gpio_configure_output(device->csn, true);
@@ -55,6 +77,20 @@ void fd_spim_initialize(
 
         fd_spim_bus_disable(bus);
     }
+}
+
+const fd_spim_bus_t *fd_spim_get_bus(int index) {
+    if (index >= fd_spim.bus_count) {
+        return 0;
+    }
+    return &fd_spim.buses[index];
+}
+
+const fd_spim_device_t *fd_spim_get_device(int index) {
+    if (index >= fd_spim.device_count) {
+        return 0;
+    }
+    return &fd_spim.devices[index];
 }
 
 void fd_spim_bus_enable(const fd_spim_bus_t *bus) {

@@ -43,6 +43,9 @@ void fd_i2cm_initialize(
     const fd_i2cm_device_t *devices, uint32_t device_count
 );
 
+const fd_i2cm_bus_t *fd_i2cm_get_bus(int index);
+const fd_i2cm_device_t *fd_i2cm_get_device(int index);
+
 void fd_i2cm_clear_bus(const fd_i2cm_bus_t *bus);
 
 void fd_i2cm_bus_enable(const fd_i2cm_bus_t *bus);
