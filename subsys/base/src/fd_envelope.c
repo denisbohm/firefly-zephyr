@@ -1,17 +1,18 @@
 #include "fd_envelope.h"
 
+#include "fd_cobs.h"
 #include "fd_crc16.h"
 
 #define fd_envelope_size 10
 
 bool fd_envelope_decode(fd_binary_t *message, fd_envelope_t *envelope) {
     message->put_index = fd_cobs_decode(message->buffer, message->put_index);
-    if (message.put_index < fd_envelope_size) {
+    if (message->put_index < fd_envelope_size) {
         return false;
     }
 
     fd_binary_t binary;
-    fd_binary_intitalize(&binary, &message->buffer[message->put_index - fd_envelope_size], fd_envelope_size);
+    fd_binary_initialize(&binary, &message->buffer[message->put_index - fd_envelope_size], fd_envelope_size);
     envelope->reserved0 = fd_binary_get_uint8(&binary);
     envelope->type = fd_binary_get_uint8(&binary);
     envelope->subsystem = fd_binary_get_uint8(&binary);
@@ -47,7 +48,7 @@ bool fd_envelope_encode(fd_binary_t *message, fd_envelope_t *envelope) {
     envelope->crc16 = fd_crc16_update(message->buffer, message->put_index);
     fd_binary_put_uint16(message, envelope->crc16);
     uint8_t buffer[32];
-    size_t length = fd_cobs_encode(message->buffer, message->put_index, message->size, buffer, sizeof(buffer))
+    size_t length = fd_cobs_encode(message->buffer, message->put_index, message->size, buffer, sizeof(buffer));
     if (length == 0) {
         message->errors |= fd_binary_error_overflow;
     }
