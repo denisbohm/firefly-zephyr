@@ -29,15 +29,22 @@ bool fd_spim_dispatch_io(fd_binary_t *message, fd_envelope_t *envelope, fd_dispa
         return false;
     }
 
-    uint8_t rx[fd_spim_dispatch_rx_limit] = { fd_spim_dispatch_operation_io };
-    uint32_t rx_index = 1;
+    uint8_t rx[fd_spim_dispatch_rx_limit] = {
+        fd_spim_dispatch_operation_io,
+        device_identifier,
+        transfer_count,
+    };
+    uint32_t rx_index = 3;
     for (uint32_t i = 0; i < transfer_count; ++i) {
         fd_spim_transfer_t *transfer = &transfers[i];
         transfer->tx_byte_count = fd_binary_get_uint8(message);
+        rx[rx_index++] = transfer->tx_byte_count;
         fd_binary_get_check(message, transfer->tx_byte_count);
         transfer->tx_bytes = &message->buffer[message->get_index];
         message->get_index += transfer->tx_byte_count;
+
         transfer->rx_byte_count = fd_binary_get_uint8(message);
+        rx[rx_index++] = transfer->rx_byte_count;
         transfer->rx_bytes = &rx[rx_index];
         rx_index += transfer->rx_byte_count;
         if (rx_index > fd_spim_dispatch_rx_limit) {
