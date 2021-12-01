@@ -12,7 +12,12 @@
 #endif
 
 typedef enum {
-    fd_i2cm_dispatch_operation_io,
+    fd_i2cm_dispatch_result_success = 0,
+    fd_i2cm_dispatch_result_nack = 1,
+} fd_i2cm_dispatch_result_t;
+
+typedef enum {
+    fd_i2cm_dispatch_operation_io = 0,
 } fd_i2cm_dispatch_operation_t;
 
 bool fd_i2cm_dispatch_io(fd_binary_t *message, fd_envelope_t *envelope, fd_dispatch_respond_t respond) {
@@ -29,12 +34,19 @@ bool fd_i2cm_dispatch_io(fd_binary_t *message, fd_envelope_t *envelope, fd_dispa
         return false;
     }
 
-    uint8_t rx[fd_i2cm_dispatch_rx_limit] = { fd_i2cm_dispatch_operation_io };
-    uint32_t rx_index = 1;
+    uint8_t rx[fd_i2cm_dispatch_rx_limit] = {
+        fd_i2cm_dispatch_operation_io,
+        fd_i2cm_dispatch_result_success,
+        device_identifier,
+        transfer_count
+    };
+    uint32_t rx_index = 3;
     for (uint32_t i = 0; i < transfer_count; ++i) {
         fd_i2cm_transfer_t *transfer = &transfers[i];
         transfer->direction = fd_binary_get_uint8(message);
         transfer->byte_count = fd_binary_get_uint8(message);
+        rx[rx_index++] = (uint8_t) transfer->direction;
+        rx[rx_index++] = (uint8_t) transfer->byte_count;
         switch (transfer->direction) {
             case fd_i2cm_direction_tx:
                 fd_binary_get_check(message, transfer->byte_count);
@@ -63,7 +75,7 @@ bool fd_i2cm_dispatch_io(fd_binary_t *message, fd_envelope_t *envelope, fd_dispa
     };
     bool ack = fd_i2cm_device_io(device, &io);
     if (!ack) {
-        return false;
+        rx[1] = fd_i2cm_dispatch_result_nack;
     }
 
     // create response and send it back...
