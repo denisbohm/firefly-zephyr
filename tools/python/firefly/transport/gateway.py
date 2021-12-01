@@ -1,4 +1,5 @@
 from cobs import cobs
+from firefly.transport.envelope import Envelope
 import serial
 import serial.tools.list_ports
 import struct
@@ -11,7 +12,7 @@ class GatewayException(Exception):
 class Gateway:
 
     @staticmethod
-    def find_serial_port(vid=0x8086, pid=0xf8a1):
+    def find_serial_port(vid=0x2FE3, pid=0x0100):
         for info in serial.tools.list_ports.comports():
             if info.vid == vid and info.pid == pid:
                 return info.device
@@ -55,7 +56,7 @@ class Gateway:
             envelope.length
         )
         envelope.crc16 = self.crc16(data)
-        encoded = data + struct.pack("<H", envelope.crc)
+        encoded = data + struct.pack("<H", envelope.crc16)
         return encoded
 
     def get_envelope(self, message):
@@ -86,7 +87,7 @@ class Gateway:
                 if self.trace:
                     print(f"rx (timed out) {data.hex()}")
                 raise GatewayException("read timeout")
-            if data == 0:
+            if data[0] == 0:
                 if len(message) > 0:
                     decoded = cobs.decode(message)
                     if self.trace:
@@ -94,4 +95,4 @@ class Gateway:
                     deenveloped, envelope = self.get_envelope(decoded)
                     return deenveloped, envelope
             else:
-                message.append(data)
+                message.extend(data)

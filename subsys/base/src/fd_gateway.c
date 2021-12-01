@@ -44,6 +44,10 @@ bool fd_gateway_transmit(fd_binary_t *message, fd_envelope_t *envelope) {
     if (!fd_envelope_encode(message, envelope)) {
         return false;
     }
+    fd_binary_put_uint8(message, 0);
+    if (message->errors) {
+        return false;
+    }
     fd_gateway_item_t *item = fd_gateway_get_item(envelope->target);
     if (item == 0) {
         return false;

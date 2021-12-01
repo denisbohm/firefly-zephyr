@@ -30,16 +30,16 @@ class I2CM:
     @staticmethod
     def encode_io(device, transactions):
         data = bytearray()
-        data += struct.encode("<BBB", I2CM.operation_io, device, len(transactions))
+        data += struct.pack("<BBB", I2CM.operation_io, device, len(transactions))
         for transaction in transactions:
-            data += struct.encode("<BB", transaction.direction, transaction.count)
+            data += struct.pack("<BB", transaction.direction, transaction.count)
             if transaction.direction == I2CMTransaction.direction_tx:
                 data += transaction.data
         return data
 
     @staticmethod
     def decode_io(device, transactions, data):
-        operation, result, io_device, transaction_count = struct.decode("<BBBB", data[0:3])
+        operation, result, io_device, transaction_count = struct.unpack("<BBBB", data[0:4])
         if operation != I2CM.operation_io:
             raise Exception("unexpected operation")
         if result != I2CM.result_success:
@@ -48,9 +48,9 @@ class I2CM:
             raise Exception("unexpected device")
         if transaction_count != len(transactions):
             raise Exception("unexpected transactions")
-        index = 3
+        index = 4
         for transaction in transactions:
-            direction, count = struct.decode("<BB", data[index:index + 2])
+            direction, count = struct.unpack("<BB", data[index:index + 2])
             index += 2
             if direction != transaction.direction:
                 raise Exception("unexpected direction")

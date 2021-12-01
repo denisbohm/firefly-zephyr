@@ -40,7 +40,7 @@ bool fd_i2cm_dispatch_io(fd_binary_t *message, fd_envelope_t *envelope, fd_dispa
         device_identifier,
         transfer_count
     };
-    uint32_t rx_index = 3;
+    uint32_t rx_index = 4;
     for (uint32_t i = 0; i < transfer_count; ++i) {
         fd_i2cm_transfer_t *transfer = &transfers[i];
         transfer->direction = fd_binary_get_uint8(message);
