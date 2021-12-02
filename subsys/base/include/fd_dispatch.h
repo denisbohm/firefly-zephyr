@@ -8,7 +8,7 @@ typedef bool (*fd_dispatch_respond_t)(fd_binary_t *message, fd_envelope_t *envel
 
 typedef bool (*fd_dispatch_process_t)(fd_binary_t *message, fd_envelope_t *envelope, fd_dispatch_respond_t respond);
 
-void fd_dispatch_initialize(void);
+void fd_dispatch_initialize(fd_dispatch_respond_t respond);
 
 void fd_dispatch_add_process(uint8_t system, uint8_t subsystem, fd_dispatch_process_t process);
 
