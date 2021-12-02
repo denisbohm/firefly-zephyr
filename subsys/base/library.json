@@ -1,0 +1,33 @@
+{
+  "name": "FireflyBase",
+  "version": "1.0.0",
+  "description": "Firefly Base",
+  "keywords": "firefly, base",
+  "repository":
+  {
+    "type": "git",
+    "url": "https://github.com/denisbohm/firefly-zephyr.git"
+  },
+  "authors":
+  [
+    {
+      "name": "Denis Bohm",
+      "email": "denis@fireflydesign.com",
+      "url": "http://fireflydesign.com",
+      "maintainer": true
+    }
+  ],
+  "license": "MIT",
+  "homepage": "http://fireflydesign.com",
+  "dependencies": {
+  },
+  "frameworks": "*",
+  "platforms": "*",
+  "build": {
+    "srcFilter": [
+      "+<*.c>",
+      "-<*_nrf5.c>",
+      "-<*_zephyr.c>"
+    ]
+  }
+}
