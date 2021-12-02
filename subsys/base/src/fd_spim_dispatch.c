@@ -88,5 +88,5 @@ bool fd_spim_dispatch_process(fd_binary_t *message, fd_envelope_t *envelope, fd_
 }
 
 void fd_spim_dispatch_initialize(void) {
-    fd_dispatch_add_process(fd_envelope_system_firefly, fd_envelope_subsystem_i2cm, fd_spim_dispatch_process);
+    fd_dispatch_add_process(fd_envelope_system_firefly, fd_envelope_subsystem_spim, fd_spim_dispatch_process);
 }

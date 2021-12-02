@@ -44,6 +44,10 @@ class SPIM:
         index = 3
         for transaction in transactions:
             tx_count, rx_count = struct.unpack("<BB", data[index:index + 2])
+            if tx_count != transaction.tx_count:
+                raise Exception("unexpected tx count")
+            if rx_count != transaction.rx_count:
+                raise Exception("unexpected rx count")
             index += 2
             transaction.rx_data = data[index:index + rx_count]
             index += rx_count
