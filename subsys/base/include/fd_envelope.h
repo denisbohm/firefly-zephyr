@@ -6,14 +6,15 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define fd_envelope_system_firefly 1
+#define fd_envelope_system_firefly 0
 
-#define fd_envelope_subsystem_i2cm 1
-#define fd_envelope_subsystem_spim 2
+#define fd_envelope_subsystem_system 0
+#define fd_envelope_subsystem_i2cm   1
+#define fd_envelope_subsystem_spim   2
 
+#define fd_envelope_type_event    0
 #define fd_envelope_type_request  1
 #define fd_envelope_type_response 2
-#define fd_envelope_type_event    3
 
 typedef struct {
     uint16_t crc16;
