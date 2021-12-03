@@ -47,10 +47,10 @@ class Main:
 
     def check_photometric_front_end(self, device):
         value = self.pfe_read(device, 0x08)
-        rev_num = value & 0xff
-        dev_id = value >> 8
-        print(f"PFE{device} rev_num {rev_num} 0x0a")
-        print(f"PFE{device} dev_id {dev_id} 0x16")
+        rev_num = value >> 8
+        dev_id = value & 0xff
+        print(f"PFE{device} rev_num 0x{rev_num:02x} (0x0a expected)")
+        print(f"PFE{device} dev_id 0x{dev_id:02x} (0x16 expected)")
 
     def run(self):
         self.check_photometric_front_end(Main.spim_device_pfe0)
