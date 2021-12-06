@@ -22,4 +22,6 @@ bool fd_gateway_process(fd_binary_t *message);
 
 bool fd_gateway_transmit(fd_binary_t *message, fd_envelope_t *envelope);
 
+void fd_gateway_message_rx(fd_binary_t *message, const uint8_t *data, size_t length);
+
 #endif

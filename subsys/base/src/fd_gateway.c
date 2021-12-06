@@ -73,6 +73,20 @@ bool fd_gateway_process(fd_binary_t *message) {
     return item->endpoint.transmit(message->buffer, message->put_index);
 }
 
+void fd_gateway_message_rx(fd_binary_t *message, const uint8_t *data, size_t length) {
+    for (size_t i = 0; i < length; ++i) {
+        uint8_t byte = data[i];
+        if (byte == 0) {
+            if (message->put_index > 0) {
+                fd_gateway_process(message);
+                fd_binary_reset(message);
+            }
+        } else {
+            fd_binary_put_uint8(message, byte);
+        }
+    }
+}
+
 void fd_gateway_initialize(fd_gateway_target_t target) {
     memset(&fd_gateway, 0, sizeof(fd_gateway));
 
