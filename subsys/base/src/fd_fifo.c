@@ -12,6 +12,10 @@ void fd_fifo_flush(fd_fifo_t *fifo) {
     fifo->tail = 0;
 }
 
+bool fd_fifo_is_empty(fd_fifo_t *fifo) {
+    return fifo->head == fifo->tail;
+}
+
 bool fd_fifo_get(fd_fifo_t *fifo, uint8_t *byte) {
     bool valid = fifo->head != fifo->tail;
     if (valid) {
