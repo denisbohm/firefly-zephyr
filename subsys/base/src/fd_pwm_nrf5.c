@@ -62,6 +62,21 @@ void fd_pwm_initialize(const fd_pwm_module_t *modules, uint32_t module_count, co
 
 static
 fd_pwm_module_state_t *fd_pwm_get_state(uint32_t instance) {
+#ifdef NRF52_SERIES
+    if (instance == (uint32_t)NRF_PWM0) {
+        return &fd_pwm_module_states[0];
+    }
+    if (instance == (uint32_t)NRF_PWM1) {
+        return &fd_pwm_module_states[1];
+    }
+    if (instance == (uint32_t)NRF_PWM2) {
+        return &fd_pwm_module_states[2];
+    }
+    if (instance == (uint32_t)NRF_PWM3) {
+        return &fd_pwm_module_states[3];
+    }
+#endif
+#ifdef NRF53_SERIES
     if (instance == (uint32_t)NRF_PWM0_S) {
         return &fd_pwm_module_states[0];
     }
@@ -71,6 +86,7 @@ fd_pwm_module_state_t *fd_pwm_get_state(uint32_t instance) {
     if (instance == (uint32_t)NRF_PWM2_S) {
         return &fd_pwm_module_states[2];
     }
+#endif
     return 0;
 }
 
