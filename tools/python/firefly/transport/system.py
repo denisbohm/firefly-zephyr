@@ -21,5 +21,7 @@ class System:
 
     @staticmethod
     def decode_io(data):
-        major, minor, patch = struct.unpack("<III", data)
+        operation, major, minor, patch = struct.unpack("<BIII", data)
+        if operation != System.operation_get_version:
+            raise Exception("unexpected operation")
         return SystemVersion(major, minor, patch)

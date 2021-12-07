@@ -11,6 +11,7 @@ bool fd_system_dispatch_get_version(fd_binary_t *message, fd_envelope_t *envelop
     fd_binary_t response;
     fd_binary_initialize(&response, buffer, sizeof(buffer));
     fd_system_version_t version = fd_system_get_version();
+    fd_binary_put_uint8(&response, fd_system_dispatch_operation_get_version);
     fd_binary_put_uint32(&response, version.major);
     fd_binary_put_uint32(&response, version.minor);
     fd_binary_put_uint32(&response, version.patch);
