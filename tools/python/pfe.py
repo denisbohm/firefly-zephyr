@@ -5,40 +5,10 @@ from firefly.transport.spim import SPIMTransaction
 
 import struct
 import sys
+import time
 
-class PFE:
-
-    operation_get_fifo_data = 0
-
-    @staticmethod
-    def encode_io(sample_size=2):
-        data = bytearray()
-        data += struct.pack("<BB", PFE.operation_get_fifo_data, sample_size)
-        return data
-
-    @staticmethod
-    def decode_io(data):
-        operation, sample_size = struct.unpack("<BB", data[0:2])
-        if operation != PFE.operation_get_fifo_data:
-            raise Exception("unexpected operation")
-        fifos = []
-        index = 2
-        for _ in range(2):
-            sample_count = struct.unpack("<B", data[index:index + 1])[0]
-            index += 1
-            samples = []
-            for _ in range(sample_count):
-                sample = struct.unpack(">H", data[index:index + 2])[0]
-                index += 2
-                samples.append(sample)
-            fifos.append(samples)
-        return fifos
 
 class Main:
-
-    system_loop = 1
-
-    subsystem_pfe = 0
 
     spim_device_pfe0 = 0
     spim_device_pfe1 = 1
@@ -75,7 +45,7 @@ class Main:
         return value
 
     def pfe_write(self, device, register, value):
-        transactions = [SPIMTransaction(tx_data=[(register << 1) | 0x01, (value >> 8) & 0xff, value & 0xff])]
+        transactions = [SPIMTransaction(tx_data=bytes([(register << 1) | 0x01, (value >> 8) & 0xff, value & 0xff]))]
         self.spim_io(device, transactions)
 
     def check_photometric_front_end(self, device):
@@ -85,24 +55,34 @@ class Main:
         print(f"PFE{device} rev_num 0x{rev_num:02x} (0x0a expected)")
         print(f"PFE{device} dev_id 0x{dev_id:02x} (0x16 expected)")
 
-    def pfe_get_fifo_data(self):
-        request = PFE.encode_io()
-        request_envelope = Envelope(
-            target=main.target_sensor_0,
-            source=main.target_usb,
-            system=Main.system_loop,
-            subsystem=Main.subsystem_pfe,
-            type=Envelope.type_request
-        )
-        self.gateway.tx(request, request_envelope)
-        response, response_envelope = self.gateway.rx()
-        return PFE.decode_io(response)
-
     def run(self):
-        self.check_photometric_front_end(Main.spim_device_pfe0)
-        fifos = self.pfe_get_fifo_data()
-        for fifo in fifos:
-            print(f"fifo sample count {len(fifo)}")
+        device = Main.spim_device_pfe0
+        self.check_photometric_front_end(device)
+
+        self.pfe_write(device, 0x0f, 0x0001)  # Reset Device
+        self.pfe_write(device, 0x10, 0x0001)  # Enter Program Mode
+        self.pfe_write(device, 0x4B, 0x0080)  # Enable 32 kHz clock
+
+        # Enable slot A & B w/ FIFO
+        #  self.pfe_write(device, 0x11, 0x0021)
+        self.pfe_write(device, 0x11, 0x0065)
+        # AFE Window Settings
+        self.pfe_write(device, 0x30, 0x0219)
+        self.pfe_write(device, 0x35, 0x0219)
+        self.pfe_write(device, 0x39, 0x1A08)
+        self.pfe_write(device, 0x3B, 0x1A08)
+
+        ledxi = 1
+        # Use PD5 Channel 1 in Time Slot A & B (LEDXi)
+        self.pfe_write(device, 0x14, 0x0440 | (ledxi << 2) | ledxi)
+        # Enter Normal Sampling Mode
+        self.pfe_write(device, 0x10, 0x0002)
+        # wait for some samples
+        time.sleep(0.001)
+        # Hold Data for Slot A & B
+        self.pfe_write(device, 0x5F, 0x0006)
+
+        # get fifo data
 
 
 if __name__ == '__main__':

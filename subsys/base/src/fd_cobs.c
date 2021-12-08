@@ -1,28 +1,35 @@
 #include "fd_cobs.h"
 
+#include "fd_assert.h"
+#include "fd_fifo.h"
+
 #include <string.h>
 
 size_t fd_cobs_encode(uint8_t *data, size_t length, size_t size, uint8_t *buffer, size_t buffer_size) {
+    fd_fifo_t fifo;
+    fd_fifo_initialize(&fifo, buffer, buffer_size);
+    size_t n = length;
+    if (n > (buffer_size - 1)) {
+        n = buffer_size - 1;
+    }
+    size_t offset = 0;
+    for (offset = 0; offset < n; ++offset) {
+        bool ok = fd_fifo_put(&fifo, data[offset]);
+        fd_assert(ok);
+    }
+
     uint8_t *dst = data;
     uint8_t *code_pointer = dst++;
     uint8_t code = 1;
-    size_t offset = 0;
-    size_t n = length - offset;
-    if (n > buffer_size) {
-        n = buffer_size;
-    }
-    memcpy(buffer, &data[offset], n);
-    for (const uint8_t *src = buffer; length-- != 0; ++src) {
-        if (src >= (buffer + buffer_size)) {
-            size_t n = length - offset;
-            if (n > buffer_size) {
-                n = buffer_size;
-            }
-            memcpy(buffer, &data[offset], n);
-            offset += n;
-            src = buffer;
+    size_t remaining = length;
+    while (remaining-- != 0) {
+        uint8_t byte;
+        bool ok = fd_fifo_get(&fifo, &byte);
+        fd_assert(ok);
+        if (offset < length) {
+            ok = fd_fifo_put(&fifo, data[offset++]);
+            fd_assert(ok);
         }
-        uint8_t byte = *src;
         if (byte != 0) {
             *dst++ = byte;
             ++code;
