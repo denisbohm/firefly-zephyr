@@ -151,21 +151,25 @@ void fd_uart_instance_initialize(fd_uart_instance_t *instance) {
         device = &fd_uart.devices[0];
         device->uarte = NRF_UARTE0_S;
         IRQ_DIRECT_CONNECT(SERIAL0_IRQn, 0, fd_uart_serial0_handler, 0);
+        irq_enable(SERIAL0_IRQn);
     } else
     if (strcmp(instance->uart_device_name, "NRF_UARTE1_S") == 0) {
         device = &fd_uart.devices[1];
         device->uarte = NRF_UARTE1_S;
         IRQ_DIRECT_CONNECT(SERIAL1_IRQn, 0, fd_uart_serial1_handler, 0);
+        irq_enable(SERIAL1_IRQn);
     } else
     if (strcmp(instance->uart_device_name, "NRF_UARTE2_S") == 0) {
         device = &fd_uart.devices[2];
         device->uarte = NRF_UARTE2_S;
         IRQ_DIRECT_CONNECT(SERIAL2_IRQn, 0, fd_uart_serial2_handler, 0);
+        irq_enable(SERIAL2_IRQn);
     } else
     if (strcmp(instance->uart_device_name, "NRF_UARTE3_S") == 0) {
         device = &fd_uart.devices[3];
         device->uarte = NRF_UARTE3_S;
         IRQ_DIRECT_CONNECT(SERIAL3_IRQn, 0, fd_uart_serial3_handler, 0);
+        irq_enable(SERIAL3_IRQn);
     }
 #endif
     fd_assert(device != 0);
