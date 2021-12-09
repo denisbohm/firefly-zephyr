@@ -7,6 +7,7 @@
 #include <zephyr.h>
 
 #include <nrf.h>
+#include <nrfx_uarte.h>
 
 #include <string.h>
 
@@ -32,6 +33,10 @@ typedef struct {
     uint32_t dma_index;
     uint8_t fifo_data[FD_UART_DEVICE_RX_FIFO_LIMIT];
     fd_fifo_t fifo;
+    uint32_t rxstarted_count;
+    uint32_t rxrdy_count;
+    uint32_t endrx_count;
+    uint32_t rxto_count;
 } fd_uart_device_rx_t;
 
 typedef struct {
@@ -57,17 +62,11 @@ fd_uart_t fd_uart;
 void fd_uart_rx_set_next_dma_buffer(fd_uart_device_t *device) {
     NRF_UARTE_Type *uarte = device->uarte;
     fd_uart_device_rx_t *rx = &device->rx;
-    uarte->RXD.PTR = rx->dma_data[rx->dma_index];
+    uarte->RXD.PTR = (uint32_t)&rx->dma_data[rx->dma_index];
     rx->dma_index = (rx->dma_index + 1) & 0x1;
 }
 
-void fd_uart_rx_start(fd_uart_device_t *device) {
-    fd_uart_rx_set_next_dma_buffer(device);
-    NRF_UARTE_Type *uarte = device->uarte;
-    uarte->TASKS_STARTRX = 1;
-}
-
-void fd_uart_tx_next_dma_buffer(fd_uart_device_t *device) {
+size_t fd_uart_tx_set_next_dma_buffer(fd_uart_device_t *device) {
     fd_uart_device_tx_t *tx = &device->tx;
     fd_fifo_t *fifo = &tx->fifo;
     uint8_t byte = 0;
@@ -75,50 +74,68 @@ void fd_uart_tx_next_dma_buffer(fd_uart_device_t *device) {
     for (i = 0; i < sizeof(tx->dma_data); ++i) {
         if (fd_fifo_get(fifo, &byte)) {
             tx->dma_data[i] = byte;
+        } else {
+            break;
         }
     }
     if (i > 0) {
         NRF_UARTE_Type *uarte = device->uarte;
         uarte->TXD.MAXCNT = i;
         uarte->TASKS_STARTTX = 1;
-        fd_event_set_from_interrupt(tx->event);
     }
+    return i;
 }
 
 int fd_uart_serial_handler(fd_uart_device_t *device) {
     NRF_UARTE_Type *uarte = device->uarte;
 
     fd_uart_device_rx_t *rx = &device->rx;
-    if (uarte->EVENTS_RXSTARTED) {
-        fd_uart_rx_set_next_dma_buffer(device);
-    }
+#if 0
     if (uarte->EVENTS_RXDRDY) {
-        // generated when a byte is received, but RXD.AMOUNT is not updated ye
+        // generated when a byte is received, but RXD.AMOUNT is not updated yet
         // and the byte may not have been written to RAM by DMA yet
+        // So basically, this event appears to be useless...
+        nrf_uarte_event_clear(uarte, NRF_UARTE_EVENT_RXDRDY);
+        ++rx->rxrdy_count;
     }
+#endif
     if (uarte->EVENTS_ENDRX) {
+        // receivied a byte
         fd_assert(uarte->RXD.AMOUNT == 1);
-        // get receivied byte
+        nrf_uarte_event_clear(uarte, NRF_UARTE_EVENT_ENDRX);
         uint8_t byte = rx->dma_data[rx->dma_index];
-        fd_uart_rx_start(device);
         fd_fifo_put(&rx->fifo, byte);
+        ++rx->endrx_count;
         fd_event_set_from_interrupt(rx->event);
+    }
+    if (uarte->EVENTS_RXSTARTED) {
+        nrf_uarte_event_clear(uarte, NRF_UARTE_EVENT_RXSTARTED);
+        fd_uart_rx_set_next_dma_buffer(device);
+        ++rx->rxstarted_count;
     }
     if (uarte->EVENTS_RXTO) {
         // generated when rx stop task is complete
+        nrf_uarte_event_clear(uarte, NRF_UARTE_EVENT_RXTO);
+        ++rx->rxto_count;
     }
 
     if (uarte->EVENTS_TXSTARTED) {
         // generated when transmitter has started but no bytes sent yet
+        nrf_uarte_event_clear(uarte, NRF_UARTE_EVENT_TXSTARTED);
     }
     if (uarte->EVENTS_TXDRDY) {
         // generated after each byte is transmitted
+        nrf_uarte_event_clear(uarte, NRF_UARTE_EVENT_TXDRDY);
     }
     if (uarte->EVENTS_ENDTX) {
-        fd_uart_tx_next_dma_buffer(device);
+        nrf_uarte_event_clear(uarte, NRF_UARTE_EVENT_ENDTX);
+        if (fd_uart_tx_set_next_dma_buffer(device) == 0) {
+            fd_event_set_from_interrupt(device->tx.event);
+        }
     }
     if (uarte->EVENTS_TXSTOPPED) {
         // generated when tx stop task is complete
+        nrf_uarte_event_clear(uarte, NRF_UARTE_EVENT_TXSTOPPED);
     }
 
     return 0;
@@ -173,6 +190,10 @@ void fd_uart_instance_initialize(fd_uart_instance_t *instance) {
     }
 #endif
     fd_assert(device != 0);
+
+    device->instance = instance;
+    fd_fifo_initialize(&device->tx.fifo, device->tx.fifo_data, sizeof(device->tx.fifo_data));
+    fd_fifo_initialize(&device->rx.fifo, device->rx.fifo_data, sizeof(device->rx.fifo_data));
 
     device->tx.event = fd_event_get_identifier(instance->tx_event_name);
     device->rx.event = fd_event_get_identifier(instance->rx_event_name);
@@ -235,13 +256,13 @@ void fd_uart_instance_initialize(fd_uart_instance_t *instance) {
 
     uarte->CONFIG = 0;
     if (instance->parity == fd_uart_parity_even) {
-        uarte->CONFIG |= UARTE_CONFIG_PARITY_Included;
+        uarte->CONFIG |= UARTE_CONFIG_PARITY_Included << UARTE_CONFIG_PARITY_Pos;
     } else
     if (instance->parity == fd_uart_parity_odd) {
-        uarte->CONFIG |= UARTE_CONFIG_PARITYTYPE_Odd | UARTE_CONFIG_PARITY_Included;
+        uarte->CONFIG |= (UARTE_CONFIG_PARITYTYPE_Odd | UARTE_CONFIG_PARITY_Included) << UARTE_CONFIG_PARITY_Pos;
     }
     if (instance->stop_bits == fd_uart_stop_bits_2) {
-        uarte->CONFIG |= UARTE_CONFIG_STOP_Two;
+        uarte->CONFIG |= UARTE_CONFIG_STOP_Two << UARTE_CONFIG_STOP_Pos;
     }
 
     fd_gpio_configure_output(instance->tx_gpio, true);
@@ -251,10 +272,15 @@ void fd_uart_instance_initialize(fd_uart_instance_t *instance) {
     uarte->TXD.MAXCNT = 0;
     uarte->RXD.PTR = 0;
     uarte->RXD.MAXCNT = sizeof(device->rx.dma_data) / 2;
+    uarte->SHORTS = UARTE_SHORTS_ENDRX_STARTRX_Msk;
+
+    uarte->INTEN =
+        UARTE_INTEN_RXSTARTED_Msk | /* UARTE_INTEN_RXDRDY_Msk | */ UARTE_INTEN_ENDRX_Msk | UARTE_INTEN_RXTO_Msk |
+        UARTE_INTEN_TXSTARTED_Msk | UARTE_INTEN_TXDRDY_Msk | UARTE_INTEN_ENDTX_Msk | UARTE_INTEN_TXSTOPPED_Msk;
 
     uarte->ENABLE = UARTE_ENABLE_ENABLE_Enabled;
 
-    fd_uart_rx_start(device);
+    uarte->TASKS_STARTRX = 1;
 }
 
 fd_uart_device_t *fd_uart_get_device(fd_uart_instance_t *instance) {
@@ -278,7 +304,7 @@ size_t fd_uart_instance_tx(fd_uart_instance_t *instance, const uint8_t *data, si
     }
     NRF_UARTE_Type *uarte = device->uarte;
     if (!uarte->EVENTS_TXSTARTED || uarte->EVENTS_ENDTX) {
-        fd_uart_tx_next_dma_buffer(device);
+        fd_uart_tx_set_next_dma_buffer(device);
     }
     return i;
 }

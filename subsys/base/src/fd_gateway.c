@@ -65,12 +65,7 @@ bool fd_gateway_process(fd_binary_t *message) {
         return fd_dispatch_process(message, &envelope);
     }
     
-    fd_gateway_item_t *item = fd_gateway_get_item(envelope.target);
-    if (item == 0) {
-        return false;
-    }
-    fd_envelope_encode(message, &envelope);
-    return item->endpoint.transmit(message->buffer, message->put_index);
+    return fd_gateway_transmit(message, &envelope);
 }
 
 void fd_gateway_message_rx(fd_binary_t *message, const uint8_t *data, size_t length) {

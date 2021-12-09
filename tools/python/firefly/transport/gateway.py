@@ -73,11 +73,15 @@ class Gateway:
 
     def tx(self, data, envelope):
         enveloped = self.add_envelope(data, envelope)
+        if self.trace:
+            print(f"tx enveloped {enveloped.hex()}")
         encoded = cobs.encode(enveloped)
         if self.trace:
-            print(f"tx {encoded.hex()}")
+            print(f"tx encoded {encoded.hex()}")
+        #  self.serial_port.write(b'\x00')
         self.serial_port.write(encoded)
         self.serial_port.write(b'\x00')
+        self.serial_port.flush()
 
     def rx(self):
         message = bytearray()
