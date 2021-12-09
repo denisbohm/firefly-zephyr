@@ -1,6 +1,7 @@
 #include "fd_uart.h"
 
 #include "fd_assert.h"
+#include "fd_event.h"
 #include "fd_fifo.h"
 
 #include <zephyr.h>
@@ -26,6 +27,7 @@
 #endif
 
 typedef struct {
+    uint32_t event;
     uint8_t dma_data[2];
     uint32_t dma_index;
     uint8_t fifo_data[FD_UART_DEVICE_RX_FIFO_LIMIT];
@@ -33,6 +35,7 @@ typedef struct {
 } fd_uart_device_rx_t;
 
 typedef struct {
+    uint32_t event;
     uint8_t dma_data[FD_UART_DEVICE_TX_DMA_LIMIT];
     uint8_t fifo_data[FD_UART_DEVICE_TX_FIFO_LIMIT];
     fd_fifo_t fifo;
@@ -78,6 +81,7 @@ void fd_uart_tx_next_dma_buffer(fd_uart_device_t *device) {
         NRF_UARTE_Type *uarte = device->uarte;
         uarte->TXD.MAXCNT = i;
         uarte->TASKS_STARTTX = 1;
+        fd_event_set_from_interrupt(tx->event);
     }
 }
 
@@ -98,6 +102,7 @@ int fd_uart_serial_handler(fd_uart_device_t *device) {
         uint8_t byte = rx->dma_data[rx->dma_index];
         fd_uart_rx_start(device);
         fd_fifo_put(&rx->fifo, byte);
+        fd_event_set_from_interrupt(rx->event);
     }
     if (uarte->EVENTS_RXTO) {
         // generated when rx stop task is complete
@@ -164,6 +169,10 @@ void fd_uart_instance_initialize(fd_uart_instance_t *instance) {
     }
 #endif
     fd_assert(device != 0);
+
+    device->tx.event = fd_event_get_identifier(instance->tx_event_name);
+    device->rx.event = fd_event_get_identifier(instance->rx_event_name);
+
     NRF_UARTE_Type *uarte = device->uarte;
 
     if (instance->baud_rate < 2400) {
