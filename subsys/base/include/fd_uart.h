@@ -8,6 +8,7 @@
 #include <stdint.h>
 
 typedef enum {
+    fd_uart_parity_none,
     fd_uart_parity_even,
     fd_uart_parity_odd,
 } fd_uart_parity_t;
