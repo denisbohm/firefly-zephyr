@@ -13,6 +13,7 @@ typedef struct {
     fd_graphics_t graphics;
     uint8_t buffer[128 * 3];
     uint8_t frame_buffer[(400 / 8) * 300];
+    fd_graphics_area_t modified_area;
 } fd_graphics_txdc042a1_t;
 
 #define fd_graphics_txdc042a1_bits_per_pixel 1
@@ -68,6 +69,11 @@ static void fd_graphics_txdc042a1_set_pixel(fd_graphics_t *graphics, int x, int 
     frame_buffer[index] = byte;
 }
 
+static void fd_graphics_txdc042a1_add_modified_area(fd_graphics_t *graphics, fd_graphics_area_t area) {
+    fd_graphics_txdc042a1_t *impl = fd_graphics_txdc042a1_impl(graphics);
+    impl->modified_area = fd_graphics_area_union(impl->modified_area, area);
+}
+
 static void fd_graphics_txdc042a1_blit(fd_graphics_t *graphics, fd_graphics_area_t area) {
     // blit an area from the frame buffer that starts and ends on a byte boundary
     int r = (area.x + area.width + 7) & ~0b111;
@@ -86,13 +92,22 @@ static void fd_graphics_txdc042a1_blit(fd_graphics_t *graphics, fd_graphics_area
     fd_txdc042a1_write_image_end();
 }
 
+static void fd_graphics_txdc042a1_update(fd_graphics_t *graphics) {
+    fd_graphics_txdc042a1_t *impl = fd_graphics_txdc042a1_impl(graphics);
+    if (fd_graphics_area_is_empty(impl->modified_area)) {
+        return;
+    }
+    fd_graphics_txdc042a1_blit(graphics, impl->modified_area);
+    impl->modified_area = fd_graphics_area_empty;
+}
+
 static void fd_graphics_txdc042a1_write_background(fd_graphics_t *graphics) {
     fd_graphics_area_t area = { .x = 0, .y = 0, .width = graphics->width, .height = graphics->height };
     uint32_t gray = fd_graphics_txdc042a1_color_to_1bit_gray(graphics->background);
     uint8_t byte = gray ? 0b11111111 : 0b00000000;
     memset(fd_graphics_txdc042a1_impl(graphics)->frame_buffer, byte, sizeof(fd_graphics_txdc042a1_impl(graphics)->frame_buffer));
 
-    fd_graphics_txdc042a1_blit(graphics, area);
+    fd_graphics_txdc042a1_add_modified_area(graphics, area);
 }
 
 static void fd_graphics_txdc042a1_write_area(fd_graphics_t *graphics, fd_graphics_area_t unclipped_area) {
@@ -108,7 +123,7 @@ static void fd_graphics_txdc042a1_write_area(fd_graphics_t *graphics, fd_graphic
         }
     }
 
-    fd_graphics_txdc042a1_blit(graphics, area);
+    fd_graphics_txdc042a1_add_modified_area(graphics, area);
 }
 
 static void fd_graphics_txdc042a1_write_image(fd_graphics_t *graphics, int x, int y, const fd_graphics_image_t *image) {
@@ -129,7 +144,7 @@ static void fd_graphics_txdc042a1_write_image(fd_graphics_t *graphics, int x, in
         }
     }
 
-    fd_graphics_txdc042a1_blit(graphics, dst_area);
+    fd_graphics_txdc042a1_add_modified_area(graphics, dst_area);
 }
 
 static void fd_graphics_txdc042a1_write_bitmap(fd_graphics_t *graphics, int rx, int ry, const fd_graphics_bitmap_t *bitmap) {
@@ -159,7 +174,7 @@ static void fd_graphics_txdc042a1_write_bitmap(fd_graphics_t *graphics, int rx, 
         }
     }
 
-    fd_graphics_txdc042a1_blit(graphics, dst_area);
+    fd_graphics_txdc042a1_add_modified_area(graphics, dst_area);
 }
 
 fd_graphics_t *fd_graphics_txdc042a1_get(void) {
@@ -175,6 +190,7 @@ void fd_graphics_txdc042a1_initialize(void) {
         .write_area = fd_graphics_txdc042a1_write_area,
         .write_image = fd_graphics_txdc042a1_write_image,
         .write_bitmap = fd_graphics_txdc042a1_write_bitmap,
+        .update = fd_graphics_txdc042a1_update,
     };
     fd_graphics_initialize(&fd_graphics_txdc042a1.graphics, 400, 300, backend, fd_graphics_txdc042a1.buffer);
 }

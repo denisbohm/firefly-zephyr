@@ -312,6 +312,12 @@ void fd_graphics_write_string(fd_graphics_t *graphics, int x, int y, const char 
     fd_graphics_write_string_length(graphics, x, y, string, strlen(string));
 }
 
+void fd_graphics_update(fd_graphics_t *graphics) {
+    if (graphics->backend.update) {
+        graphics->backend.update(graphics);
+    }
+}
+
 fd_graphics_area_t fd_graphics_get_bitmap_bounds(fd_graphics_t *graphics fd_unused, const fd_graphics_bitmap_t *bitmap) {
     return (fd_graphics_area_t) {
         .x = -bitmap->origin.x,

@@ -65,7 +65,8 @@ static void fd_txdc042a1_reset(void) {
     fd_txdc042a1_write_command(FD_TXDC042A1_SWRESET);
 }
 
-static void fd_txdc042a1_set_x_window(int start, int count) {
+static void fd_txdc042a1_set_x_window(int start_l, int count) {
+    int start = 400 - start_l;
     fd_assert(count > 0);
     fd_assert((start & 0b111) == 0);
     fd_assert((count & 0b111) == 0);
@@ -73,27 +74,28 @@ static void fd_txdc042a1_set_x_window(int start, int count) {
     int s = start / 8;
     int e = (start + count) / 8 - 1;
     fd_txdc042a1_write_command(0x44);
-    fd_txdc042a1_write_data((uint8_t)s);
     fd_txdc042a1_write_data((uint8_t)e);
+    fd_txdc042a1_write_data((uint8_t)s);
 
     fd_txdc042a1_write_command(0x4E);
-    fd_txdc042a1_write_data((uint8_t)s);
+    fd_txdc042a1_write_data((uint8_t)e);
 }
 
-static void fd_txdc042a1_set_y_window(int start, int count) {
+static void fd_txdc042a1_set_y_window(int start_l, int count) {
+    int start = 300 - start_l;
     fd_assert(count > 0);
 
     int s = start;
     int e = start + count - 1;
     fd_txdc042a1_write_command(0x45);
-    fd_txdc042a1_write_data((uint8_t)s);
-    fd_txdc042a1_write_data((uint8_t)(s >> 8));
     fd_txdc042a1_write_data((uint8_t)e);
     fd_txdc042a1_write_data((uint8_t)(e >> 8));
-
-    fd_txdc042a1_write_command(0x4F);
     fd_txdc042a1_write_data((uint8_t)s);
     fd_txdc042a1_write_data((uint8_t)(s >> 8));
+
+    fd_txdc042a1_write_command(0x4F);
+    fd_txdc042a1_write_data((uint8_t)e);
+    fd_txdc042a1_write_data((uint8_t)(e >> 8));
 }
 
 static const uint8_t fd_txdc042a1_lut_data[] = {  //70 bytes + 6  bytes
@@ -221,15 +223,15 @@ static void fd_txdc042a1_send_init_sequence(void) {
     fd_txdc042a1_write_data(0x03);    // GS1-->GS1 LUT3  ø™ª˙µ⁄“ª¥ŒÀ¢–¬Border¥”∞◊µΩ∞◊
 
   fd_txdc042a1_write_command(0x11);       // data enter mode
-    fd_txdc042a1_write_data(0x03);    // 01 ®CY decrement, X increment,
+    fd_txdc042a1_write_data(0x00);    // 01 ®CY decrement, X decrement,
   fd_txdc042a1_write_command(0x44);       // set RAM x address start/end
-    fd_txdc042a1_write_data(0x00);    // RAM x address start at 00h;
-    fd_txdc042a1_write_data(0x31);    // RAM x address end at 31h (49+1)*8->400
+    fd_txdc042a1_write_data(0x31);    // RAM x address start at 00h;
+    fd_txdc042a1_write_data(0x00);    // RAM x address end at 31h (49+1)*8->400
   fd_txdc042a1_write_command(0x45);       // set RAM y address start/end
-    fd_txdc042a1_write_data(0x00);    // RAM y address start at 012Bh+1=300;
-    fd_txdc042a1_write_data(0x00);    // ∏ﬂŒªµÿ÷∑=01
-    fd_txdc042a1_write_data(0x2B);    // RAM y address end at 00h;
-    fd_txdc042a1_write_data(0x01);    // ∏ﬂŒªµÿ÷∑=0
+    fd_txdc042a1_write_data(0x2B);    // RAM y address start at 012Bh+1=300;
+    fd_txdc042a1_write_data(0x01);    // ∏ﬂŒªµÿ÷∑=01
+    fd_txdc042a1_write_data(0x00);    // RAM y address end at 00h;
+    fd_txdc042a1_write_data(0x00);    // ∏ﬂŒªµÿ÷∑=0
 
   fd_txdc042a1_write_command(0x2C);     // vcom   ◊¢“‚£∫”Î÷Æ«∞µƒIC≤ª“ª—˘ ∑∂Œß£∫-0.2~-3V
     fd_txdc042a1_write_data(0x4C);    //-1.9V
