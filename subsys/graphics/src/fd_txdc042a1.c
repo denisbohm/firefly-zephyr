@@ -65,37 +65,35 @@ static void fd_txdc042a1_reset(void) {
     fd_txdc042a1_write_command(FD_TXDC042A1_SWRESET);
 }
 
-static void fd_txdc042a1_set_x_window(int start_l, int count) {
-    int start = 400 - start_l;
+static void fd_txdc042a1_set_x_window(int start, int count) {
     fd_assert(count > 0);
     fd_assert((start & 0b111) == 0);
     fd_assert((count & 0b111) == 0);
 
-    int s = start / 8;
-    int e = (start + count) / 8 - 1;
+    int s = 49 - (start / 8);
+    int e = 49 - ((start + count) / 8 - 1);
     fd_txdc042a1_write_command(0x44);
-    fd_txdc042a1_write_data((uint8_t)e);
     fd_txdc042a1_write_data((uint8_t)s);
+    fd_txdc042a1_write_data((uint8_t)e);
 
     fd_txdc042a1_write_command(0x4E);
-    fd_txdc042a1_write_data((uint8_t)e);
+    fd_txdc042a1_write_data((uint8_t)s);
 }
 
-static void fd_txdc042a1_set_y_window(int start_l, int count) {
-    int start = 300 - start_l;
+static void fd_txdc042a1_set_y_window(int start, int count) {
     fd_assert(count > 0);
 
-    int s = start;
-    int e = start + count - 1;
+    int s = 299 - start;
+    int e = 299 - (start + count - 1);
     fd_txdc042a1_write_command(0x45);
-    fd_txdc042a1_write_data((uint8_t)e);
-    fd_txdc042a1_write_data((uint8_t)(e >> 8));
     fd_txdc042a1_write_data((uint8_t)s);
     fd_txdc042a1_write_data((uint8_t)(s >> 8));
-
-    fd_txdc042a1_write_command(0x4F);
     fd_txdc042a1_write_data((uint8_t)e);
     fd_txdc042a1_write_data((uint8_t)(e >> 8));
+
+    fd_txdc042a1_write_command(0x4F);
+    fd_txdc042a1_write_data((uint8_t)s);
+    fd_txdc042a1_write_data((uint8_t)(s >> 8));
 }
 
 static const uint8_t fd_txdc042a1_lut_data[] = {  //70 bytes + 6  bytes
@@ -180,17 +178,17 @@ static void fd_txdc042a1_write_lut(void) {
 
 static void fd_txdc042a1_fill(void) {
     fd_txdc042a1_write_command(0x4E);   // set RAM x address counter to 0
-    fd_txdc042a1_write_data(0x00);
+    fd_txdc042a1_write_data(0x31);
 
     fd_txdc042a1_write_command(0x4F);   // set RAM y address counter to 299
-    fd_txdc042a1_write_data(0x00);
-    fd_txdc042a1_write_data(0x00);
+    fd_txdc042a1_write_data(0x2B);
+    fd_txdc042a1_write_data(0x01);
         
     fd_txdc042a1_write_command(0x24); // Write RAM
 
     for (int col = 0; col < 300; col++) {   // ◊‹π≤300 GATE
         for (int row = 0; row < 50; row++) {  // ◊‹π≤400 SOURCE£¨√ø∏ˆœÒÀÿ1bit,º¥ 400/8=50 ◊÷Ω⁄
-            fd_txdc042a1_write_data(0xf0);
+            fd_txdc042a1_write_data(0x00);
         }
     }
 
@@ -249,12 +247,34 @@ static void fd_txdc042a1_send_init_sequence(void) {
   fd_txdc042a1_write_command(0x22);
     fd_txdc042a1_write_data(0xC7);    // (Enable Clock Signal, Enable CP) (Display update,Disable CP,Disable Clock Signal) ’˝≥£∏¸–¬À≥–Ú
 
-  fd_txdc042a1_fill();         // INITIAL DISPLAY+»´∞◊µΩ»´∞◊ «Â∆¡£¨’‚—˘ø…∑¿÷πø™ª˙≥ˆœ÷ª®∆¡µƒŒ Ã‚
+  fd_txdc042a1_fill();
 
   fd_txdc042a1_write_command(0x21);       // Option for Display Update
     fd_txdc042a1_write_data(0x00);    // Normal  ∫Û√ÊÀ¢–¬ª÷∏¥’˝≥£µƒ∫⁄∞◊∫Ïœ‘ æ
   fd_txdc042a1_write_command(0x3C);       // board
     fd_txdc042a1_write_data(0xC0);    // VBD-->HiZ  ∫Û√ÊÀ¢–¬ ±Border∂º «∏ﬂ◊Ë
+}
+
+void fd_txdc042a1_write_image_start(int x, int y, int width, int height) {
+    fd_assert(x >= 0);
+    fd_assert(y >= 0);
+    fd_assert(width > 0);
+    fd_assert(height > 0);
+
+    fd_txdc042a1_set_x_window(x, width);
+    fd_txdc042a1_set_y_window(y, height);
+
+    fd_txdc042a1_write_command(FD_TXDC042A1_WRITE_RAM);
+}
+
+void fd_txdc042a1_write_image_subdata(const uint8_t *data, int length) {
+    for (int i = 0; i < length; ++i) {
+        fd_txdc042a1_write_data(data[i]);
+    }
+}
+
+void fd_txdc042a1_write_image_end(void) {
+    fd_txdc042a1_write_command(FD_TXDC042A1_MASTER_ACTIVATION);
 }
 
 void fd_txdc042a1_initialize(fd_txdc042a1_configuration_t configuration) {
@@ -278,26 +298,4 @@ void fd_txdc042a1_initialize(fd_txdc042a1_configuration_t configuration) {
     fd_txdc042a1_bus_initialize();
 
     fd_txdc042a1_send_init_sequence();
-}
-
-void fd_txdc042a1_write_image_start(int x, int y, int width, int height) {
-    fd_assert(x >= 0);
-    fd_assert(y >= 0);
-    fd_assert(width > 0);
-    fd_assert(height > 0);
-
-    fd_txdc042a1_set_x_window(x, width);
-    fd_txdc042a1_set_y_window(y, height);
-
-    fd_txdc042a1_write_command(FD_TXDC042A1_WRITE_RAM);
-}
-
-void fd_txdc042a1_write_image_subdata(const uint8_t *data, int length) {
-    for (int i = 0; i < length; ++i) {
-        fd_txdc042a1_write_data(data[i]);
-    }
-}
-
-void fd_txdc042a1_write_image_end(void) {
-    fd_txdc042a1_write_command(FD_TXDC042A1_MASTER_ACTIVATION);
 }
