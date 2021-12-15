@@ -1,5 +1,6 @@
 #include "fd_i2cm.h"
 
+#include "fd_assert.h"
 #include "fd_delay.h"
 #include "fd_i2cm_bitbang.h"
 

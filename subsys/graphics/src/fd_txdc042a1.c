@@ -14,10 +14,11 @@ typedef struct {
 
 fd_txdc042a1_t fd_txdc042a1;
 
-#define FD_TXDC042A1_SWRESET      0x12
-#define FD_TXDC042A1_SET_X_WINDOW 0x44
-#define FD_TXDC042A1_SET_Y_WINDOW 0x45
-#define FD_TXDC042A1_WRITE_RAM    0x24
+#define FD_TXDC042A1_SWRESET           0x12
+#define FD_TXDC042A1_SET_X_WINDOW      0x44
+#define FD_TXDC042A1_SET_Y_WINDOW      0x45
+#define FD_TXDC042A1_WRITE_RAM         0x24
+#define FD_TXDC042A1_MASTER_ACTIVATION 0x20
 
 static bool fd_txdc042a1_is_busy(void) {
     return fd_gpio_get(fd_txdc042a1.configuration.busy);
@@ -66,14 +67,17 @@ static void fd_txdc042a1_reset(void) {
 
 static void fd_txdc042a1_set_x_window(int start, int count) {
     fd_assert(count > 0);
-    fd_assert((start & 0x111) == 0);
-    fd_assert((count & 0x111) == 0);
+    fd_assert((start & 0b111) == 0);
+    fd_assert((count & 0b111) == 0);
 
     int s = start / 8;
     int e = (start + count) / 8 - 1;
-    fd_txdc042a1_write_command(FD_TXDC042A1_SET_X_WINDOW);
+    fd_txdc042a1_write_command(0x44);
     fd_txdc042a1_write_data((uint8_t)s);
     fd_txdc042a1_write_data((uint8_t)e);
+
+    fd_txdc042a1_write_command(0x4E);
+    fd_txdc042a1_write_data((uint8_t)s);
 }
 
 static void fd_txdc042a1_set_y_window(int start, int count) {
@@ -81,9 +85,15 @@ static void fd_txdc042a1_set_y_window(int start, int count) {
 
     int s = start;
     int e = start + count - 1;
-    fd_txdc042a1_write_command(FD_TXDC042A1_SET_Y_WINDOW);
+    fd_txdc042a1_write_command(0x45);
     fd_txdc042a1_write_data((uint8_t)s);
+    fd_txdc042a1_write_data((uint8_t)(s >> 8));
     fd_txdc042a1_write_data((uint8_t)e);
+    fd_txdc042a1_write_data((uint8_t)(e >> 8));
+
+    fd_txdc042a1_write_command(0x4F);
+    fd_txdc042a1_write_data((uint8_t)s);
+    fd_txdc042a1_write_data((uint8_t)(s >> 8));
 }
 
 static const uint8_t fd_txdc042a1_lut_data[] = {  //70 bytes + 6  bytes
@@ -167,22 +177,22 @@ static void fd_txdc042a1_write_lut(void) {
 }
 
 static void fd_txdc042a1_fill(void) {
-    fd_txdc042a1_write_command(0x4E);   // set RAM x address count to 0;
+    fd_txdc042a1_write_command(0x4E);   // set RAM x address counter to 0
     fd_txdc042a1_write_data(0x00);
 
-    fd_txdc042a1_write_command(0x4F);   // set RAM y address count to 299;
-    fd_txdc042a1_write_data(0x2B);
-    fd_txdc042a1_write_data(0x01);
+    fd_txdc042a1_write_command(0x4F);   // set RAM y address counter to 299
+    fd_txdc042a1_write_data(0x00);
+    fd_txdc042a1_write_data(0x00);
         
-    fd_txdc042a1_write_command(0x24);   //
+    fd_txdc042a1_write_command(0x24); // Write RAM
 
     for (int col = 0; col < 300; col++) {   // ◊‹π≤300 GATE
-        for(int row = 0; row < 50; row++) {  // ◊‹π≤400 SOURCE£¨√ø∏ˆœÒÀÿ1bit,º¥ 400/8=50 ◊÷Ω⁄
+        for (int row = 0; row < 50; row++) {  // ◊‹π≤400 SOURCE£¨√ø∏ˆœÒÀÿ1bit,º¥ 400/8=50 ◊÷Ω⁄
             fd_txdc042a1_write_data(0xf0);
         }
     }
 
-    fd_txdc042a1_write_command(0x20);
+    fd_txdc042a1_write_command(0x20); // Activate Display Update Sequence
 }
 
 static void fd_txdc042a1_send_init_sequence(void) {
@@ -211,15 +221,15 @@ static void fd_txdc042a1_send_init_sequence(void) {
     fd_txdc042a1_write_data(0x03);    // GS1-->GS1 LUT3  ø™ª˙µ⁄“ª¥ŒÀ¢–¬Border¥”∞◊µΩ∞◊
 
   fd_txdc042a1_write_command(0x11);       // data enter mode
-    fd_txdc042a1_write_data(0x01);    // 01 ®CY decrement, X increment,
+    fd_txdc042a1_write_data(0x03);    // 01 ®CY decrement, X increment,
   fd_txdc042a1_write_command(0x44);       // set RAM x address start/end
     fd_txdc042a1_write_data(0x00);    // RAM x address start at 00h;
     fd_txdc042a1_write_data(0x31);    // RAM x address end at 31h (49+1)*8->400
   fd_txdc042a1_write_command(0x45);       // set RAM y address start/end
-    fd_txdc042a1_write_data(0x2B);    // RAM y address start at 012Bh+1=300;
-    fd_txdc042a1_write_data(0x01);    // ∏ﬂŒªµÿ÷∑=01
-    fd_txdc042a1_write_data(0x00);    // RAM y address end at 00h;
-    fd_txdc042a1_write_data(0x00);    // ∏ﬂŒªµÿ÷∑=0
+    fd_txdc042a1_write_data(0x00);    // RAM y address start at 012Bh+1=300;
+    fd_txdc042a1_write_data(0x00);    // ∏ﬂŒªµÿ÷∑=01
+    fd_txdc042a1_write_data(0x2B);    // RAM y address end at 00h;
+    fd_txdc042a1_write_data(0x01);    // ∏ﬂŒªµÿ÷∑=0
 
   fd_txdc042a1_write_command(0x2C);     // vcom   ◊¢“‚£∫”Î÷Æ«∞µƒIC≤ª“ª—˘ ∑∂Œß£∫-0.2~-3V
     fd_txdc042a1_write_data(0x4C);    //-1.9V
@@ -250,8 +260,17 @@ void fd_txdc042a1_initialize(fd_txdc042a1_configuration_t configuration) {
     fd_txdc042a1.configuration = configuration;
 
     fd_gpio_configure_output(fd_txdc042a1.configuration.resx, true);
+    fd_gpio_set(fd_txdc042a1.configuration.resx, false);
+    fd_gpio_set(fd_txdc042a1.configuration.resx, true);
+    
     fd_gpio_configure_output(fd_txdc042a1.configuration.csx, true);
+    fd_gpio_set(fd_txdc042a1.configuration.csx, false);
+    fd_gpio_set(fd_txdc042a1.configuration.csx, true);
+
     fd_gpio_configure_output(fd_txdc042a1.configuration.dcx, true);
+    fd_gpio_set(fd_txdc042a1.configuration.dcx, false);
+    fd_gpio_set(fd_txdc042a1.configuration.dcx, true);
+
     fd_gpio_configure_input(fd_txdc042a1.configuration.busy);
 
     fd_txdc042a1_bus_initialize();
@@ -268,14 +287,15 @@ void fd_txdc042a1_write_image_start(int x, int y, int width, int height) {
     fd_txdc042a1_set_x_window(x, width);
     fd_txdc042a1_set_y_window(y, height);
 
-    fd_txdc042a1_data_mode();
-    fd_txdc042a1_cs_enable();
+    fd_txdc042a1_write_command(FD_TXDC042A1_WRITE_RAM);
 }
 
 void fd_txdc042a1_write_image_subdata(const uint8_t *data, int length) {
-    fd_txdc042a1_bus_write(data, (uint32_t)length);
+    for (int i = 0; i < length; ++i) {
+        fd_txdc042a1_write_data(data[i]);
+    }
 }
 
 void fd_txdc042a1_write_image_end(void) {
-    fd_txdc042a1_cs_disable();
+    fd_txdc042a1_write_command(FD_TXDC042A1_MASTER_ACTIVATION);
 }

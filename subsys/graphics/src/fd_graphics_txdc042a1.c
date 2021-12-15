@@ -40,28 +40,28 @@ static void fd_graphics_txdc042a1_set_pixel(fd_graphics_t *graphics, int x, int 
     uint8_t *frame_buffer = fd_graphics_txdc042a1_impl(graphics)->frame_buffer;
     uint32_t byte = frame_buffer[index];
     switch (x & 0b111) {
-        case 0b000:
+        case 0b111:
             byte = (byte & 0b11111110) | gray;
             break;
-        case 0b001:
+        case 0b110:
             byte = (byte & 0b11111101) | (gray << 1);
             break;
-        case 0b010:
+        case 0b101:
             byte = (byte & 0b11111011) | (gray << 2);
             break;
-        case 0b011:
+        case 0b100:
             byte = (byte & 0b11110111) | (gray << 3);
             break;
-        case 0b100:
+        case 0b011:
             byte = (byte & 0b11101111) | (gray << 4);
             break;
-        case 0b101:
+        case 0b010:
             byte = (byte & 0b11011111) | (gray << 5);
             break;
-        case 0b110:
+        case 0b001:
             byte = (byte & 0b10111111) | (gray << 6);
             break;
-        case 0b111:
+        case 0b000:
             byte = (byte & 0b01111111) | (gray << 7);
             break;
     }
@@ -70,7 +70,7 @@ static void fd_graphics_txdc042a1_set_pixel(fd_graphics_t *graphics, int x, int 
 
 static void fd_graphics_txdc042a1_blit(fd_graphics_t *graphics, fd_graphics_area_t area) {
     // blit an area from the frame buffer that starts and ends on a byte boundary
-    int r = (area.x + area.width + 1) & ~0b111;
+    int r = (area.x + area.width + 7) & ~0b111;
     int x = area.x & ~0b111;
     int width = r - x;
     int y = area.y;

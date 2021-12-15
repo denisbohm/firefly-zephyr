@@ -9,10 +9,9 @@
 #include "nrf.h"
 
 fd_txdc042a1_bus_4_wire_spi_configuration_t fd_txdc042a1_bus_4_wire_spi_configuration = {
-    .spi_device_name = "NRF_SPIM2_S",
-    .sclk = { .port = 1, .pin = 6 },
-    .mosi = { .port = 1, .pin = 8 },
-    .miso = { .port = 1, .pin = 5 },
+    .spi_device_name = "NRF_SPIM1",
+    .sclk = { .port = 0, .pin = 21 },
+    .mosi = { .port = 0, .pin = 20 },
 };
 
 void fd_txdc042a1_bus_4_wire_spi_configure(
@@ -34,11 +33,9 @@ void fd_txdc042a1_bus_initialize(void) {
 
     fd_gpio_t sclk = fd_txdc042a1_bus_4_wire_spi_configuration.sclk;
     fd_gpio_t mosi = fd_txdc042a1_bus_4_wire_spi_configuration.mosi;
-    fd_gpio_t miso = fd_txdc042a1_bus_4_wire_spi_configuration.miso;
 
     fd_gpio_configure_output(sclk, true);
     fd_gpio_configure_output(mosi, true);
-    fd_gpio_configure_input(miso);
 
     NRF_SPIM_Type *spim = 0;
     const char *name = fd_txdc042a1_bus_4_wire_spi_configuration.spi_device_name;
@@ -78,7 +75,8 @@ void fd_txdc042a1_bus_initialize(void) {
     spim->CONFIG = (SPIM_CONFIG_CPOL_ActiveLow << SPIM_CONFIG_CPOL_Pos) | (SPIM_CONFIG_CPHA_Trailing << SPIM_CONFIG_CPHA_Pos);
     spim->PSEL.SCK = NRF_GPIO_PIN_MAP(sclk.port, sclk.pin);
     spim->PSEL.MOSI = NRF_GPIO_PIN_MAP(mosi.port, mosi.pin);
-    spim->PSEL.MISO = NRF_GPIO_PIN_MAP(miso.port, miso.pin);
+// txdc042a1 does not have MOSI -denis
+//    spim->PSEL.MISO = NRF_GPIO_PIN_MAP(miso.port, miso.pin);
     spim->TXD.LIST = SPIM_RXD_LIST_LIST_ArrayList << SPIM_RXD_LIST_LIST_Pos;
     spim->RXD.LIST = SPIM_RXD_LIST_LIST_ArrayList << SPIM_RXD_LIST_LIST_Pos;
     spim->ENABLE = SPIM_ENABLE_ENABLE_Enabled << SPIM_ENABLE_ENABLE_Pos;

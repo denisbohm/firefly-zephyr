@@ -17,7 +17,7 @@ class Main:
     target_usb = 4
 
     def __init__(self):
-        self.port = Gateway.find_serial_port(vid=0x0403, pid=0x6001)
+        self.port = Gateway.find_serial_port()  # vid=0x0403, pid=0x6001)
         if not self.port:
             print(f"cannot find USB serial port")
             sys.exit(1)

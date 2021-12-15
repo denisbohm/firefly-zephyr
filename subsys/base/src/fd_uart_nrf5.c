@@ -259,7 +259,12 @@ void fd_uart_instance_initialize(fd_uart_instance_t *instance) {
         uarte->CONFIG |= UARTE_CONFIG_PARITY_Included << UARTE_CONFIG_PARITY_Pos;
     } else
     if (instance->parity == fd_uart_parity_odd) {
+#ifdef NRF53_SERIES
         uarte->CONFIG |= (UARTE_CONFIG_PARITYTYPE_Odd | UARTE_CONFIG_PARITY_Included) << UARTE_CONFIG_PARITY_Pos;
+#endif
+#ifdef NRF52_SERIES
+        uarte->CONFIG |= UARTE_CONFIG_PARITY_Included << UARTE_CONFIG_PARITY_Pos;
+#endif
     }
     if (instance->stop_bits == fd_uart_stop_bits_2) {
         uarte->CONFIG |= UARTE_CONFIG_STOP_Two << UARTE_CONFIG_STOP_Pos;

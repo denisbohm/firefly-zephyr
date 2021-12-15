@@ -33,7 +33,7 @@ class Main:
         patch = 3
         response = struct.pack("<BIII", operation, major, minor, patch)
         response_envelope = Envelope(
-            target=main.target_usb,
+            target=main.target_sensor_0,
             source=main.target_sensor_0,
             system=Envelope.system_firefly,
             subsystem=Envelope.subsystem_system,
