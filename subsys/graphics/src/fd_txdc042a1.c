@@ -177,6 +177,7 @@ static void fd_txdc042a1_write_lut(void) {
 }
 
 static void fd_txdc042a1_fill(void) {
+#ifdef fd_txdc042a1_clear_on_initialize
     fd_txdc042a1_write_command(0x4E);   // set RAM x address counter to 0
     fd_txdc042a1_write_data(0x31);
 
@@ -193,6 +194,7 @@ static void fd_txdc042a1_fill(void) {
     }
 
     fd_txdc042a1_write_command(0x20); // Activate Display Update Sequence
+#endif
 }
 
 static void fd_txdc042a1_send_init_sequence(void) {
