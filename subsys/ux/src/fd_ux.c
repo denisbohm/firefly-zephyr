@@ -108,7 +108,9 @@ static void fd_ux_set_screen_to(uint32_t screen_id, bool preview) {
     }
     
     fd_canvas_update(canvas);
-    canvas->change.area = (fd_graphics_area_t) { .x = 0, .y = 0, .width = 128, .height = 128 };
+    int width = canvas->graphics->width;
+    int height = canvas->graphics->height;
+    canvas->change.area = (fd_graphics_area_t) { .x = 0, .y = 0, .width = width, .height = height };
     canvas->change.opaque = false;
     fd_canvas_render(canvas);
 }
@@ -116,7 +118,7 @@ static void fd_ux_set_screen_to(uint32_t screen_id, bool preview) {
 void fd_ux_set_screen(uint32_t screen_id) {
     fd_ux_set_screen_to(screen_id, false);
 }
-
+;
 void fd_ux_set_animation(bool animation) {
     fd_ux.animation = animation;
 }

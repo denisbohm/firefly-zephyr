@@ -66,6 +66,7 @@ void fd_canvas_render(fd_canvas_t *canvas) {
         }
     }
     fd_graphics_reset(canvas->graphics);
+    fd_graphics_update(canvas->graphics);
 }
 
 void fd_canvas_initialize(fd_canvas_t *canvas) {
