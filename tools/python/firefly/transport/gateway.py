@@ -29,7 +29,7 @@ class Gateway:
             timeout=0.5
         )
 
-        self.trace = True
+        self.trace = False
 
     def crc16(self, data):
         crc = 0
