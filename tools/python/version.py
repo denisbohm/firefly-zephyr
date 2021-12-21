@@ -15,9 +15,9 @@ class Main:
 
     def __init__(self):
         # FTDI USB TTL-232
-        #  self.port = Gateway.find_serial_port(vid=0x0403, pid=0x6001)
+        self.port = Gateway.find_serial_port(vid=0x0403, pid=0x6001)
         # Zephyr USB CDC
-        self.port = Gateway.find_serial_port(vid=0x2FE3, pid=0x0100)
+        # self.port = Gateway.find_serial_port(vid=0x2FE3, pid=0x0100)
         if not self.port:
             print(f"cannot find USB serial port")
             sys.exit(1)
@@ -38,8 +38,14 @@ class Main:
         return System.decode_io(response)
 
     def run(self):
-        version = self.system_get_version()
-        print(f"{version.major}.{version.minor}.{version.patch}")
+        count = 0
+        while True:
+            try:
+                version = self.system_get_version()
+                print(f"{version.major}.{version.minor}.{version.patch}")
+            except Exception as e:
+                ++count;
+                print(f"{count} {str(e)}")
 
 
 if __name__ == '__main__':

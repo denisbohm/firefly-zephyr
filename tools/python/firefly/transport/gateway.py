@@ -79,8 +79,8 @@ class Gateway:
         if self.trace:
             print(f"tx encoded {encoded.hex()}")
         #  self.serial_port.write(b'\x00')
-        self.serial_port.write(encoded)
-        self.serial_port.write(b'\x00')
+        raw = b'\x00' + encoded + b'\x00'
+        self.serial_port.write(raw)
         self.serial_port.flush()
 
     def rx(self):

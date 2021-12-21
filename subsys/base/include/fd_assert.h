@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+void fd_assert_initialize(void);
+
 void fd_assert_failure(const char *file, int line, const char *message);
 
 #define fd_assert(condition) if (!(condition)) fd_assert_failure(__FILE__, __LINE__, #condition)
