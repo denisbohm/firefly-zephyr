@@ -15,8 +15,13 @@ typedef struct {
     fd_event_callback_t callback;
 } fd_event_consumer_t;
 
+#ifndef fd_event_item_limit
 #define fd_event_item_limit 32
+#endif
+
+#ifndef fd_event_consumer_limit
 #define fd_event_consumer_limit 32
+#endif
 
 typedef struct {
     fd_event_item_t items[fd_event_item_limit];
