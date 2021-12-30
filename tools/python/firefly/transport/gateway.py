@@ -100,3 +100,8 @@ class Gateway:
                     return deenveloped, envelope
             else:
                 message.extend(data)
+
+    def rpc(self, request, request_envelope):
+        self.tx(request, request_envelope)
+        return self.rx()
+

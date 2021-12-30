@@ -9,10 +9,13 @@
 // We use a full frame buffer so that we can transfer any pixels necessary that
 // are not part of the actual graphics update area. -denis
 
+#define fd_graphics_ssd1327_width 128
+#define fd_graphics_ssd1327_height 96
+
 typedef struct {
     fd_graphics_t graphics;
-    uint8_t buffer[128 * 3];
-    uint8_t frame_buffer[(128 / 2) * 128];
+    uint8_t buffer[fd_graphics_ssd1327_height * 3];
+    uint8_t frame_buffer[(fd_graphics_ssd1327_width / 2) * fd_graphics_ssd1327_height];
 } fd_graphics_ssd1327_t;
 
 static fd_graphics_ssd1327_t fd_graphics_ssd1327;
@@ -30,7 +33,9 @@ static fd_graphics_ssd1327_t *fd_graphics_ssd1327_impl(fd_graphics_t *graphics) 
     return (fd_graphics_ssd1327_t *)graphics->impl;
 }
 
-static void fd_graphics_ssd1327_set_pixel(fd_graphics_t *graphics, int x, int y, uint32_t gray) {
+static void fd_graphics_ssd1327_set_pixel(fd_graphics_t *graphics, int lx, int ly, uint32_t gray) {
+    int x = graphics->width - lx - 1;
+    int y = graphics->height - ly - 1;
     uint32_t span = graphics->width / 2;
     uint32_t index = y * span + x / 2;
     uint8_t *frame_buffer = fd_graphics_ssd1327_impl(graphics)->frame_buffer;
@@ -43,7 +48,17 @@ static void fd_graphics_ssd1327_set_pixel(fd_graphics_t *graphics, int x, int y,
     frame_buffer[index] = byte;
 }
 
-static void fd_graphics_ssd1327_blit(fd_graphics_t *graphics, fd_graphics_area_t area) {
+static void fd_graphics_ssd1327_blit(fd_graphics_t *graphics, fd_graphics_area_t larea) {
+    fd_graphics_area_t area = {
+#if 0
+        .x = 0, .width = graphics->width, .y = 0, .height = graphics->height };
+#else
+        .x = graphics->width - (larea.x + larea.width),
+        .width = larea.width,
+        .y = graphics->height - (larea.y + larea.height),
+        .height = larea.height,
+    };
+#endif
     // blit an area from the frame buffer that starts and ends on an even x boundary
     int r = (area.x + area.width + 1) & ~1;
     int x = area.x & ~1;
@@ -151,5 +166,11 @@ void fd_graphics_ssd1327_initialize(void) {
         .write_image = fd_graphics_ssd1327_write_image,
         .write_bitmap = fd_graphics_ssd1327_write_bitmap,
     };
-    fd_graphics_initialize(&fd_graphics_ssd1327.graphics, 128, 128, backend, fd_graphics_ssd1327.buffer);
+    fd_graphics_initialize(
+        &fd_graphics_ssd1327.graphics,
+        fd_graphics_ssd1327_width,
+        fd_graphics_ssd1327_height,
+        backend,
+        fd_graphics_ssd1327.buffer
+    );
 }

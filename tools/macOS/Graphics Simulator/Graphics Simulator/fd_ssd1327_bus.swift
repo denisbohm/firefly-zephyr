@@ -117,7 +117,7 @@ class SimulateSSD1327 {
             commandsByCode[command.code] = command
         }
         
-        imageRep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: 128, pixelsHigh: 128, bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false, colorSpaceName: NSColorSpaceName.deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)
+        imageRep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: 128, pixelsHigh: 96, bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false, colorSpaceName: NSColorSpaceName.deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)
         self.clear()
         
         image = NSImage(size: imageRep.size)
@@ -126,7 +126,7 @@ class SimulateSSD1327 {
     
     func clear() {
         var bitmapData = imageRep.bitmapData!
-        for _ in 0 ..< 128 * 128 {
+        for _ in 0 ..< 128 * 96 {
             bitmapData.pointee = UInt8(0x00)
             bitmapData += 1
             bitmapData.pointee = UInt8(0x00)
@@ -149,7 +149,9 @@ class SimulateSSD1327 {
     }
 
     func writePixel(x: Int, y: Int, r: UInt8, g: UInt8, b: UInt8) {
-        var bitmapData = imageRep.bitmapData! + (y * 128 + x) * 4
+        let px = 128 - x - 1
+        let py = 96 - y - 1
+        var bitmapData = imageRep.bitmapData! + (py * 128 + px) * 4
         bitmapData.pointee = r
         bitmapData += 1
         bitmapData.pointee = g

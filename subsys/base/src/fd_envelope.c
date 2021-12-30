@@ -6,7 +6,7 @@
 #define fd_envelope_size 10
 
 bool fd_envelope_decode(fd_binary_t *message, fd_envelope_t *envelope) {
-    message->put_index = fd_cobs_decode(message->buffer, message->put_index);
+    message->put_index = (uint32_t)fd_cobs_decode(message->buffer, message->put_index);
     if (message->put_index < fd_envelope_size) {
         return false;
     }
@@ -52,6 +52,6 @@ bool fd_envelope_encode(fd_binary_t *message, fd_envelope_t *envelope) {
     if (length == 0) {
         message->errors |= fd_binary_error_overflow;
     }
-    message->put_index = length;
+    message->put_index = (uint32_t)length;
     return message->errors == 0;
 }
