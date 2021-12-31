@@ -2,6 +2,7 @@
 #include "fd_cobs.h"
 #include "fd_delay.h"
 #include "fd_log.h"
+#include "fd_object_fifo.h"
 #include "fd_rtc.h"
 
 #include <string.h>
@@ -35,7 +36,55 @@ void cobs_tests(void) {
     cobs_test(test_z, sizeof(test_z));
 }
 
+void object_fifo_tests(void) {
+    fd_object_fifo_t fifo;
+    uint8_t buffer[12];
+    fd_object_fifo_initialize(&fifo, buffer, sizeof(buffer), 4);
+
+    for (int i = 0; i < 2; ++i) {
+        uint8_t *a = fd_object_fifo_allocate(&fifo);
+        fd_assert(a == &buffer[0]);
+        fd_object_fifo_commit(&fifo);
+        {
+        uint8_t *va = fd_object_fifo_view(&fifo, 0);
+        fd_assert(va == a);
+        uint8_t *vb = fd_object_fifo_view(&fifo, 1);
+        fd_assert(vb == 0);
+        }
+
+        uint8_t *b = fd_object_fifo_allocate(&fifo);
+        fd_assert(b == &buffer[4]);
+        fd_object_fifo_commit(&fifo);
+        {
+        uint8_t *va = fd_object_fifo_view(&fifo, 0);
+        fd_assert(va == a);
+        uint8_t *vb = fd_object_fifo_view(&fifo, 1);
+        fd_assert(vb == b);
+        uint8_t *vc = fd_object_fifo_view(&fifo, 2);
+        fd_assert(vc == 0);
+        }
+
+        uint8_t *c = fd_object_fifo_allocate(&fifo);
+        fd_assert(c == 0);
+
+        fd_object_fifo_deallocate(&fifo);
+        {
+        uint8_t *vb = fd_object_fifo_view(&fifo, 0);
+        fd_assert(vb == b);
+        uint8_t *vc = fd_object_fifo_view(&fifo, 1);
+        fd_assert(vc == 0);
+        }
+
+        fd_object_fifo_deallocate(&fifo);
+        {
+        uint8_t *vc = fd_object_fifo_view(&fifo, 0);
+        fd_assert(vc == 0);
+        }
+    }
+}
+
 void main(void) {
+    object_fifo_tests();
     cobs_tests();
 
     fd_log_initialize();
