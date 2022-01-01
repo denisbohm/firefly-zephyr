@@ -7,23 +7,7 @@ void fd_object_fifo_initialize(fd_object_fifo_t *fifo, uint8_t *buffer, size_t s
     fifo->buffer = buffer;
     fifo->object_size = object_size;
     fifo->size = size / object_size;
-}
-
-bool fd_object_fifo_get_next_tail(fd_object_fifo_t *fifo) {
-    uint32_t tail = fifo->tail;
-    uint32_t next_tail = tail + 1;
-    if (next_tail >= fifo->size) {
-        next_tail = 0;
-    }
-    return next_tail;
-}
-
-bool fd_object_fifo_is_empty(fd_object_fifo_t *fifo) {
-    return fifo->head == fifo->tail;
-}
-
-bool fd_object_fifo_is_full(fd_object_fifo_t *fifo) {
-    return fd_object_fifo_get_next_tail(fifo) == fifo->head;
+    fd_assert(fifo->size >= 1);
 }
 
 uint32_t fd_object_fifo_get_count(fd_object_fifo_t *fifo) {
@@ -32,6 +16,14 @@ uint32_t fd_object_fifo_get_count(fd_object_fifo_t *fifo) {
     const uint32_t size = fifo->size;
     const uint32_t count = head <= tail ? (tail - head) : (size - head + tail + 1);
     return count;
+}
+
+bool fd_object_fifo_is_empty(fd_object_fifo_t *fifo) {
+    return fifo->head == fifo->tail;
+}
+
+bool fd_object_fifo_is_full(fd_object_fifo_t *fifo) {
+    return fd_object_fifo_get_count(fifo) >= (fifo->size - 1);
 }
 
 // Allocate the next object in the fifo.
@@ -48,6 +40,15 @@ void *fd_object_fifo_allocate(fd_object_fifo_t *fifo) {
 
     fifo->is_allocated = true;
     return &fifo->buffer[fifo->tail * fifo->object_size];
+}
+
+uint32_t fd_object_fifo_get_next_tail(fd_object_fifo_t *fifo) {
+    uint32_t tail = fifo->tail;
+    uint32_t next_tail = tail + 1;
+    if (next_tail >= fifo->size) {
+        next_tail = 0;
+    }
+    return next_tail;
 }
 
 // Commit the currently allocated object into the fifo.
