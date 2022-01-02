@@ -28,7 +28,7 @@ class Gateway:
             bytesize=serial.EIGHTBITS,
             timeout=0.5
         )
-
+        self.waiting_message = bytearray()
         self.trace = False
 
     def crc16(self, data):
@@ -84,7 +84,8 @@ class Gateway:
         self.serial_port.flush()
 
     def rx(self):
-        message = bytearray()
+        message = self.waiting_message
+        self.waiting_message = bytearray()
         while True:
             data = self.serial_port.read(1)
             if len(data) != 1:
@@ -100,6 +101,28 @@ class Gateway:
                     return deenveloped, envelope
             else:
                 message.extend(data)
+
+    def rx_waiting(self):
+        while True:
+            count = self.serial_port.in_waiting
+            if count == 0:
+                return None
+            data = self.serial_port.read(1)
+            if len(data) != 1:
+                if self.trace:
+                    print(f"rx (timed out) {data.hex()}")
+                raise GatewayException("read timeout")
+            if data[0] == 0:
+                if len(self.waiting_message) > 0:
+                    message = self.waiting_message
+                    self.waiting_message = bytearray()
+                    decoded = cobs.decode(message)
+                    if self.trace:
+                        print(f"rx {decoded.hex() }")
+                    deenveloped, envelope = self.get_envelope(decoded)
+                    return deenveloped, envelope
+            else:
+                self.waiting_message.extend(data)
 
     def rpc(self, request, request_envelope):
         self.tx(request, request_envelope)
