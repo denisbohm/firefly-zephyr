@@ -39,6 +39,8 @@ void *fd_object_fifo_allocate(fd_object_fifo_t *fifo);
 // After being comitted the object can be viewed and deallocated.
 void fd_object_fifo_commit(fd_object_fifo_t *fifo);
 
+uint32_t fd_object_fifo_get_count(fd_object_fifo_t *fifo);
+
 // View the nth committed object in the fifo.
 // Return null if there isn't a committed object at that index.
 void *fd_object_fifo_view(fd_object_fifo_t *fifo, uint32_t index);
