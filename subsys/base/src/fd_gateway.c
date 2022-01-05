@@ -62,7 +62,9 @@ bool fd_gateway_process(fd_binary_t *message) {
     }
 
     if (envelope.target == fd_gateway.target) {
-        return fd_dispatch_process(message, &envelope);
+        fd_binary_t binary;
+        fd_binary_initialize(&binary, message->buffer, message->put_index);
+        return fd_dispatch_process(&binary, &envelope);
     }
     
     return fd_gateway_transmit(message, &envelope);
