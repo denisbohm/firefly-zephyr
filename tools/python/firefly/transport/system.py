@@ -51,7 +51,7 @@ class System:
 
         @staticmethod
         def decode(data):
-            operation, count = struct.unpack("<BI", data)
+            operation, count = struct.unpack("<BI", data[0:5])
             if operation != System.operation_get_assert:
                 raise Exception("unexpected operation")
             failures = []
@@ -67,6 +67,6 @@ class System:
             return System.Assert(count, failures)
 
     @staticmethod
-    def get_assert(self, gateway, envelope):
+    def get_assert(gateway, envelope):
         response, response_envelope = gateway.rpc(System.GetAssert.encode(), envelope)
         return System.GetAssert.decode(response)

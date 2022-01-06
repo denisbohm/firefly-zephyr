@@ -19,7 +19,7 @@ uint32_t fd_object_fifo_get_count(fd_object_fifo_t *fifo) {
     const uint32_t head = fifo->head;
     const uint32_t tail = fifo->tail;
     const uint32_t size = fifo->size;
-    const uint32_t count = head <= tail ? (tail - head) : (size - head + tail + 1);
+    const uint32_t count = head <= tail ? (tail - head) : (size - head + tail);
     return count;
 }
 
