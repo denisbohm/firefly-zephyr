@@ -12,16 +12,61 @@ class SystemVersion:
 class System:
 
     operation_get_version = 0
+    operation_get_assert = 1
+
+    class GetVersion:
+
+        @staticmethod
+        def encode():
+            data = bytearray()
+            data += struct.pack("<B", System.operation_get_version)
+            return data
+
+        @staticmethod
+        def decode(data):
+            operation, major, minor, patch = struct.unpack("<BIII", data)
+            if operation != System.operation_get_version:
+                raise Exception("unexpected operation")
+            return SystemVersion(major, minor, patch)
+
+    class Assert:
+
+        class Failure:
+
+            def __init__(self, file, line):
+                self.file = file
+                self.line = line
+
+        def __init__(self, count, failures):
+            self.count = count
+            self.failures = failures
+
+    class GetAssert:
+
+        @staticmethod
+        def encode():
+            data = bytearray()
+            data += struct.pack("<B", System.operation_get_assert)
+            return data
+
+        @staticmethod
+        def decode(data):
+            operation, count = struct.unpack("<BI", data)
+            if operation != System.operation_get_assert:
+                raise Exception("unexpected operation")
+            failures = []
+            index = 5
+            while index < len(data):
+                length = data[index]
+                index += 1
+                file = data[index: index + length].decode('utf-8')
+                index += length
+                line = struct.unpack("<I", data[index: index + 4])[0]
+                index += 4
+                failures.append(System.Assert.Failure(file, line))
+            return System.Assert(count, failures)
 
     @staticmethod
-    def encode_io():
-        data = bytearray()
-        data += struct.pack("<B", System.operation_get_version)
-        return data
-
-    @staticmethod
-    def decode_io(data):
-        operation, major, minor, patch = struct.unpack("<BIII", data)
-        if operation != System.operation_get_version:
-            raise Exception("unexpected operation")
-        return SystemVersion(major, minor, patch)
+    def get_assert(self, gateway, envelope):
+        response, response_envelope = gateway.rpc(System.GetAssert.encode(), envelope)
+        return System.GetAssert.decode(response)
