@@ -1,5 +1,7 @@
 #include "fd_pwm.h"
 
+#include "fd_assert.h"
+
 #include "nrf.h"
 
 #include <zephyr.h>
@@ -101,6 +103,10 @@ fd_pwm_module_state_t *fd_pwm_get_state(uint32_t instance) {
 }
 
 void fd_pwm_module_start(const fd_pwm_module_t *module, float frequency) {
+    if (fd_pwm_module_is_running(module)) {
+        fd_pwm_module_stop(module);
+    }
+
     float prescaler_divider;
     uint32_t prescaler;
     int prescaler_divider_int = (int)ceil(((16000000.0f / (32768.0f)) / frequency));
@@ -162,6 +168,10 @@ bool fd_pwm_module_is_running(const fd_pwm_module_t *module) {
 }
 
 void fd_pwm_module_stop(const fd_pwm_module_t *module) {
+    if (!fd_pwm_module_is_running(module)) {
+        return;
+    }
+
     NRF_PWM_Type *pwm = (NRF_PWM_Type *)module->instance;
     pwm->EVENTS_STOPPED = 0;
     pwm->TASKS_STOP = 1;
@@ -182,6 +192,8 @@ void fd_pwm_module_stop(const fd_pwm_module_t *module) {
 }
 
 void fd_pwm_channel_start(const fd_pwm_channel_t *channel, float duty_cycle) {
+    fd_assert(fd_pwm_module_is_running(channel->module));
+
     const fd_pwm_module_t *module = channel->module;
     NRF_PWM_Type *pwm = (NRF_PWM_Type *)module->instance;
     fd_pwm_module_state_t *state = fd_pwm_get_state(module->instance);
