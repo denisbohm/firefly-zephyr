@@ -10,6 +10,11 @@ void fd_object_fifo_initialize(fd_object_fifo_t *fifo, uint8_t *buffer, size_t s
     fd_assert(fifo->size >= 1);
 }
 
+void fd_object_fifo_flush(fd_object_fifo_t *fifo) {
+    fifo->head = 0;
+    fifo->tail = 0;
+}
+
 uint32_t fd_object_fifo_get_count(fd_object_fifo_t *fifo) {
     const uint32_t head = fifo->head;
     const uint32_t tail = fifo->tail;

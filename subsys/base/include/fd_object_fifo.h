@@ -29,6 +29,9 @@ typedef struct {
 // Note that due to the implementation, the fifo will hold one less object than size / object_size...
 void fd_object_fifo_initialize(fd_object_fifo_t *fifo, uint8_t *buffer, size_t size, size_t object_size);
 
+// Empty the fifo.
+void fd_object_fifo_flush(fd_object_fifo_t *fifo);
+
 // Allocate the next object in the fifo.
 // Return null if there is no space available.
 // The object must be committed after writing the object content.
