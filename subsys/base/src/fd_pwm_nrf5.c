@@ -24,7 +24,10 @@ typedef struct {
 fd_pwm_t fd_pwm;
 
 int fd_pwm_handler(int index) {
-    fd_pwm.modules[index].function();
+    const fd_pwm_module_t *module = &fd_pwm.modules[index];
+    NRF_PWM_Type *pwm = (NRF_PWM_Type *)module->instance;
+    pwm->EVENTS_PWMPERIODEND = 0;
+    module->function();
     return 0;
 }
 
@@ -46,6 +49,10 @@ ISR_DIRECT_DECLARE(fd_pwm_pwm3_handler) {
 
 void fd_pwm_initialize(const fd_pwm_module_t *modules, uint32_t module_count, const fd_pwm_channel_t *channels, uint32_t channel_count) {
     memset(&fd_pwm, 0, sizeof(fd_pwm));
+    fd_pwm.modules = modules;
+    fd_pwm.module_count = module_count;
+    fd_pwm.channels = channels;
+    fd_pwm.channel_count = channel_count;
 
     IRQ_DIRECT_CONNECT(PWM0_IRQn, 0, fd_pwm_pwm0_handler, 0);
     irq_enable(PWM0_IRQn);
@@ -97,39 +104,36 @@ void fd_pwm_module_start(const fd_pwm_module_t *module, float frequency) {
     float prescaler_divider;
     uint32_t prescaler;
     int prescaler_divider_int = (int)ceil(((16000000.0f / (32768.0f)) / frequency));
-    switch (prescaler_divider_int) {
-        case 1:
-            prescaler_divider = 1.0;
-            prescaler = PWM_PRESCALER_PRESCALER_DIV_1;
-            break;
-        case 2:
-            prescaler_divider = 2.0;
-            prescaler = PWM_PRESCALER_PRESCALER_DIV_2;
-            break;
-        case 4:
-            prescaler_divider = 4.0;
-            prescaler = PWM_PRESCALER_PRESCALER_DIV_4;
-            break;
-        case 8:
-            prescaler_divider = 8.0;
-            prescaler = PWM_PRESCALER_PRESCALER_DIV_8;
-            break;
-        case 16:
-            prescaler_divider = 16.0;
-            prescaler = PWM_PRESCALER_PRESCALER_DIV_16;
-            break;
-        case 32:
-            prescaler_divider = 32.0;
-            prescaler = PWM_PRESCALER_PRESCALER_DIV_32;
-            break;
-        case 64:
-            prescaler_divider = 64.0;
-            prescaler = PWM_PRESCALER_PRESCALER_DIV_64;
-            break;
-        default:
-            prescaler_divider = 128.0;
-            prescaler = PWM_PRESCALER_PRESCALER_DIV_128;
-            break;
+    if (prescaler_divider_int <= 1) {
+        prescaler_divider = 1.0;
+        prescaler = PWM_PRESCALER_PRESCALER_DIV_1;
+    } else
+    if (prescaler_divider_int <= 2) {
+        prescaler_divider = 2.0;
+        prescaler = PWM_PRESCALER_PRESCALER_DIV_2;
+    } else
+    if (prescaler_divider_int <= 4) {
+        prescaler_divider = 4.0;
+        prescaler = PWM_PRESCALER_PRESCALER_DIV_4;
+    } else
+    if (prescaler_divider_int <= 8) {
+        prescaler_divider = 8.0;
+        prescaler = PWM_PRESCALER_PRESCALER_DIV_8;
+    } else
+    if (prescaler_divider_int <= 16) {
+        prescaler_divider = 16.0;
+        prescaler = PWM_PRESCALER_PRESCALER_DIV_16;
+    } else
+    if (prescaler_divider_int <= 32) {
+        prescaler_divider = 32.0;
+        prescaler = PWM_PRESCALER_PRESCALER_DIV_32;
+    } else
+    if (prescaler_divider_int <= 64) {
+        prescaler_divider = 64.0;
+        prescaler = PWM_PRESCALER_PRESCALER_DIV_64;
+    } else {
+        prescaler_divider = 128.0;
+        prescaler = PWM_PRESCALER_PRESCALER_DIV_128;
     }
     // countertop is 15-bits, so with prescaler divider of 128 the minimum frequency is 16000000/(128*32767) is ~3.82 Hz
     fd_pwm_module_state_t *state = fd_pwm_get_state(module->instance);
