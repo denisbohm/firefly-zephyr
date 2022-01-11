@@ -33,9 +33,10 @@ class System:
 
         class Failure:
 
-            def __init__(self, file, line):
+            def __init__(self, file, line, message):
                 self.file = file
                 self.line = line
+                self.message = message
 
         def __init__(self, count, failures):
             self.count = count
@@ -63,7 +64,11 @@ class System:
                 index += length
                 line = struct.unpack("<I", data[index: index + 4])[0]
                 index += 4
-                failures.append(System.Assert.Failure(file, line))
+                length = data[index]
+                index += 1
+                message = data[index: index + length].decode('utf-8')
+                index += length
+                failures.append(System.Assert.Failure(file, line, message))
             return System.Assert(count, failures)
 
     @staticmethod

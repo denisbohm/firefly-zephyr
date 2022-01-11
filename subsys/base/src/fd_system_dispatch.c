@@ -13,6 +13,7 @@ typedef enum {
 typedef struct {
     const char *file;
     int line;
+    char message[32];
 } fd_system_dispatch_t;
 
 fd_system_dispatch_t fd_system_dispatch;
@@ -50,6 +51,7 @@ bool fd_system_dispatch_get_assert(fd_binary_t *message, fd_envelope_t *envelope
         }
         fd_binary_put_string(&response, file);
         fd_binary_put_uint32(&response, fd_system_dispatch.line);
+        fd_binary_put_string(&response, fd_system_dispatch.message);
     }
     fd_envelope_t response_envelope = {
         .target = envelope->source,
@@ -74,8 +76,14 @@ bool fd_system_dispatch_process(fd_binary_t *message, fd_envelope_t *envelope, f
 }
 
 void fd_system_assert_callback(const char *file, int line, const char *message) {
+    if (fd_system_dispatch.file != 0) {
+        return;
+    }
+
     fd_system_dispatch.file = file;
     fd_system_dispatch.line = line;
+    strncpy(fd_system_dispatch.message, message, sizeof(fd_system_dispatch.message));
+    fd_system_dispatch.message[sizeof(fd_system_dispatch.message) - 1] = '\0';
 }
 
 void fd_system_dispatch_initialize(void) {
