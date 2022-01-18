@@ -182,7 +182,6 @@ bool fd_spim_device_is_selected(const fd_spim_device_t *device) {
     return !fd_gpio_get(device->csn);
 }
 
-static
 void fd_spim_transfer(const fd_spim_bus_t *bus, const uint8_t *tx_bytes, uint32_t tx_byte_count, uint8_t *rx_bytes, uint32_t rx_byte_count) {
     fd_assert(fd_spim_bus_is_enabled(bus));
     NRF_SPIM_Type *spim = (NRF_SPIM_Type *)bus->instance;

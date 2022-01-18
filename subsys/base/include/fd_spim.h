@@ -57,6 +57,9 @@ void fd_spim_device_select(const fd_spim_device_t *device);
 void fd_spim_device_deselect(const fd_spim_device_t *device);
 bool fd_spim_device_is_selected(const fd_spim_device_t *device);
 
+// synchronous transfer
+void fd_spim_transfer(const fd_spim_bus_t *bus, const uint8_t *tx_bytes, uint32_t tx_byte_count, uint8_t *rx_bytes, uint32_t rx_byte_count);
+
 // start asynchronous I/O
 void fd_spim_bus_io(const fd_spim_bus_t *bus, const fd_spim_io_t *io);
 // wait for asynchronous I/O to complete
