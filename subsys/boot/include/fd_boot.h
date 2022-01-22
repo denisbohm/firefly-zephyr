@@ -1,6 +1,67 @@
 #ifndef fd_boot_h
 #define fd_boot_h
 
+/*
+Storage Formats:
+- data is little endian
+- hash is SHA-1
+- encryption is AES-128 CBC
+
+
+Executable Format:
+
+N bytes of executable data
+  Typically this is the ARM Cortex interrupt vector.
+  Must be a multiple of 64-bytes.
+
+64 + addendum length bytes of metadata:
+  uint32_t header magic
+  uint32_t header version
+  uint32_t version major
+  uint32_t version minor
+  uint32_t version patch
+  uint32_t length // length of the executable
+  uint8_t [20] hash // hash of this executable (calculated with this hash as zero)
+  uint32_t addendum_length // length of the metadata addendum in bytes (must be multiple of 64-bytes)
+  uint8_t [16] reserved
+  addendum bytes // reserved for future use
+
+M bytes of executable data:
+  Typically this is the rest of the binary (other than the interrupt vector).
+
+P bytes of padding so that the executable length is a multiple of 64 bytes
+
+4 bytes of trailer:
+  uint32_t magic
+
+
+Update Format:
+
+128 + addendum length bytes of metadata:
+  uint32_t header magic
+  uint32_t header version
+  uint32_t executable version major
+  uint32_t executable version minor
+  uint32_t executable version patch
+  uint32_t executable length // length of the executable
+  uint8_t [20] executable hash // hash of executable
+  uint8_t [20] hash // hash of this update (calculated with this hash as zero)
+  uint32_t flags;
+  uint8_t [16] initialization vector // decryption initialization vector
+  uint32_t addendum_length // length of the metadata addendum in bytes (must be multiple of 64-bytes)
+  uint8_t [40] reserved
+  addendum bytes // reserved for future use
+
+128 + addendum length bytes of encrypted metadata // only present if the update is encrypted
+
+N bytes of executable data // encrypted if the update is encrypted
+
+P bytes of padding so that the update length is a multiple of 64 bytes
+
+4 bytes of trailer:
+  uint32_t magic
+*/
+
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -78,7 +139,7 @@ typedef struct {
 } fd_boot_info_executable_storage_t;
 
 typedef struct {
-    fd_boot_range_t range;
+    uint32_t location;
     uint32_t metadata_offset;
 } fd_boot_info_executable_t;
 
@@ -120,68 +181,6 @@ typedef struct __attribute__((packed)) {
     uint32_t length;
     fd_boot_hash_t hash;
 } fd_boot_executable_metadata_t;
-
-/*
-- All data is little endian.
-- hash is SHA-1
-- encryption is AES-128 CBC
-*/
-
-/*
-Executable Format:
-
-N bytes of executable data
-  Typically this is the ARM Cortex interrupt vector.
-  Must be a multiple of 64-bytes.
-
-64 + addendum length bytes of metadata:
-  uint32_t header magic
-  uint32_t header version
-  uint32_t version major
-  uint32_t version minor
-  uint32_t version patch
-  uint32_t length // length of the executable
-  uint8_t [20] hash // hash of this executable (calculated with this hash as zero)
-  uint32_t addendum_length // length of the metadata addendum in bytes (must be multiple of 64-bytes)
-  uint8_t [16] reserved
-  addendum bytes // reserved for future use
-
-M bytes of executable data:
-  Typically this is the rest of the binary (other than the interrupt vector).
-
-P bytes of padding so that the executable length is a multiple of 64 bytes
-
-4 bytes of trailer:
-  uint32_t magic
-*/
-
-/*
-Update Format:
-
-128 + addendum length bytes of metadata:
-  uint32_t header magic
-  uint32_t header version
-  uint32_t executable version major
-  uint32_t executable version minor
-  uint32_t executable version patch
-  uint32_t executable length // length of the executable
-  uint8_t [20] executable hash // hash of executable
-  uint8_t [20] hash // hash of this update (calculated with this hash as zero)
-  uint32_t flags;
-  uint8_t [16] initialization vector // decryption initialization vector
-  uint32_t addendum_length // length of the metadata addendum in bytes (must be multiple of 64-bytes)
-  uint8_t [40] reserved
-  addendum bytes // reserved for future use
-
-128 + addendum length bytes of encrypted metadata // only present if the update is encrypted
-
-N bytes of executable data // encrypted if the update is encrypted
-
-P bytes of padding so that the update length is a multiple of 64 bytes
-
-4 bytes of trailer:
-  uint32_t magic
-*/
 
 #define fd_boot_update_metadata_header_magic 0xab09da1e
 #define fd_boot_update_metadata_header_version 1

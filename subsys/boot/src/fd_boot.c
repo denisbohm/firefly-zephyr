@@ -115,7 +115,7 @@ bool fd_boot_get_executable_metadata(
     }
 
     fd_boot_range_t metadata_header_range = {
-        .location = info_executable.range.location + info_executable.metadata_offset,
+        .location = info_executable.location + info_executable.metadata_offset,
         .length = sizeof(fd_boot_executable_metadata_header_t),
     };
     if (!fd_boot_is_valid_subrange(info_storage.range, metadata_header_range)) {
@@ -143,7 +143,7 @@ bool fd_boot_get_executable_metadata(
 
     fd_boot_range_t metadata_range = {
         .location =
-            info_executable.range.location +
+            info_executable.location +
             info_executable.metadata_offset +
             sizeof(fd_boot_executable_metadata_header_t),
         .length = sizeof(fd_boot_executable_metadata_t),
@@ -169,7 +169,7 @@ bool fd_boot_get_executable_metadata(
 
     fd_boot_executable_trailer_t trailer;
     fd_boot_range_t trailer_range = {
-        .location = info_executable.range.location + metadata.length - sizeof(trailer),
+        .location = info_executable.location + metadata.length - sizeof(trailer),
         .length = sizeof(trailer),
     };
     if (!fd_boot_is_valid_subrange(info_storage.range, trailer_range)) {
@@ -191,7 +191,7 @@ bool fd_boot_get_executable_metadata(
     }
 
     fd_boot_range_t executable_range = {
-        .location = info_executable.range.location,
+        .location = info_executable.location,
         .length = metadata.length,
     };
     fd_boot_range_t hash_range = {
@@ -664,7 +664,7 @@ bool fd_boot_install(
     if (!interface->info.get_executable(&info_executable, error)) {
         return false;
     }
-    uint32_t flash_location = info_executable.range.location;
+    uint32_t flash_location = info_executable.location;
 
     fd_boot_info_update_storage_t info_update_storage;
     if (!interface->info.get_update_storage(&info_update_storage, error)) {

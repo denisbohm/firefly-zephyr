@@ -37,10 +37,7 @@ bool mock_get_executable_storage(fd_boot_info_executable_storage_t *storage, fd_
 
 bool mock_get_executable(fd_boot_info_executable_t *executable, fd_boot_error_t *error) {
     *executable = (fd_boot_info_executable_t) {
-        .range = {
-            .location = 0,
-            .length = mock_executable_size,
-        },
+        .location = 0,
         .metadata_offset = 256,
     };
     return true;
