@@ -212,26 +212,34 @@ void mock_progress(float amount) {
     printf("progress %0.2f\n", amount);
 }
 
-int main(void) {
-    memset(&mock, 0, sizeof(mock));
+void update(fd_boot_update_interface_t *interface) {
+    fd_boot_update_result_t result;
+    fd_boot_error_t error;
+    if (!fd_boot_update(interface, &result, &error)) {
+        printf("error %d\n", error.code);
+    } else {
+        if (result.is_valid) {
+            printf("is valid\n");
+        } else {
+            printf("issue %d\n", result.issue);
+        }
+    }
+}
 
-    memset(mock.executable_data, 0xff, sizeof(mock.executable_data));
-    
-    memset(mock.update_data, 0xff, sizeof(mock.update_data));
-    
-    uint8_t key[FD_BOOT_CRYPTO_KEY_SIZE] =
-        { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f };
-    memcpy(mock.key, key, FD_BOOT_CRYPTO_KEY_SIZE);
-
-    FILE *update_bin = fopen("/Users/denis/sandbox/denisbohm/firefly-zephyr/tools/update/application.bin", "rb");
+void read_update(const char *file_name) {
+    FILE *update_bin = fopen(file_name, "rb");
     if (update_bin != 0) {
         fseek(update_bin, 0, SEEK_END);
         mock.update_length = ftell(update_bin);
         rewind(update_bin);
         fread(mock.update_data, 1, mock.update_length, update_bin);
     } else {
-        printf("update not found\n");
+        printf("update not found: %s\n", file_name);
     }
+}
+
+int main(void) {
+    memset(&mock, 0, sizeof(mock));
 
     fd_boot_update_interface_t interface = {
         .info = {
@@ -277,16 +285,24 @@ int main(void) {
         }
     };
 
-    fd_boot_update_result_t result;
-    fd_boot_error_t error;
-    if (!fd_boot_update(&interface, &result, &error)) {
-        printf("error %d\n", error.code);
-        return 1;
-    }
-    if (result.is_valid) {
-        printf("is valid\n");
-    } else {
-        printf("issue %d\n", result.issue);
-    }
+    memset(mock.executable_data, 0xff, sizeof(mock.executable_data));
+    memset(mock.update_data, 0xff, sizeof(mock.update_data));
+    uint8_t key[FD_BOOT_CRYPTO_KEY_SIZE] =
+        { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f };
+    update(&interface);
+    memcpy(mock.key, key, FD_BOOT_CRYPTO_KEY_SIZE);
+    read_update("/Users/denis/sandbox/denisbohm/firefly-zephyr/tools/update/application_1_2_3.bin");
+    update(&interface);
+    update(&interface);
+    mock.executable_data[0] = ~mock.executable_data[0];
+    update(&interface);
+    update(&interface);
+    read_update("/Users/denis/sandbox/denisbohm/firefly-zephyr/tools/update/application_1_2_4.bin");
+    update(&interface);
+    update(&interface);
+    read_update("/Users/denis/sandbox/denisbohm/firefly-zephyr/tools/update/application_1_2_3.bin");
+    update(&interface);
+    memset(mock.update_data, 0xff, sizeof(mock.update_data));
+    update(&interface);
     return 0;
 }

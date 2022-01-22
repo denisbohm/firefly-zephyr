@@ -26,12 +26,9 @@ class Update:
         pass
 
     @staticmethod
-    def write_mock(metadata_offset=256):
+    def write_mock(file_name, major, minor, patch, metadata_offset=256):
         magic = Update.fd_boot_executable_metadata_header_magic
         version = Update.fd_boot_executable_metadata_header_version
-        major = 1
-        minor = 2
-        patch = 3
         length = 0
         hash = bytes(20)
         pad = bytes(16)
@@ -45,7 +42,7 @@ class Update:
             intelHex[metadata_offset + i] = metadata[i]
         for i in range(16):
             intelHex[metadata_offset + len(metadata) + i] = i
-        intelHex.write_hex_file("application.hex")
+        intelHex.write_hex_file(file_name)
 
     @staticmethod
     def replace(collection, start, replacement):
@@ -203,5 +200,10 @@ class Update:
         Update.package(executable_path, key, encrypted_executable_path)
 
 
-Update.write_mock()
-Update.main(sys.argv)
+key = binascii.unhexlify("000102030405060708090a0b0c0d0e0f")
+Update.write_mock("application_1_2_3.hex", 1, 2, 3)
+Update.package("application_1_2_3.hex", key, "application_1_2_3.bin")
+Update.write_mock("application_1_2_4.hex", 1, 2, 4)
+Update.package("application_1_2_4.hex", key, "application_1_2_4.bin")
+
+#  Update.main(sys.argv)

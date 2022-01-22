@@ -307,7 +307,12 @@ typedef struct {
     uint32_t version;
 } fd_boot_update_metadata_header_t;
 
+typedef struct {
+    uint32_t magic;
+} fd_boot_update_trailer_t;
+
 typedef enum {
+    fd_boot_get_update_metadata_issue_trailer_magic,
     fd_boot_get_update_metadata_issue_header_magic,
     fd_boot_get_update_metadata_issue_header_version,
     fd_boot_get_update_metadata_issue_length,
@@ -389,6 +394,29 @@ bool fd_boot_get_update_metadata(
     }
     if (metadata.executable_metadata.length != executable_length) {
         result->issue = fd_boot_get_update_metadata_issue_length;
+        return true;
+    }
+
+    fd_boot_update_trailer_t trailer;
+    fd_boot_range_t trailer_range = {
+        .location = info_storage.range.location + info_storage.range.length - sizeof(trailer),
+        .length = sizeof(trailer),
+    };
+    if (!fd_boot_is_valid_subrange(info_storage.range, trailer_range)) {
+        result->issue = fd_boot_get_update_metadata_issue_length;
+        return true;
+    }
+    if (!interface->update_reader.read(
+        interface->update_reader.context,
+        trailer_range.location,
+        (uint8_t *)&trailer,
+        trailer_range.length,
+        error
+    )) {
+        return false;
+    }
+    if (trailer.magic != fd_boot_update_trailer_magic) {
+        result->issue = fd_boot_get_update_metadata_issue_trailer_magic;
         return true;
     }
 
@@ -648,10 +676,10 @@ bool fd_boot_install(
         interface->watchdog.feed();
 
         uint32_t length = update_end - update_location;
-        if (length > FD_BOOT_HASH_BLOCK_SIZE) {
-            length = FD_BOOT_HASH_BLOCK_SIZE;
+        if (length > FD_BOOT_DECRYPT_BLOCK_SIZE) {
+            length = FD_BOOT_DECRYPT_BLOCK_SIZE;
         }
-        uint8_t data[FD_BOOT_HASH_BLOCK_SIZE];
+        uint8_t data[FD_BOOT_DECRYPT_BLOCK_SIZE];
         if (!interface->update_reader.read(
             interface->update_reader.context,
             update_location,
@@ -661,7 +689,7 @@ bool fd_boot_install(
         )) {
             return false;
         }
-        uint8_t out[FD_BOOT_HASH_BLOCK_SIZE];
+        uint8_t out[FD_BOOT_DECRYPT_BLOCK_SIZE];
         if (!interface->decrypt.update(&decrypt_context, data, out, length, error)) {
             return false;
         }
