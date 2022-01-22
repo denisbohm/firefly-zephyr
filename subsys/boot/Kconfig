@@ -1,0 +1,4 @@
+menuconfig FIREFLY_SUBSYS_BOOT
+	bool "boot"
+	help
+	  Include boot firmware in the system configuration.
