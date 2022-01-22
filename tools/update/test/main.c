@@ -215,6 +215,10 @@ void mock_progress(float amount) {
 int main(void) {
     memset(&mock, 0, sizeof(mock));
 
+    memset(mock.executable_data, 0xff, sizeof(mock.executable_data));
+    
+    memset(mock.update_data, 0xff, sizeof(mock.update_data));
+    
     uint8_t key[FD_BOOT_CRYPTO_KEY_SIZE] =
         { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f };
     memcpy(mock.key, key, FD_BOOT_CRYPTO_KEY_SIZE);

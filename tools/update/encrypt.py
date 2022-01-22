@@ -111,7 +111,7 @@ class Update:
 
     @staticmethod
     def package_update(data):
-        data += struct.pack("<60sL", os.urandom(60), Update.fd_boot_executable_footer_magic)
+        data += struct.pack("<60sL", os.urandom(60), Update.fd_boot_update_footer_magic)
         hash = Update.sha1_hash(data)
         hash_offset = 44
         Update.replace(data, hash_offset, hash)

@@ -114,29 +114,6 @@ bool fd_boot_get_executable_metadata(
         return false;
     }
 
-    fd_boot_executable_trailer_t trailer;
-    fd_boot_range_t trailer_range = {
-        .location = info_executable.range.location + info_executable.range.length - sizeof(trailer),
-        .length = sizeof(trailer),
-    };
-    if (!fd_boot_is_valid_subrange(info_storage.range, trailer_range)) {
-        fd_boot_set_error(error, 1);
-        return false;
-    }
-    if (!interface->executable_reader.read(
-        interface->executable_reader.context,
-        trailer_range.location,
-        (uint8_t *)&trailer,
-        trailer_range.length,
-        error
-    )) {
-        return false;
-    }
-    if (trailer.magic != fd_boot_executable_trailer_magic) {
-        result->issue = fd_boot_get_executable_metadata_issue_trailer_magic;
-        return true;
-    }
-
     fd_boot_range_t metadata_header_range = {
         .location = info_executable.range.location + info_executable.metadata_offset,
         .length = sizeof(fd_boot_executable_metadata_header_t),
@@ -188,6 +165,29 @@ bool fd_boot_get_executable_metadata(
     if ((metadata.length % FD_BOOT_HASH_BLOCK_SIZE) != 0) {
         result->issue = fd_boot_get_executable_metadata_issue_length;
         return false;
+    }
+
+    fd_boot_executable_trailer_t trailer;
+    fd_boot_range_t trailer_range = {
+        .location = info_executable.range.location + metadata.length - sizeof(trailer),
+        .length = sizeof(trailer),
+    };
+    if (!fd_boot_is_valid_subrange(info_storage.range, trailer_range)) {
+        result->issue = fd_boot_get_executable_metadata_issue_length;
+        return true;
+    }
+    if (!interface->executable_reader.read(
+        interface->executable_reader.context,
+        trailer_range.location,
+        (uint8_t *)&trailer,
+        trailer_range.length,
+        error
+    )) {
+        return false;
+    }
+    if (trailer.magic != fd_boot_executable_trailer_magic) {
+        result->issue = fd_boot_get_executable_metadata_issue_trailer_magic;
+        return true;
     }
 
     fd_boot_range_t executable_range = {
@@ -246,7 +246,7 @@ bool fd_boot_read_and_decrypt(
     if (!context->decrypt_interface.update(&context->decrypt_context, data, out, length, error)) {
         return false;
     }
-    memcpy(data, out, FD_BOOT_DECRYPT_BLOCK_SIZE);
+    memcpy(data, out, length);
     return true;
 }
 
@@ -383,6 +383,37 @@ bool fd_boot_get_update_metadata(
         result->issue = fd_boot_get_update_metadata_issue_length;
         return true;
     }
+    uint32_t executable_length = info_storage.range.length - 64 - 128;
+    if ((metadata.flags & fd_boot_update_metadata_flag_encrypted) != 0) {
+        executable_length -= 128;
+    }
+    if (metadata.executable_metadata.length != executable_length) {
+        result->issue = fd_boot_get_update_metadata_issue_length;
+        return true;
+    }
+
+    // check update hash
+    fd_boot_check_hash_result_t hash_result;
+    fd_boot_range_t hash_range = {
+        .location = info_storage.range.location + 44,
+        .length = FD_BOOT_HASH_DATA_SIZE,
+    };
+    if (!fd_boot_check_hash(
+        interface,
+        &interface->update_reader,
+        info_storage.range,
+        info_storage.range,
+        hash_range,
+        &metadata.hash,
+        &hash_result,
+        error
+    )) {
+        return false;
+    }
+    if (!hash_result.is_valid) {
+        result->issue = fd_boot_get_update_metadata_issue_hash;
+        return true;
+    }
 
     if ((metadata.flags & fd_boot_update_metadata_flag_encrypted) == 0) {
         // update is not encyrpted...
@@ -421,29 +452,6 @@ bool fd_boot_get_update_metadata(
     }
 
     // update is encrypted
-
-    // check update hash
-    fd_boot_check_hash_result_t hash_result;
-    fd_boot_range_t hash_range = {
-        .location = info_storage.range.location + 44,
-        .length = FD_BOOT_HASH_DATA_SIZE,
-    };
-    if (!fd_boot_check_hash(
-        interface,
-        &interface->update_reader,
-        info_storage.range,
-        info_storage.range,
-        hash_range,
-        &metadata.hash,
-        &hash_result,
-        error
-    )) {
-        return false;
-    }
-    if (!hash_result.is_valid) {
-        result->issue = fd_boot_get_update_metadata_issue_hash;
-        return true;
-    }
 
     // get decrypted metadata
     fd_boot_range_t range = {
@@ -616,7 +624,6 @@ bool fd_boot_install(
         return false;
     }
 
-
     uint32_t executable_length = metadata->executable_metadata.length;
     uint32_t block_count = executable_length / FD_BOOT_HASH_BLOCK_SIZE;
     if (block_count < 1) {
@@ -625,26 +632,31 @@ bool fd_boot_install(
     uint32_t block_index = 0;
     interface->progress.progress((float)block_index / (float)block_count);
 
-    uint32_t location = 0; // what is the right offset
-    uint32_t end = 0; // ?
-    uint32_t flash_location = 0;
-    while (location < end) {
+    fd_boot_info_executable_t info_executable;
+    if (!interface->info.get_executable(&info_executable, error)) {
+        return false;
+    }
+    uint32_t flash_location = info_executable.range.location;
+
+    fd_boot_info_update_storage_t info_update_storage;
+    if (!interface->info.get_update_storage(&info_update_storage, error)) {
+        return false;
+    }
+    uint32_t update_location = info_update_storage.range.location + info_update_storage.range.length - 64 - metadata->executable_metadata.length;
+    uint32_t update_end = update_location + metadata->executable_metadata.length;
+    while (update_location < update_end) {
         interface->watchdog.feed();
 
-        uint32_t length = end - location;
+        uint32_t length = update_end - update_location;
         if (length > FD_BOOT_HASH_BLOCK_SIZE) {
             length = FD_BOOT_HASH_BLOCK_SIZE;
         }
-        fd_boot_range_t subrange = {
-            .location = location,
-            .length = length,
-        };
         uint8_t data[FD_BOOT_HASH_BLOCK_SIZE];
         if (!interface->update_reader.read(
             interface->update_reader.context,
-            subrange.location,
+            update_location,
             data,
-            subrange.length,
+            length,
             error
         )) {
             return false;
@@ -662,6 +674,8 @@ bool fd_boot_install(
         )) {
             return false;
         }
+
+        update_location += length;
         flash_location += length;
 
         ++block_index;
@@ -708,7 +722,6 @@ bool fd_boot_update(
             if (!fd_boot_install(interface, &update.metadata, error)) {
                 return false;
             }
-            fd_boot_executable_metadata_t executable_metadata;
             if (!fd_boot_get_executable_metadata(interface, &executable, error)) {
                 return false;
             }
