@@ -2,4 +2,5 @@ set(OVERLAY_CONFIG Kconfig)
 
 zephyr_include_directories(include)
 
-zephyr_sources(src/fd_boot.c)
+zephyr_sources_ifdef(CONFIG_FIREFLY_SUBSYS_BOOT src/fd_boot.c)
+zephyr_sources_ifdef(CONFIG_FIREFLY_SUBSYS_BOOT_ZEPHYR src/fd_boot_zephyr.c)

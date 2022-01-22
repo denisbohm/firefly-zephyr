@@ -1,4 +1,14 @@
 menuconfig FIREFLY_SUBSYS_BOOT
 	bool "boot"
+
+if FIREFLY_SUBSYS_BOOT
+
+config FIREFLY_SUBSYS_BOOT_ZEPHYR
+        bool "Enable Zephyr MBEDTLS SHA-1 and AES 128 CBC"
+        select MBEDTLS
+        select MBEDTLS_MAC_SHA1_ENABLED
+        select MBEDTLS_CIPHER_AES_ENABLED
 	help
-	  Include boot firmware in the system configuration.
+	  Build Zephyr MBEDTLS boot functions.
+
+endif
