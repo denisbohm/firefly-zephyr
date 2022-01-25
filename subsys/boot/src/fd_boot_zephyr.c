@@ -3,6 +3,102 @@
 #include <mbedtls/platform.h>
 #include <mbedtls/cipher.h>
 #include <mbedtls/md.h>
+
+#include <fs/fs.h>
+#include <ff.h>
+#include <drivers/flash.h>
+#include <storage/flash_map.h>
+
+#include <string.h>
+
+typedef struct {
+    struct fs_mount_t fs_mount;
+    FATFS fatfs;
+    FIL file;
+    uint32_t length;
+} fd_boot_zephyr_update_storage_t;
+
+fd_boot_zephyr_update_storage_t fd_boot_zephyr_update_storage;
+
+bool fd_boot_zephyr_update_storage_mount(fd_boot_error_t *error) {
+    memset(&fd_boot_zephyr_update_storage, 0, sizeof(fd_boot_zephyr_update_storage));
+
+    fd_boot_zephyr_update_storage.fs_mount.storage_dev = (void *)FLASH_AREA_ID(storage);
+    unsigned int id = (uintptr_t)fd_boot_zephyr_update_storage.fs_mount.storage_dev;
+    const struct flash_area *flash_area;
+    int rc = flash_area_open(id, &flash_area);
+    if (rc != 0) {
+        fd_boot_set_error(error, 1);
+        return false;
+    }
+
+    fd_boot_zephyr_update_storage.fs_mount.type = FS_FATFS;
+    fd_boot_zephyr_update_storage.fs_mount.fs_data = &fd_boot_zephyr_update_storage.fatfs;
+    fd_boot_zephyr_update_storage.fs_mount.mnt_point = "/NAND:";
+    FRESULT result = fs_mount(&fd_boot_zephyr_update_storage.fs_mount);
+    if (result != 0) {
+        fd_boot_set_error(error, 1);
+        return false;
+    }
+
+    return true;
+}
+
+bool fd_boot_zephyr_update_storage_open(const char *file_name, fd_boot_error_t *error) {
+    FILINFO info;
+    FRESULT result = f_stat(file_name, &info);
+    if (result != 0) {
+        fd_boot_set_error(error, 1);
+        return false;
+    }
+    fd_boot_zephyr_update_storage.length = info.fsize;
+    result = f_open(&fd_boot_zephyr_update_storage.file, file_name, FA_READ);
+    if (result != 0) {
+        fd_boot_set_error(error, 1);
+        return false;
+    }
+    return true;
+}
+
+bool fd_boot_zephyr_update_storage_close(fd_boot_error_t *error) {
+    FRESULT result = f_close(&fd_boot_zephyr_update_storage.file);
+    if (result != 0) {
+        fd_boot_set_error(error, 1);
+        return false;
+    }
+    return true;
+}
+
+bool fd_boot_zephyr_get_update_storage(fd_boot_info_update_storage_t *storage, fd_boot_error_t *error) {
+    *storage = (fd_boot_info_update_storage_t) {
+        .range = {
+            .location = 0,
+            .length = fd_boot_zephyr_update_storage.length,
+        },
+    };
+    return true;
+}
+
+bool fd_boot_zephyr_update_read(
+    void *context,
+    uint32_t location,
+    uint8_t *data,
+    uint32_t length,
+    fd_boot_error_t *error
+) {
+    uint32_t actual = 0;
+    FRESULT result = f_lseek(&fd_boot_zephyr_update_storage.file, location);
+    if (result != 0) {
+        fd_boot_set_error(error, 1);
+        return false;
+    }
+    result = f_read(&fd_boot_zephyr_update_storage.file, data, length, &actual);
+    if (result != 0) {
+        fd_boot_set_error(error, 1);
+        return false;
+    }
+    return true;
+}
  
 typedef struct {
     const mbedtls_md_info_t *md_info;
@@ -62,8 +158,15 @@ bool fd_boot_zephyr_decrypt_initialize(
     fd_boot_error_t *error
 ) {
     mbedtls_cipher_init(&fd_boot_zephyr_decrypt.ctx);
-    mbedtls_cipher_setup(&fd_boot_zephyr_decrypt.ctx, mbedtls_cipher_info_from_type(MBEDTLS_CIPHER_AES_128_CBC));
-    if (mbedtls_cipher_setkey(&fd_boot_zephyr_decrypt.ctx, key->data, sizeof(key->data), MBEDTLS_DECRYPT) != 0) {
+    if (mbedtls_cipher_setup(&fd_boot_zephyr_decrypt.ctx, mbedtls_cipher_info_from_type(MBEDTLS_CIPHER_AES_128_CBC)) != 0) {
+        fd_boot_set_error(error, 1);
+        return false;
+    }
+    if (mbedtls_cipher_set_padding_mode(&fd_boot_zephyr_decrypt.ctx, MBEDTLS_PADDING_NONE) != 0) {
+        fd_boot_set_error(error, 1);
+        return false;
+    }
+    if (mbedtls_cipher_setkey(&fd_boot_zephyr_decrypt.ctx, key->data, sizeof(key->data) * 8, MBEDTLS_DECRYPT) != 0) {
         fd_boot_set_error(error, 1);
         return false;
     }
@@ -93,8 +196,11 @@ bool fd_boot_zephyr_decrypt_finalize(
     fd_boot_decrypt_context_t *decrypt,
     fd_boot_error_t *error
 ) {
-    if (mbedtls_cipher_finish(&fd_boot_zephyr_decrypt.ctx, NULL, NULL) != 0) {
+    uint8_t out[FD_BOOT_DECRYPT_BLOCK_SIZE];
+    size_t length = 0;
+    if (mbedtls_cipher_finish(&fd_boot_zephyr_decrypt.ctx, out, &length) != 0) {
         fd_boot_set_error(error, 1);
         return false;
     }
+    return true;
 }

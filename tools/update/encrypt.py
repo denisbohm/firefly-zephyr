@@ -1,13 +1,27 @@
 #!/usr/bin/env python3
 
+import argparse
 import binascii
 from Crypto.Cipher import AES
-from collections import namedtuple
 import hashlib
 from intelhex import IntelHex
 import os
 import struct
 import sys
+
+
+def int_arg(s):
+    return int(s, 0)
+
+
+def key_arg(s):
+    try:
+        key = binascii.unhexlify(s)
+        if len(key) != 16:
+            raise Exception("invalid key length")
+        return key
+    except Exception:
+        raise ValueError("key value expected as a 16-byte hex string")
 
 
 class Update:
@@ -43,6 +57,14 @@ class Update:
         for i in range(16):
             intelHex[metadata_offset + len(metadata) + i] = i
         intelHex.write_hex_file(file_name)
+
+    @staticmethod
+    def write_mocks():
+        key = binascii.unhexlify("000102030405060708090a0b0c0d0e0f")
+        Update.write_mock("application_1_2_3.hex", 1, 2, 3)
+        Update.package(argparse.Namespace(input="application_1_2_3.hex", output="{base}.bin", key=key, metadata_offset=256))
+        Update.write_mock("application_1_2_4.hex", 1, 2, 4)
+        Update.package(argparse.Namespace(input="application_1_2_4.hex", output="{base}.bin", key=key, metadata_offset=256))
 
     @staticmethod
     def replace(collection, start, replacement):
@@ -115,16 +137,20 @@ class Update:
         return data
 
     @staticmethod
-    def package(executable_path, key, encrypted_executable_path, metadata_offset=256):
+    def package(args):
         addendum = bytes()
 
-        executable_address, executable_data = Update.load_executable(executable_path)
-        major, minor, patch = Update.get_executable_metadata(executable_data, metadata_offset)
-        print(f"encrypting {executable_path} {major}.{minor}.{patch}: {len(executable_data)} bytes at 0x{executable_address:08X}")
-        executable, executable_hash = Update.package_executable(executable_data, metadata_offset)
+        print(f"reading firmware {args.input}")
+
+        executable_address, executable_data = Update.load_executable(args.input)
+        if hasattr(args, "address") and (args.address != executable_address):
+            raise Exception(f"firmware address 0x{executable_address:08X} mismatch, expected 0x{args.address:08X}")
+        major, minor, patch = Update.get_executable_metadata(executable_data, args.metadata_offset)
+        print(f"found: version {major}.{minor}.{patch}, {len(executable_data)} bytes at 0x{executable_address:08X}")
+        executable, executable_hash = Update.package_executable(executable_data, args.metadata_offset)
 
         initialization_vector = os.urandom(16)
-        encrypted_executable = Update.encrypt_data(key, initialization_vector, executable)
+        encrypted_executable = Update.encrypt_data(args.key, initialization_vector, executable)
 
         metadata = struct.pack(
             "<LLLLLL20s20sL16sL40s",
@@ -142,68 +168,30 @@ class Update:
             bytes(40)
         )
 
-        encrypted_metadata = Update.encrypt_data(key, initialization_vector, metadata)
+        encrypted_metadata = Update.encrypt_data(args.key, initialization_vector, metadata)
 
         update = Update.package_update(bytearray(metadata + encrypted_metadata + encrypted_executable))
 
-        print("writing " + encrypted_executable_path)
-        with open(encrypted_executable_path, "wb") as f:
+        base = os.path.splitext(args.input)[0]
+        output = args.output.format(base=base, major=major, minor=minor, patch=patch)
+        print(f"writing update to {output}")
+        with open(output, "wb") as f:
             f.write(update)
 
     @staticmethod
     def main(argv):
-        executable_path = "application.hex"
-        encrypted_executable_path = "application.bin"
-
-        key = binascii.unhexlify("000102030405060708090a0b0c0d0e0f")
-
-        version_major = 0
-        version_minor = 0
-        version_patch = 0
-        version_commit = binascii.unhexlify("000102030405060708090a0b0c0d0e0f10111213")
-
-        comment = "testing 1... 2... 3..."
-
-        addendum = "{\"testing\": true}"
-
-        i = 1
-        while i < len(argv):
-            arg = argv[i]
-            if arg == "-executable":
-                i += 1
-                executable_path = argv[i]
-            elif arg == "-encrypted-executable":
-                i += 1
-                encrypted_executable_path = argv[i]
-            elif arg == "-key":
-                i += 1
-                key = binascii.unhexlify(argv[i])
-            elif arg == "-version":
-                i += 1
-                version_major = int(argv[i])
-                i += 1
-                version_minor = int(argv[i])
-                i += 1
-                version_patch = int(argv[i])
-                i += 1
-                version_commit = binascii.unhexlify(argv[i])
-            elif arg == "-comment":
-                i += 1
-                comment = argv[i]
-            elif arg == "-addendum":
-                i += 1
-                addendum = argv[i]
-            else:
-                print("unexpected argument")
-            i += 1
-
-        Update.package(executable_path, key, encrypted_executable_path)
+        parser = argparse.ArgumentParser(description='Create a firmware update binary.')
+        parser.add_argument('--key', type=key_arg, required=True)
+        parser.add_argument('--input', required=True)
+        parser.add_argument('--output', default="{base}_{major}_{minor}_{patch}.bin")
+        parser.add_argument('--metadata_offset', type=int_arg, default=256)
+        parser.add_argument('--address', type=int_arg)
+        args = parser.parse_args(argv)
+        try:
+            Update.package(args)
+        except Exception as e:
+            print(f"error: {str(e)}")
 
 
-key = binascii.unhexlify("000102030405060708090a0b0c0d0e0f")
-Update.write_mock("application_1_2_3.hex", 1, 2, 3)
-Update.package("application_1_2_3.hex", key, "application_1_2_3.bin")
-Update.write_mock("application_1_2_4.hex", 1, 2, 4)
-Update.package("application_1_2_4.hex", key, "application_1_2_4.bin")
-
-#  Update.main(sys.argv)
+#Update.write_mocks()
+Update.main(sys.argv[1:])

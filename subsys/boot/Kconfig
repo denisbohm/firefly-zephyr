@@ -11,4 +11,9 @@ config FIREFLY_SUBSYS_BOOT_ZEPHYR
 	help
 	  Build Zephyr MBEDTLS boot functions.
 
+config FIREFLY_SUBSYS_BOOT_NRF53
+        bool "Enable nRF53 flashing"
+	help
+	  Build nRF53 boot functions.
+
 endif

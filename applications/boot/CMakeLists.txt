@@ -8,7 +8,7 @@ set(ZEPHYR_EXTRA_MODULES ${FIREFLY_ZEPHYR_DIR})
 
 find_package(Zephyr HINTS $ENV{ZEPHYR_BASE})
 
-project(rtc)
+project(boot)
 
 set(CMAKE_BUILD_TYPE Debug)
 

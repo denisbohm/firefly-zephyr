@@ -643,9 +643,13 @@ bool fd_boot_install(
     )) {
         return false;
     }
+    fd_boot_info_executable_t info_executable;
+    if (!interface->info.get_executable(&info_executable, error)) {
+        return false;
+    }
     if (!interface->executable_flasher.initialize(
         interface->executable_flasher.context,
-        0,
+        info_executable.location,
         metadata->executable_metadata.length,
         error
     )) {
@@ -660,10 +664,6 @@ bool fd_boot_install(
     uint32_t block_index = 0;
     interface->progress.progress((float)block_index / (float)block_count);
 
-    fd_boot_info_executable_t info_executable;
-    if (!interface->info.get_executable(&info_executable, error)) {
-        return false;
-    }
     uint32_t flash_location = info_executable.location;
 
     fd_boot_info_update_storage_t info_update_storage;
@@ -762,19 +762,3 @@ bool fd_boot_update(
     }
     return true;
 }
-
-#if 0
-void fd_boot_run_application(void) {
-    SCB->VTOR = FD_BOOT_APPLICATION_START;
-    uint32_t *vector_table = (uint32_t *)FD_BOOT_APPLICATION_START;
-    uint32_t sp = vector_table[0];
-    uint32_t pc = vector_table[1];
-    __asm volatile(
-        "   msr msp, %[sp]\n"
-        "   msr psp, %[sp]\n"
-        "   mov pc, %[pc]\n"
-        :
-        : [sp] "r" (sp), [pc] "r" (pc)
-    );
-}
-#endif
