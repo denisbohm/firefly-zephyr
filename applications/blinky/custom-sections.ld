@@ -1,4 +1,4 @@
-SECTION_DATA_PROLOGUE(_CUSTOM_SECTION_NAME2,,)
+SECTION_PROLOGUE(executable_metadata_section_name,0x80180,)
 {
-	KEEP(*(".executable_metadata_section.*"));
+	KEEP(*(".executable_metadata_section"));
 } GROUP_ROM_LINK_IN(RAMABLE_REGION, ROMABLE_REGION)

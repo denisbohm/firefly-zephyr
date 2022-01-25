@@ -13,6 +13,5 @@ target_sources(app PRIVATE
     src/executable_metadata.c
 )
 
-zephyr_code_relocate(src/executable_metadata.c FLASH)
-
-zephyr_linker_sources(SECTIONS custom-sections.ld)
+#zephyr_code_relocate(src/executable_metadata.c FLASH)
+#zephyr_linker_sources(SECTIONS custom-sections.ld)

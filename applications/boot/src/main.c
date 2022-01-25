@@ -1,10 +1,14 @@
 #include "fd_boot.h"
-#include "fd_boot_flash.h"
+#include "fd_boot_nrf53.h"
 #include "fd_boot_zephyr.h"
+#include "fd_usb.h"
+#include "fd_usb_msc.h"
 
 #include <zephyr.h>
 
 #include <nrf5340_application.h>
+
+#include <hal/nrf_gpio.h>
 
 #include <string.h>
 
@@ -40,31 +44,6 @@ bool fd_boot_zephyr_get_decryption(fd_boot_info_decryption_t *decryption, fd_boo
     return true;
 }
 
-bool fd_boot_zephyr_executable_read(void *context, uint32_t location, uint8_t *data, uint32_t length, fd_boot_error_t *error) {
-    memcpy(data, (uint8_t *)location, length);
-    return true;
-}
-
-bool fd_boot_zephyr_executable_flasher_initialize(void *context, uint32_t location, uint32_t length, fd_boot_error_t *error) {
-    if (!fd_boot_flash_erase(location, length)) {
-        fd_boot_set_error(error, 1);
-        return false;
-    }
-    return true;
-}
-
-bool fd_boot_zephyr_executable_flasher_write(void *context, uint32_t location, const uint8_t *data, uint32_t length, fd_boot_error_t *error) {
-    if (!fd_boot_flash_write(location, data, length)) {
-        fd_boot_set_error(error, 1);
-        return false;
-    }
-    return true;
-}
-
-bool fd_boot_zephyr_executable_flasher_finalize(void *context, fd_boot_error_t *error) {
-    return true;
-}
-
 void fd_boot_zephyr_feed(void) {
 }
 
@@ -83,34 +62,12 @@ bool fd_boot_zephyr_can_install(const fd_boot_version_t *version) {
 void fd_boot_zephyr_progress(float amount) {
 }
 
-void fd_boot_cleanup(void) {
-    irq_lock();
+void fd_boot_usb_start(void) {
+    fd_usb_msc_initialize();
+    fd_usb_initialize();
 }
 
-bool fd_boot_execute(fd_boot_update_interface_t *interface, fd_boot_error_t *error) {
-    fd_boot_cleanup();
-
-    fd_boot_info_executable_t info_executable;
-    if (!interface->info.get_executable(&info_executable, error)) {
-        return false;
-    }
-    SCB->VTOR = info_executable.location;
-    uint32_t *vector_table = (uint32_t *)info_executable.location;
-    uint32_t sp = vector_table[0];
-    uint32_t pc = vector_table[1];
-    __asm volatile(
-        "   msr msp, %[sp]\n"
-        "   msr psp, %[sp]\n"
-        "   mov pc, %[pc]\n"
-        :
-        : [sp] "r" (sp), [pc] "r" (pc)
-    );
-    // should never reach here...
-    fd_boot_set_error(error, 1);
-    return false;
-}
-
-int main(void) {
+void fd_boot_try_update(void) {
     fd_boot_update_interface_t interface = {
         .info = {
             .get_executable_storage = fd_boot_zephyr_get_executable_storage,
@@ -140,9 +97,9 @@ int main(void) {
         },
         .executable_flasher = {
             .context = 0,
-            .initialize = fd_boot_zephyr_executable_flasher_initialize,
-            .write = fd_boot_zephyr_executable_flasher_write,
-            .finalize = fd_boot_zephyr_executable_flasher_finalize,
+            .initialize = fd_boot_nrf53_flasher_initialize,
+            .write = fd_boot_nrf53_flasher_write,
+            .finalize = fd_boot_nrf53_flasher_finalize,
         },
         .update_reader = {
             .context = 0,
@@ -152,17 +109,21 @@ int main(void) {
             .can_upgrade = fd_boot_zephyr_can_upgrade,
             .can_downgrade = fd_boot_zephyr_can_downgrade,
             .can_install = fd_boot_zephyr_can_install,
-        }
+        },
+        .executor = {
+            .cleanup = fd_boot_zephyr_executor_cleanup,
+            .start = fd_boot_nrf53_executor_start,
+        },
     };
 
     fd_boot_error_t error;
     if (!fd_boot_zephyr_update_storage_mount(&error)) {
         // printf("error %d\n", error.code);
-        return 1;
+        return;
     }
     if (!fd_boot_zephyr_update_storage_open("NAND:/update.bin", &error)) {
         // printf("error %d\n", error.code);
-        return 1;
+        return;
     }
 
     fd_boot_update_result_t result;
@@ -178,6 +139,14 @@ int main(void) {
             // printf("issue %d\n", result.issue);
         }
     }
+}
 
-    return 1;
+int main(void) {
+    const uint32_t button_1_pin = 23;
+    nrf_gpio_cfg_input(button_1_pin, NRF_GPIO_PIN_NOPULL);
+    if (nrf_gpio_pin_read(button_1_pin) != 0) {
+        fd_boot_try_update();
+    }
+    fd_boot_usb_start();
+    return 0;
 }

@@ -762,3 +762,16 @@ bool fd_boot_update(
     }
     return true;
 }
+
+bool fd_boot_execute(
+    fd_boot_update_interface_t *interface,
+    fd_boot_error_t *error
+) {
+    if (!interface->executor.cleanup(error)) {
+        return false;
+    }
+    if (!interface->executor.start(error)) {
+        return false;
+    }
+    return true;
+}

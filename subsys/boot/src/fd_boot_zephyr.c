@@ -204,3 +204,13 @@ bool fd_boot_zephyr_decrypt_finalize(
     }
     return true;
 }
+
+bool fd_boot_zephyr_executable_read(void *context, uint32_t location, uint8_t *data, uint32_t length, fd_boot_error_t *error) {
+    memcpy(data, (uint8_t *)location, length);
+    return true;
+}
+
+bool fd_boot_zephyr_executor_cleanup(fd_boot_error_t *error) {
+    irq_lock();
+    return true;
+}

@@ -54,4 +54,14 @@ bool fd_boot_zephyr_decrypt_finalize(
     fd_boot_error_t *error
 );
 
+bool fd_boot_zephyr_executable_read(
+    void *context,
+    uint32_t location,
+    uint8_t *data,
+    uint32_t length,
+    fd_boot_error_t *error
+);
+
+bool fd_boot_zephyr_executor_cleanup(fd_boot_error_t *error);
+
 #endif

@@ -202,6 +202,11 @@ typedef struct {
 } fd_boot_action_interface_t;
 
 typedef struct {
+    bool (*cleanup)(fd_boot_error_t *error);
+    bool (*start)(fd_boot_error_t *error);
+} fd_boot_executor_interface_t;
+
+typedef struct {
     fd_boot_info_interface_t info;
     fd_boot_progress_interface_t progress;
     fd_boot_watchdog_interface_t watchdog;
@@ -211,6 +216,7 @@ typedef struct {
     fd_boot_flasher_interface_t executable_flasher;
     fd_boot_reader_interface_t update_reader;
     fd_boot_action_interface_t action;
+    fd_boot_executor_interface_t executor;
 } fd_boot_update_interface_t;
 
 typedef enum {
@@ -226,6 +232,11 @@ typedef struct {
 bool fd_boot_update(
     fd_boot_update_interface_t *interface,
     fd_boot_update_result_t *result,
+    fd_boot_error_t *error
+);
+
+bool fd_boot_execute(
+    fd_boot_update_interface_t *interface,
     fd_boot_error_t *error
 );
 
