@@ -184,7 +184,7 @@ SECTIONS
 
 	} GROUP_LINK_IN(ROMABLE_REGION)
 
-#include "/Users/denis/sandbox/denisbohm/firefly-zephyr/applications/blinky/custom-sections.ld"
+#include "custom-sections.ld"
 
 #ifdef CONFIG_CODE_DATA_RELOCATION
 
