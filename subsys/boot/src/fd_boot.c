@@ -770,7 +770,11 @@ bool fd_boot_execute(
     if (!interface->executor.cleanup(error)) {
         return false;
     }
-    if (!interface->executor.start(error)) {
+    fd_boot_info_executable_t info_executable;
+    if (!interface->info.get_executable(&info_executable, error)) {
+        return false;
+    }
+    if (!interface->executor.start(info_executable.location, error)) {
         return false;
     }
     return true;

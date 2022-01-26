@@ -79,13 +79,9 @@ bool fd_boot_nrf53_flasher_finalize(void *context, fd_boot_error_t *error) {
     return true;
 }
 
-bool fd_boot_nrf53_executor_start(fd_boot_update_interface_t *interface, fd_boot_error_t *error) {
-    fd_boot_info_executable_t info_executable;
-    if (!interface->info.get_executable(&info_executable, error)) {
-        return false;
-    }
-    SCB->VTOR = info_executable.location;
-    uint32_t *vector_table = (uint32_t *)info_executable.location;
+bool fd_boot_nrf53_executor_start(uint32_t address, fd_boot_error_t *error) {
+    SCB->VTOR = address;
+    uint32_t *vector_table = (uint32_t *)address;
     uint32_t sp = vector_table[0];
     uint32_t pc = vector_table[1];
     __asm volatile(

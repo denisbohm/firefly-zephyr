@@ -203,7 +203,7 @@ typedef struct {
 
 typedef struct {
     bool (*cleanup)(fd_boot_error_t *error);
-    bool (*start)(fd_boot_error_t *error);
+    bool (*start)(uint32_t address, fd_boot_error_t *error);
 } fd_boot_executor_interface_t;
 
 typedef struct {
