@@ -1,6 +1,7 @@
 #include "fd_boot.h"
 #include "fd_boot_nrf53.h"
 #include "fd_boot_zephyr.h"
+#include "fd_storage_fatfs.h"
 #include "fd_usb.h"
 #include "fd_usb_msc.h"
 
@@ -117,10 +118,6 @@ void fd_boot_try_update(void) {
     };
 
     fd_boot_error_t error;
-    if (!fd_boot_zephyr_update_storage_mount(&error)) {
-        // printf("error %d\n", error.code);
-        return;
-    }
     if (!fd_boot_zephyr_update_storage_open("NAND:/update.bin", &error)) {
         // printf("error %d\n", error.code);
         return;
@@ -142,11 +139,29 @@ void fd_boot_try_update(void) {
 }
 
 int main(void) {
-    const uint32_t button_1_pin = 23;
-    nrf_gpio_cfg_input(button_1_pin, NRF_GPIO_PIN_NOPULL);
-    if (nrf_gpio_pin_read(button_1_pin) != 0) {
-        fd_boot_try_update();
+    fd_storage_fatfs_initialize();
+    if (!fd_storage_fatfs_open()) {
+        // printf("error %d\n", error.code);
+        return 1;
     }
-    fd_boot_usb_start();
+    if (fd_storage_fatfs_mount()) {
+        const uint32_t button_1_pin = 23;
+        nrf_gpio_cfg_input(button_1_pin, NRF_GPIO_PIN_NOPULL);
+        if (nrf_gpio_pin_read(button_1_pin) != 0) {
+            fd_boot_try_update();
+        }
+        fd_storage_fatfs_unmount();
+    }
+
+    static uint8_t buffer[4096];
+    if (!fd_storage_fatfs_format(buffer, sizeof(buffer))) {
+        // printf("error %d\n", error.code);
+        return 1;
+    }
+
+    if (fd_storage_fatfs_mount()) {
+        fd_boot_usb_start();
+    }
+    
     return 0;
 }

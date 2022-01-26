@@ -15,5 +15,6 @@ set(CMAKE_BUILD_TYPE Debug)
 target_sources(app PRIVATE
     src/main.c
     ../../subsys/boot/src/fd_boot_zephyr.c
+    ../../subsys/storage/src/fd_storage_fatfs.c
     ../../subsys/usb/src/fd_usb_msc.c
 )

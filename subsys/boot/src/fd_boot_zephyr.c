@@ -12,37 +12,11 @@
 #include <string.h>
 
 typedef struct {
-    struct fs_mount_t fs_mount;
-    FATFS fatfs;
     FIL file;
     uint32_t length;
 } fd_boot_zephyr_update_storage_t;
 
 fd_boot_zephyr_update_storage_t fd_boot_zephyr_update_storage;
-
-bool fd_boot_zephyr_update_storage_mount(fd_boot_error_t *error) {
-    memset(&fd_boot_zephyr_update_storage, 0, sizeof(fd_boot_zephyr_update_storage));
-
-    fd_boot_zephyr_update_storage.fs_mount.storage_dev = (void *)FLASH_AREA_ID(storage);
-    unsigned int id = (uintptr_t)fd_boot_zephyr_update_storage.fs_mount.storage_dev;
-    const struct flash_area *flash_area;
-    int rc = flash_area_open(id, &flash_area);
-    if (rc != 0) {
-        fd_boot_set_error(error, 1);
-        return false;
-    }
-
-    fd_boot_zephyr_update_storage.fs_mount.type = FS_FATFS;
-    fd_boot_zephyr_update_storage.fs_mount.fs_data = &fd_boot_zephyr_update_storage.fatfs;
-    fd_boot_zephyr_update_storage.fs_mount.mnt_point = "/NAND:";
-    FRESULT result = fs_mount(&fd_boot_zephyr_update_storage.fs_mount);
-    if (result != 0) {
-        fd_boot_set_error(error, 1);
-        return false;
-    }
-
-    return true;
-}
 
 bool fd_boot_zephyr_update_storage_open(const char *file_name, fd_boot_error_t *error) {
     FILINFO info;

@@ -3,7 +3,6 @@
 
 #include "fd_boot.h"
 
-bool fd_boot_zephyr_update_storage_mount(fd_boot_error_t *error);
 bool fd_boot_zephyr_update_storage_open(const char *file_name, fd_boot_error_t *error);
 bool fd_boot_zephyr_update_storage_close(fd_boot_error_t *error);
 

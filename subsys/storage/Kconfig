@@ -2,3 +2,17 @@ menuconfig FIREFLY_SUBSYS_STORAGE
 	bool "storage"
 	help
 	  Include storage firmware in the system configuration.
+
+if FIREFLY_SUBSYS_STORAGE
+
+config FIREFLY_SUBSYS_STORAGE_FATFS
+        bool "include FATFS storage functions"
+	help
+	  Build FATFS storage functions.
+
+config FIREFLY_SUBSYS_STORAGE_SDCARD
+        bool "Enable SDCARD functions"
+	help
+	  Build SDCARD functions functions.
+
+endif
