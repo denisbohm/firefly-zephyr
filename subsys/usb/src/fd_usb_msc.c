@@ -1,12 +1,4 @@
-#include <zephyr.h>
-#include <usb/usb_device.h>
-#include <fs/fs.h>
-#include <storage/flash_map.h>
-#include <ff.h>
-#include <drivers/flash.h>
-#include <device.h>
-
-#include "fd_assert.h"
+#include "fd_usb_msc.h"
 
 #include <string.h>
 
