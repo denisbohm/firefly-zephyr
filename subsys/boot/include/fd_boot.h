@@ -129,7 +129,7 @@ typedef struct {
 
 typedef struct {
     void *context;
-    bool (*initialize)(void *context, uint32_t location, uint32_t length, fd_boot_error_t *error);
+    bool (*erase)(void *context, uint32_t location, uint32_t length, uint32_t *next_location, fd_boot_error_t *error);
     bool (*write)(void *context, uint32_t location, const uint8_t *data, uint32_t length, fd_boot_error_t *error);
     bool (*finalize)(void *context, fd_boot_error_t *error);
 } fd_boot_flasher_interface_t;
@@ -172,29 +172,6 @@ typedef struct __attribute__((packed)) {
     uint32_t patch;
 } fd_boot_version_t;
 
-#define fd_boot_executable_metadata_header_magic 0xb001da1a
-#define fd_boot_executable_metadata_header_version 1
-#define fd_boot_executable_trailer_magic 0xb001e00d
-
-typedef struct __attribute__((packed)) {
-    fd_boot_version_t version;
-    uint32_t length;
-    fd_boot_hash_t hash;
-} fd_boot_executable_metadata_t;
-
-#define fd_boot_update_metadata_header_magic 0xab09da1e
-#define fd_boot_update_metadata_header_version 1
-#define fd_boot_update_trailer_magic 0xda1ee00d
-
-#define fd_boot_update_metadata_flag_encrypted 0x0001
-
-typedef struct __attribute__((packed)) {
-    fd_boot_executable_metadata_t executable_metadata;
-    fd_boot_hash_t hash;
-    uint32_t flags;
-    fd_boot_crypto_initialization_vector_t initialization_vector;
-} fd_boot_update_metadata_t;
-
 typedef struct {
     bool (*can_upgrade)(const fd_boot_version_t *executable_version, const fd_boot_version_t *update_version);
     bool (*can_downgrade)(const fd_boot_version_t *executable_version, const fd_boot_version_t *update_version);
@@ -218,6 +195,70 @@ typedef struct {
     fd_boot_action_interface_t action;
     fd_boot_executor_interface_t executor;
 } fd_boot_update_interface_t;
+
+#define fd_boot_executable_metadata_header_magic 0xb001da1a
+#define fd_boot_executable_metadata_header_version 1
+#define fd_boot_executable_trailer_magic 0xb001e00d
+
+typedef struct __attribute__((packed)) {
+    fd_boot_version_t version;
+    uint32_t length;
+    fd_boot_hash_t hash;
+} fd_boot_executable_metadata_t;
+
+typedef enum {
+    fd_boot_get_executable_metadata_issue_trailer_magic,
+    fd_boot_get_executable_metadata_issue_header_magic,
+    fd_boot_get_executable_metadata_issue_header_version,
+    fd_boot_get_executable_metadata_issue_length,
+    fd_boot_get_executable_metadata_issue_hash,
+} fd_boot_get_executable_metadata_issue_t;
+
+typedef struct {
+    bool is_valid;
+    fd_boot_get_executable_metadata_issue_t issue;
+    fd_boot_executable_metadata_t metadata;
+} fd_boot_get_executable_metadata_result_t;
+
+bool fd_boot_get_executable_metadata(
+    fd_boot_update_interface_t *interface,
+    fd_boot_get_executable_metadata_result_t *result,
+    fd_boot_error_t *error
+);
+
+#define fd_boot_update_metadata_header_magic 0xab09da1e
+#define fd_boot_update_metadata_header_version 1
+#define fd_boot_update_trailer_magic 0xda1ee00d
+
+#define fd_boot_update_metadata_flag_encrypted 0x0001
+
+typedef struct __attribute__((packed)) {
+    fd_boot_executable_metadata_t executable_metadata;
+    fd_boot_hash_t hash;
+    uint32_t flags;
+    fd_boot_crypto_initialization_vector_t initialization_vector;
+} fd_boot_update_metadata_t;
+
+typedef enum {
+    fd_boot_get_update_metadata_issue_trailer_magic,
+    fd_boot_get_update_metadata_issue_header_magic,
+    fd_boot_get_update_metadata_issue_header_version,
+    fd_boot_get_update_metadata_issue_length,
+    fd_boot_get_update_metadata_issue_hash,
+    fd_boot_get_update_metadata_issue_metadata,
+} fd_boot_get_update_metadata_issue_t;
+
+typedef struct {
+    bool is_valid;
+    fd_boot_get_update_metadata_issue_t issue;
+    fd_boot_update_metadata_t metadata;
+} fd_boot_get_update_metadata_result_t;
+
+bool fd_boot_get_update_metadata(
+    fd_boot_update_interface_t *interface,
+    fd_boot_get_update_metadata_result_t *result,
+    fd_boot_error_t *error
+);
 
 typedef enum {
     fd_boot_update_issue_firmware,

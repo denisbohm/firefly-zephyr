@@ -68,68 +68,79 @@ void fd_boot_usb_start(void) {
     fd_usb_initialize();
 }
 
-void fd_boot_try_update(void) {
-    fd_boot_update_interface_t interface = {
-        .info = {
-            .get_executable_storage = fd_boot_zephyr_get_executable_storage,
-            .get_executable = fd_boot_zephyr_get_executable,
-            .get_update_storage = fd_boot_zephyr_get_update_storage,
-            .get_decryption = fd_boot_zephyr_get_decryption,
-        },
-        .progress = {
-            .progress = fd_boot_zephyr_progress,
-        },
-        .watchdog = {
-            .feed = fd_boot_zephyr_feed,
-        },
-        .hash = {
-            .initialize = fd_boot_zephyr_hash_initialize,
-            .update = fd_boot_zephyr_hash_update,
-            .finalize = fd_boot_zephyr_hash_finalize,
-        },
-        .decrypt = {
-            .initialize = fd_boot_zephyr_decrypt_initialize,
-            .update = fd_boot_zephyr_decrypt_update,
-            .finalize = fd_boot_zephyr_decrypt_finalize,
-        },
-        .executable_reader = {
-            .context = 0,
-            .read = fd_boot_zephyr_executable_read,
-        },
-        .executable_flasher = {
-            .context = 0,
-            .initialize = fd_boot_nrf53_flasher_initialize,
-            .write = fd_boot_nrf53_flasher_write,
-            .finalize = fd_boot_nrf53_flasher_finalize,
-        },
-        .update_reader = {
-            .context = 0,
-            .read = fd_boot_zephyr_update_read,
-        },
-        .action = {
-            .can_upgrade = fd_boot_zephyr_can_upgrade,
-            .can_downgrade = fd_boot_zephyr_can_downgrade,
-            .can_install = fd_boot_zephyr_can_install,
-        },
-        .executor = {
-            .cleanup = fd_boot_zephyr_executor_cleanup,
-            .start = fd_boot_nrf53_executor_start,
-        },
-    };
+fd_boot_update_interface_t fd_boot_update_interface = {
+    .info = {
+        .get_executable_storage = fd_boot_zephyr_get_executable_storage,
+        .get_executable = fd_boot_zephyr_get_executable,
+        .get_update_storage = fd_boot_zephyr_get_update_storage,
+        .get_decryption = fd_boot_zephyr_get_decryption,
+    },
+    .progress = {
+        .progress = fd_boot_zephyr_progress,
+    },
+    .watchdog = {
+        .feed = fd_boot_zephyr_feed,
+    },
+    .hash = {
+        .initialize = fd_boot_zephyr_hash_initialize,
+        .update = fd_boot_zephyr_hash_update,
+        .finalize = fd_boot_zephyr_hash_finalize,
+    },
+    .decrypt = {
+        .initialize = fd_boot_zephyr_decrypt_initialize,
+        .update = fd_boot_zephyr_decrypt_update,
+        .finalize = fd_boot_zephyr_decrypt_finalize,
+    },
+    .executable_reader = {
+        .context = 0,
+        .read = fd_boot_zephyr_executable_read,
+    },
+    .executable_flasher = {
+        .context = 0,
+        .erase = fd_boot_nrf53_flasher_erase,
+        .write = fd_boot_nrf53_flasher_write,
+        .finalize = fd_boot_nrf53_flasher_finalize,
+    },
+    .update_reader = {
+        .context = 0,
+        .read = fd_boot_zephyr_update_read,
+    },
+    .action = {
+        .can_upgrade = fd_boot_zephyr_can_upgrade,
+        .can_downgrade = fd_boot_zephyr_can_downgrade,
+        .can_install = fd_boot_zephyr_can_install,
+    },
+    .executor = {
+        .cleanup = fd_boot_zephyr_executor_cleanup,
+        .start = fd_boot_nrf53_executor_start,
+    },
+};
 
+void fd_boot_try_execute(void) {
+    fd_boot_error_t error;
+    fd_boot_get_executable_metadata_result_t executable;
+    if (!fd_boot_get_executable_metadata(&fd_boot_update_interface, &executable, &error)) {
+        return;
+    }
+    if (!fd_boot_execute(&fd_boot_update_interface, &error)) {
+        // cant execute
+    }
+}
+
+void fd_boot_try_update(void) {
     fd_boot_error_t error;
     if (!fd_boot_zephyr_update_storage_open("NAND:/update.bin", &error)) {
-        // printf("error %d\n", error.code);
+        fd_boot_try_execute();
         return;
     }
 
     fd_boot_update_result_t result;
-    if (!fd_boot_update(&interface, &result, &error)) {
+    if (!fd_boot_update(&fd_boot_update_interface, &result, &error)) {
         // printf("error %d\n", error.code);
     } else {
         if (result.is_valid) {
             // printf("is valid\n");
-            if (!fd_boot_execute(&interface, &error)) {
+            if (!fd_boot_execute(&fd_boot_update_interface, &error)) {
                 // cant execute
             }
         } else {
@@ -141,7 +152,7 @@ void fd_boot_try_update(void) {
 int main(void) {
     fd_storage_fatfs_initialize();
     if (!fd_storage_fatfs_open()) {
-        // printf("error %d\n", error.code);
+        fd_boot_try_execute();
         return 1;
     }
     if (fd_storage_fatfs_mount()) {

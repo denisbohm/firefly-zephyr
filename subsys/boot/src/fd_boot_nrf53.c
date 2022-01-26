@@ -18,18 +18,12 @@ bool fd_boot_nrf53_flash_erase(uint32_t address, uint32_t size) {
     if ((address & (page_size - 1)) != 0) {
         return false;
     }
-    // round up length to next page multiple
-    size = (size + (page_size - 1)) & ~(page_size - 1);
 
-    NRF_NVMC->CONFIG = 4; // PEEN
-    uint32_t *erase_address = (uint32_t *)address;
-    uint32_t erase_size = size;
-    while (erase_size != 0) {
-        while (!NRF_NVMC->READY) {
-        }
-        *erase_address = 0xffffffff;
-        erase_address += page_size;
-        erase_size -= page_size;
+    NRF_NVMC->CONFIG = 2; // EEN
+    while (!NRF_NVMC->READY) {
+    }
+    *((uint32_t *)address) = 0xffffffff;
+    while (!NRF_NVMC->READY) {
     }
     NRF_NVMC->CONFIG = 0;
 
@@ -52,6 +46,8 @@ bool fd_boot_nrf53_flash_write(uint32_t address, const uint8_t *data, uint32_t s
         while (!NRF_NVMC->READY) {
         }
         *write_address++ = *write_data++;
+        while (!NRF_NVMC->READY) {
+        }
         write_size -= sizeof(uint32_t);
     }
     NRF_NVMC->CONFIG = 0;
@@ -59,11 +55,12 @@ bool fd_boot_nrf53_flash_write(uint32_t address, const uint8_t *data, uint32_t s
     return true;
 }
 
-bool fd_boot_nrf53_flasher_initialize(void *context, uint32_t location, uint32_t length, fd_boot_error_t *error) {
+bool fd_boot_nrf53_flasher_erase(void *context, uint32_t location, uint32_t length, uint32_t *next_location, fd_boot_error_t *error) {
     if (!fd_boot_nrf53_flash_erase(location, length)) {
         fd_boot_set_error(error, 1);
         return false;
     }
+    *next_location = location + page_size;
     return true;
 }
 

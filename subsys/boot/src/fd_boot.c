@@ -84,20 +84,6 @@ typedef struct {
     uint32_t magic;
 } fd_boot_executable_trailer_t;
 
-typedef enum {
-    fd_boot_get_executable_metadata_issue_trailer_magic,
-    fd_boot_get_executable_metadata_issue_header_magic,
-    fd_boot_get_executable_metadata_issue_header_version,
-    fd_boot_get_executable_metadata_issue_length,
-    fd_boot_get_executable_metadata_issue_hash,
-} fd_boot_get_executable_metadata_issue_t;
-
-typedef struct {
-    bool is_valid;
-    fd_boot_get_executable_metadata_issue_t issue;
-    fd_boot_executable_metadata_t metadata;
-} fd_boot_get_executable_metadata_result_t;
-
 bool fd_boot_get_executable_metadata(
     fd_boot_update_interface_t *interface,
     fd_boot_get_executable_metadata_result_t *result,
@@ -310,21 +296,6 @@ typedef struct {
 typedef struct {
     uint32_t magic;
 } fd_boot_update_trailer_t;
-
-typedef enum {
-    fd_boot_get_update_metadata_issue_trailer_magic,
-    fd_boot_get_update_metadata_issue_header_magic,
-    fd_boot_get_update_metadata_issue_header_version,
-    fd_boot_get_update_metadata_issue_length,
-    fd_boot_get_update_metadata_issue_hash,
-    fd_boot_get_update_metadata_issue_metadata,
-} fd_boot_get_update_metadata_issue_t;
-
-typedef struct {
-    bool is_valid;
-    fd_boot_get_update_metadata_issue_t issue;
-    fd_boot_update_metadata_t metadata;
-} fd_boot_get_update_metadata_result_t;
 
 bool fd_boot_get_update_metadata(
     fd_boot_update_interface_t *interface,
@@ -647,14 +618,6 @@ bool fd_boot_install(
     if (!interface->info.get_executable(&info_executable, error)) {
         return false;
     }
-    if (!interface->executable_flasher.initialize(
-        interface->executable_flasher.context,
-        info_executable.location,
-        metadata->executable_metadata.length,
-        error
-    )) {
-        return false;
-    }
 
     uint32_t executable_length = metadata->executable_metadata.length;
     uint32_t block_count = executable_length / FD_BOOT_HASH_BLOCK_SIZE;
@@ -665,6 +628,7 @@ bool fd_boot_install(
     interface->progress.progress((float)block_index / (float)block_count);
 
     uint32_t flash_location = info_executable.location;
+    uint32_t next_erase_location = flash_location;
 
     fd_boot_info_update_storage_t info_update_storage;
     if (!interface->info.get_update_storage(&info_update_storage, error)) {
@@ -692,6 +656,17 @@ bool fd_boot_install(
         uint8_t out[FD_BOOT_DECRYPT_BLOCK_SIZE];
         if (!interface->decrypt.update(&decrypt_context, data, out, length, error)) {
             return false;
+        }
+        if (next_erase_location == flash_location) {
+            if (!interface->executable_flasher.erase(
+                interface->executable_flasher.context,
+                flash_location,
+                metadata->executable_metadata.length,
+                &next_erase_location,
+                error
+            )) {
+                return false;
+            }
         }
         if (!interface->executable_flasher.write(
             interface->executable_flasher.context,
