@@ -26,7 +26,27 @@ void fd_storage_fatfs_initialize(void) {
     memset(&fd_storage_fatfs, 0, sizeof(fd_storage_fatfs));
 }
 
+#ifdef fd_storage_fatfs_32bit_mode
+static void fd_storage_fatfs_qspi_instruction(uint8_t opcode) {
+    nrf_qspi_cinstr_conf_t cinstr_cfg = {
+        .opcode = opcode,
+        .length = NRF_QSPI_CINSTR_LEN_1B,
+        .io2_level = false,
+        .io3_level = false,
+        .wipwait = true,
+        .wren = true,
+    };
+    int err = nrfx_qspi_cinstr_xfer(&cinstr_cfg, NULL, NULL);
+    fd_assert(err == NRFX_SUCCESS);
+}
+#endif
+
 bool fd_storage_fatfs_open(void) {
+#ifdef fd_storage_fatfs_32bit_mode
+    // This should really be in the qspi driver, but there isn't any way to do that currently... -denis
+    fd_storage_fatfs_qspi_instruction(0xB7); // ENTER 4-BYTE ADDRESS MODE
+#endif
+
     fd_storage_fatfs.fs_mount.storage_dev = (void *)FLASH_AREA_ID(storage);
     unsigned int id = (uintptr_t)fd_storage_fatfs.fs_mount.storage_dev;
     const struct flash_area *flash_area;

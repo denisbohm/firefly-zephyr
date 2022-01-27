@@ -261,6 +261,18 @@ bool fd_boot_get_update_metadata(
 );
 
 typedef enum {
+    fd_boot_update_action_none, // no existing executable
+    fd_boot_update_action_run,
+    fd_boot_update_action_install,
+} fd_boot_update_action_t;
+
+fd_boot_update_action_t fd_boot_get_action(
+    fd_boot_action_interface_t *interface,
+    fd_boot_get_executable_metadata_result_t *executable,
+    fd_boot_get_update_metadata_result_t *update
+);
+
+typedef enum {
     fd_boot_update_issue_firmware,
     fd_boot_update_issue_update,
 } fd_boot_update_issue_t;

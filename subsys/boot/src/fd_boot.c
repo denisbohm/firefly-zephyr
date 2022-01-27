@@ -551,12 +551,6 @@ bool fd_boot_version_is_lt(const fd_boot_version_t *a, const fd_boot_version_t *
     return a->patch < b->patch;
 }
 
-typedef enum {
-    fd_boot_update_action_none, // no existing executable
-    fd_boot_update_action_run,
-    fd_boot_update_action_install,
-} fd_boot_update_action_t;
-
 fd_boot_update_action_t fd_boot_get_action(
     fd_boot_action_interface_t *interface,
     fd_boot_get_executable_metadata_result_t *executable,
