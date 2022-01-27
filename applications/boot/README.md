@@ -13,6 +13,6 @@ Note that CMakeLists.txt is including some of the subsys sources directly.  This
 
 1. Comment out the two target_sources subsys lines in CMakeLists.txt.
 
-1. Uncomment the two prj.conf lines CONFIG_FIREFLY_SUBSYS_BOOT_ZEPHYR and CONFIG_FIREFLY_SUBSYS_USB_MSC.
+1. Uncomment the two prj.conf lines CONFIG_FIREFLY_SUBSYS_BOOT_ZEPHYR and CONFIG_FIREFLY_SUBSYS_STORAGE_FATFS.
 
 1. A west build will fail compiling those same two target sources.

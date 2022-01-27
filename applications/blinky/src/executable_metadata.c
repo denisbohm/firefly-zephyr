@@ -11,7 +11,6 @@ typedef struct {
     uint8_t reserved[20];
 } executable_metadata_t;
 
-//__attribute__((aligned(64)))
 __attribute__((section(".executable_metadata_section")))
 executable_metadata_t executable_metadata = {
     .magic = 0xb001da1a,
