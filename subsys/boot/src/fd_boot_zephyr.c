@@ -184,7 +184,23 @@ bool fd_boot_zephyr_executable_read(void *context, uint32_t location, uint8_t *d
     return true;
 }
 
+extern void sys_clock_disable(void);
+
 bool fd_boot_zephyr_executor_cleanup(fd_boot_error_t *error) {
-    irq_lock();
+    sys_clock_disable();
+
+    /* Allow any pending interrupts to be recognized */
+    __ISB();
+    __disable_irq();
+
+    /* Disable NVIC interrupts */
+    for (uint32_t i = 0; i < ARRAY_SIZE(NVIC->ICER); i++) {
+        NVIC->ICER[i] = 0xFFFFFFFF;
+    }
+    /* Clear pending NVIC interrupts */
+    for (uint32_t i = 0; i < ARRAY_SIZE(NVIC->ICPR); i++) {
+        NVIC->ICPR[i] = 0xFFFFFFFF;
+    }
+
     return true;
 }

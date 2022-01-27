@@ -84,6 +84,9 @@ bool fd_boot_nrf53_executor_start(uint32_t address, fd_boot_error_t *error) {
     __asm volatile(
         "   msr msp, %[sp]\n"
         "   msr psp, %[sp]\n"
+        "   mov r0, #0\n"
+        "   msr control, r0\n"
+        "   isb\n"
         "   mov pc, %[pc]\n"
         :
         : [sp] "r" (sp), [pc] "r" (pc)
