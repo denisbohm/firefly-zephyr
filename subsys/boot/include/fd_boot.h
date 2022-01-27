@@ -272,6 +272,12 @@ fd_boot_update_action_t fd_boot_get_action(
     fd_boot_get_update_metadata_result_t *update
 );
 
+bool fd_boot_install(
+    fd_boot_update_interface_t *interface,
+    fd_boot_update_metadata_t *metadata,
+    fd_boot_error_t *error
+);
+
 typedef enum {
     fd_boot_update_issue_firmware,
     fd_boot_update_issue_update,
