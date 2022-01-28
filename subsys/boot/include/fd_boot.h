@@ -96,6 +96,24 @@ typedef struct {
     bool (*finalize)(fd_boot_hash_context_t *context, fd_boot_hash_t *hash, fd_boot_error_t *error);
 } fd_boot_hash_interface_t;
 
+bool fd_boot_hash_initialize(
+    fd_boot_hash_context_t *context,
+    fd_boot_error_t *error
+);
+
+bool fd_boot_hash_update(
+    fd_boot_hash_context_t *context,
+    const uint8_t *data,
+    uint32_t length,
+    fd_boot_error_t *error
+);
+
+bool fd_boot_hash_finalize(
+    fd_boot_hash_context_t *context,
+    fd_boot_hash_t *hash,
+    fd_boot_error_t *error
+);
+
 #define FD_BOOT_CRYPTO_KEY_SIZE 16
 
 typedef struct {
@@ -121,6 +139,26 @@ typedef struct {
     bool (*update)(fd_boot_decrypt_context_t *decrypt, const uint8_t *in, uint8_t *out, uint32_t length, fd_boot_error_t *error);
     bool (*finalize)(fd_boot_decrypt_context_t *decrypt, fd_boot_error_t *error);
 } fd_boot_decrypt_interface_t;
+
+bool fd_boot_decrypt_initialize(
+    fd_boot_decrypt_context_t *decrypt,
+    const fd_boot_crypto_key_t *key,
+    const fd_boot_crypto_initialization_vector_t *initialization_vector,
+    fd_boot_error_t *error
+);
+
+bool fd_boot_decrypt_update(
+    fd_boot_decrypt_context_t *decrypt,
+    const uint8_t *in,
+    uint8_t *out,
+    uint32_t length,
+    fd_boot_error_t *error
+);
+
+bool fd_boot_decrypt_finalize(
+    fd_boot_decrypt_context_t *decrypt,
+    fd_boot_error_t *error
+);
 
 typedef struct {
     void *context;

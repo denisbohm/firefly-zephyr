@@ -1,0 +1,7 @@
+set(OVERLAY_CONFIG Kconfig)
+
+zephyr_include_directories(include)
+
+zephyr_sources_ifdef(CONFIG_FIREFLY_SUBSYS_CRYPTO_AES src/fd_crypto_aes.c)
+zephyr_sources_ifdef(CONFIG_FIREFLY_SUBSYS_CRYPTO_SHA src/fd_crypto_sha.c)
+zephyr_sources_ifdef(CONFIG_FIREFLY_SUBSYS_CRYPTO_SHA src/sha1.c)

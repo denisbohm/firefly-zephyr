@@ -73,7 +73,7 @@ bool fd_boot_zephyr_update_read(
     }
     return true;
 }
- 
+
 typedef struct {
     const mbedtls_md_info_t *md_info;
     mbedtls_md_context_t ctx;

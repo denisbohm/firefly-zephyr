@@ -1,0 +1,16 @@
+menuconfig FIREFLY_SUBSYS_CRYPTO
+	bool "crypo"
+
+if FIREFLY_SUBSYS_CRYPTO
+
+config FIREFLY_SUBSYS_CRYPTO_AES
+        bool "Enable AES 128 CBC"
+	help
+	  Build AES 128 CBC
+
+config FIREFLY_SUBSYS_CRYPTO_SHA
+        bool "Enable SHA-1"
+	help
+	  Build SHA-1
+
+endif

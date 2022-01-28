@@ -2,6 +2,7 @@ menu "subsys"
 
 rsource "base/Kconfig"
 rsource "boot/Kconfig"
+rsource "crypto/Kconfig"
 rsource "graphics/Kconfig"
 rsource "storage/Kconfig"
 rsource "usb/Kconfig"

@@ -1,6 +1,95 @@
 #include "fd_boot.h"
 
+#include "fd_crypto_aes.h"
+#include "fd_crypto_sha.h"
+
 #include <string.h>
+
+typedef struct {
+    uint8_t context[fd_crypto_sha_context_size];
+} fd_boot_hash_sha1_t;
+
+fd_boot_hash_sha1_t fd_boot_hash_sha1;
+
+bool fd_boot_hash_initialize(
+    fd_boot_hash_context_t *context,
+    fd_boot_error_t *error
+) {
+    if (!fd_crypto_sha_initialize(fd_boot_hash_sha1.context)) {
+        fd_boot_set_error(error, 1);
+        return false;
+    }
+    return true;
+}
+ 
+bool fd_boot_hash_update(
+    fd_boot_hash_context_t *context,
+    const uint8_t *data,
+    uint32_t length,
+    fd_boot_error_t *error
+) {
+    if (!fd_crypto_sha_update(fd_boot_hash_sha1.context, data, length)) {
+        fd_boot_set_error(error, 1);
+        return false;
+    }
+    return true;
+}
+
+bool fd_boot_hash_finalize(
+    fd_boot_hash_context_t *context,
+    fd_boot_hash_t *hash,
+    fd_boot_error_t *error
+) {
+    if (!fd_crypto_sha_finalize(fd_boot_hash_sha1.context, hash->data)) {
+        fd_boot_set_error(error, 1);
+        return false;
+    }
+    return true;
+}
+
+typedef struct {
+    uint8_t context[fd_crypto_aes_context_size];
+} fd_boot_decrypt_aes_t;
+
+fd_boot_decrypt_aes_t fd_boot_decrypt_aes;
+
+bool fd_boot_decrypt_initialize(
+    fd_boot_decrypt_context_t *decrypt,
+    const fd_boot_crypto_key_t *key,
+    const fd_boot_crypto_initialization_vector_t *initialization_vector,
+    fd_boot_error_t *error
+) {
+    if (!fd_crypto_aes_decrypt_initialize(fd_boot_decrypt_aes.context, key->data, initialization_vector->data)) {
+        fd_boot_set_error(error, 1);
+        return false;
+    }
+    return true;
+}
+
+bool fd_boot_decrypt_update(
+    fd_boot_decrypt_context_t *decrypt,
+    const uint8_t *in,
+    uint8_t *out,
+    uint32_t length,
+    fd_boot_error_t *error
+) {
+    if (!fd_crypto_aes_decrypt_update(fd_boot_decrypt_aes.context, in, out, length)) {
+        fd_boot_set_error(error, 1);
+        return false;
+    }
+    return true;
+}
+
+bool fd_boot_decrypt_finalize(
+    fd_boot_decrypt_context_t *decrypt,
+    fd_boot_error_t *error
+) {
+    if (!fd_crypto_aes_decrypt_finalize(fd_boot_decrypt_aes.context)) {
+        fd_boot_set_error(error, 1);
+        return false;
+    }
+    return true;
+}
 
 void fd_boot_set_error(fd_boot_error_t *error, uint32_t code) {
     error->code = code;
