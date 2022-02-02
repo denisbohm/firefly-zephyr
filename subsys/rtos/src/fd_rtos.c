@@ -77,7 +77,7 @@ void fd_rtos_sleep_task(void) {
     while (true) {
         uint32_t state = fd_rtos.platform->interrupt_disable();
         if (!fd_rtos_is_any_task_runnable()) {
-            platform->sleep();
+            fd_rtos.platform->sleep();
         }
         fd_rtos.platform->interrupt_enable(state);
         fd_rtos_yield();
@@ -88,8 +88,6 @@ void fd_rtos_initialize(fd_rtos_platform_t *platform) {
     memset(&fd_rtos, 0, sizeof(fd_rtos));
     fd_rtos.platform = platform;
     fd_rtos.task_start = true;
-
-    NVIC_SetPriority(PendSV_IRQn, 2);
 
     fd_rtos_add_task(fd_rtos_sleep_task, fd_rtos.sleep_stack, sizeof(fd_rtos.sleep_stack), 0);
 }
@@ -109,7 +107,7 @@ void fd_rtos_task_fallthrough(void) {
 }
 
 void fd_rtos_add_task(fd_rtos_entry_point_t entry_point, void *stack, size_t stack_size, uint32_t priority) {
-    if (fd_rtos.task_count >= fd_rtos_task_size) {
+    if (fd_rtos.task_count >= fd_rtos_task_limit) {
         return;
     }
     memset(stack, 0, stack_size);
@@ -191,8 +189,16 @@ void fd_rtos_run(void) {
 }
 
 void fd_rtos_yield(void) {
-    // invoke scheduler exception handler
-    SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
+    // invoke PendSV interrupt handler, which calls the scheduler
+    // SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
+    __asm(
+        "movw r1, #0xED04\n"
+        "movt r1, #0xE000\n"
+        "ldr r0, [r1]\n"
+        "orr r0, r0, 0x10000000\n"
+        "str r0, [r1]\n"
+        "isb\n"
+    );
 }
 
 void fd_rtos_delay_callback(void *context) {
@@ -202,7 +208,7 @@ void fd_rtos_delay_callback(void *context) {
 
 void fd_rtos_delay(float duration) {
     uint32_t state = fd_rtos.platform->interrupt_disable();
-    fd_rtos_task_t *task = &fd_rtos.tasks[fd_rtos.delay_task_index];
+    fd_rtos_task_t *task = &fd_rtos.tasks[fd_rtos.task_index];
     task->runnable = false;
     fd_rtos.platform->interrupt_enable(state);
     fd_rtos.platform->schedule_callback(fd_rtos_delay_callback, task, duration);
