@@ -585,7 +585,7 @@ bool fd_crypto_aes_decrypt_initialize(void *context __attribute__((unused)), con
     return true;
 }
 
-bool fd_crypto_aes_decrypt_blocks(void *context __attribute__((unused)), const uint8_t *in, uint8_t *out, uint32_t length) {
+bool fd_crypto_aes_decrypt_update(void *context __attribute__((unused)), const uint8_t *in, uint8_t *out, uint32_t length) {
     AES128_CBC_decrypt_buffer(out, (uint8_t *)in, length, 0, 0);
     return true;
 }
