@@ -200,9 +200,13 @@ typedef struct {
      void (*feed)(void);
 } fd_boot_watchdog_interface_t;
 
+void fd_boot_watchdog_feed(void);
+
 typedef struct {
     void (*progress)(float amount);
-} fd_boot_progress_interface_t;
+} fd_boot_status_interface_t;
+
+void fd_boot_status_progress(float amount);
 
 typedef struct __attribute__((packed)) {
     uint32_t major;
@@ -216,6 +220,18 @@ typedef struct {
     bool (*can_install)(const fd_boot_version_t *version);
 } fd_boot_action_interface_t;
 
+bool fd_boot_action_can_upgrade(
+    const fd_boot_version_t *executable_version,
+    const fd_boot_version_t *update_version
+);
+
+bool fd_boot_action_can_downgrade(
+    const fd_boot_version_t *executable_version,
+    const fd_boot_version_t *update_version
+);
+
+bool fd_boot_action_can_install(const fd_boot_version_t *version);
+
 typedef struct {
     bool (*cleanup)(fd_boot_error_t *error);
     bool (*start)(uint32_t address, fd_boot_error_t *error);
@@ -223,7 +239,7 @@ typedef struct {
 
 typedef struct {
     fd_boot_info_interface_t info;
-    fd_boot_progress_interface_t progress;
+    fd_boot_status_interface_t status;
     fd_boot_watchdog_interface_t watchdog;
     fd_boot_hash_interface_t hash;
     fd_boot_decrypt_interface_t decrypt;
@@ -233,6 +249,8 @@ typedef struct {
     fd_boot_action_interface_t action;
     fd_boot_executor_interface_t executor;
 } fd_boot_update_interface_t;
+
+bool fd_boot_set_update_interface_defaults(fd_boot_update_interface_t *interface, fd_boot_error_t *error);
 
 #define fd_boot_executable_metadata_header_magic 0xb001da1a
 #define fd_boot_executable_metadata_header_version 1

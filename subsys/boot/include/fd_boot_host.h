@@ -17,7 +17,7 @@ typedef struct {
     fd_boot_update_interface_t update_interface;
 } fd_boot_host_configuration_t;
 
-void fd_boot_host_set_configuration_defaults(fd_boot_host_configuration_t *configuration);
+bool fd_boot_host_set_configuration_defaults(fd_boot_host_configuration_t *configuration, fd_boot_error_t *error);
 
 bool fd_boot_host_start(fd_boot_host_configuration_t *configuration, fd_boot_error_t *error);
 
@@ -34,6 +34,7 @@ typedef enum {
     // These operations are used by the boot loader to "rpc" into the host.
     fd_boot_host_operation_get_update_storage = 5,
     fd_boot_host_operation_update_read = 6,
+    fd_boot_host_operation_status_progress = 7,
 } fd_boot_host_operation_t;
 
 #endif

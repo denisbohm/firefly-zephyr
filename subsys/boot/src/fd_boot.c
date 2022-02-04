@@ -91,6 +91,92 @@ bool fd_boot_decrypt_finalize(
     return true;
 }
 
+bool fd_boot_executable_reader_read(
+    void *context,
+    uint32_t location,
+    uint8_t *data,
+    uint32_t length,
+    fd_boot_error_t *error
+) {
+    memcpy(data, (void *)location, length);
+    return true;
+}
+
+bool fd_boot_update_reader_read(
+    void *context,
+    uint32_t location,
+    uint8_t *data,
+    uint32_t length,
+    fd_boot_error_t *error
+) {
+    memcpy(data, (void *)location, length);
+    return true;
+}
+
+void fd_boot_status_progress(float amount) {
+}
+
+void fd_boot_watchdog_feed(void) {
+}
+
+bool fd_boot_action_can_upgrade(
+    const fd_boot_version_t *executable_version,
+    const fd_boot_version_t *update_version
+) {
+    return true;
+}
+
+bool fd_boot_action_can_downgrade(
+    const fd_boot_version_t *executable_version,
+    const fd_boot_version_t *update_version
+) {
+    return false;
+}
+
+bool fd_boot_action_can_install(const fd_boot_version_t *version) {
+    return true;
+}
+
+bool fd_boot_set_update_interface_defaults(fd_boot_update_interface_t *interface, fd_boot_error_t *error) {
+    if (interface->status->progress == 0) {
+        interface->status->progress = fd_boot_status_progress;
+    }
+
+    if (interface->watchdog->feed == 0) {
+        interface->watchdog->feed = fd_boot_watchdog_feed;
+    }
+
+    if (interface->hash->update == 0) {
+        interface->hash->initialize = fd_boot_hash_initialize;
+        interface->hash->update = fd_boot_hash_update;
+        interface->hash->finalize = fd_boot_hash_finalize;
+    }
+
+    if (interface->decrypt->update == 0) {
+        interface->decrypt->initialize = fd_boot_decrypt_initialize;
+        interface->decrypt->update = fd_boot_decrypt_update;
+        interface->decrypt->finalize = fd_boot_decrypt_finalize;
+    }
+
+    if (interface->action->can_upgrade == 0) {
+        interface->action->can_upgrade = fd_boot_action_can_upgrade;
+    }
+    if (interface->action->can_downgrade == 0) {
+        interface->action->can_downgrade = fd_boot_action_can_downgrade;
+    }
+    if (interface->action->can_install == 0) {
+        interface->action->can_install = fd_boot_action_can_install;
+    }
+
+    if (interface->executable_reader->read == 0) {
+        interface->executable_reader->read = fd_boot_executable_reader_read;
+    }
+
+    if (interface->update_reader->read == 0) {
+        interface->update_reader->read = fd_boot_update_reader_read;
+    }
+}
+
 void fd_boot_set_error(fd_boot_error_t *error, uint32_t code) {
     error->code = code;
 }

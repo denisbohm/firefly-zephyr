@@ -75,13 +75,13 @@ bool fd_boot_host_io(void) {
     return fd_dispatch_process(&message, &envelope);
 }
 
-bool fd_boot_host_tx(fd_binary_t *message) {
+bool fd_boot_host_tx(fd_binary_t *message, int type) {
     fd_envelope_t envelope = {
         .target = fd_boot_host.configuration.target,
         .source = fd_boot_host.configuration.source,
         .system = fd_boot_host.configuration.system,
         .subsystem = fd_boot_host.configuration.subsystem,
-        .type = fd_envelope_type_request,
+        .type = type,
     };
     if (!fd_envelope_encode(message, &envelope)) {
         return false;
@@ -90,8 +90,17 @@ bool fd_boot_host_tx(fd_binary_t *message) {
     if (message->errors) {
         return false;
     }
-    wt_uart_tx(message->buffer, message->put_index);
+    fd_boot_host.configuration.transmit(message->buffer, message->put_index);
     return true;
+}
+
+void fd_boot_host_status_progress(float amount) {
+    uint8_t buffer[32];
+    fd_binary_t message;
+    fd_binary_initialize(&message, buffer, sizeof(buffer));
+    fd_binary_put_uint16(&message, fd_boot_host_operation_status_progress);
+    fd_binary_put_float32(&message, amount);
+    fd_boot_host_tx(&message, fd_envelope_type_event);
 }
 
 bool fd_boot_host_get_update_storage_request(void) {
@@ -99,7 +108,7 @@ bool fd_boot_host_get_update_storage_request(void) {
     fd_binary_t message;
     fd_binary_initialize(&message, buffer, sizeof(buffer));
     fd_binary_put_uint16(&message, fd_boot_host_operation_get_update_storage);
-    return fd_boot_host_tx(&message);
+    return fd_boot_host_tx(&message, fd_envelope_type_request);
 }
 
 bool fd_boot_host_get_update_storage(fd_boot_info_update_storage_t *storage, fd_boot_error_t *error fd_unused) {
@@ -141,7 +150,7 @@ bool fd_boot_host_update_read_request(uint32_t location, uint32_t length) {
     fd_binary_put_uint16(&message, fd_boot_host_operation_update_read);
     fd_binary_put_uint32(&message, location);
     fd_binary_put_uint16(&message, (uint16_t)length);
-    return fd_boot_host_tx(&message);
+    return fd_boot_host_tx(&message, fd_envelope_type_request);
 }
 
 bool fd_boot_host_update_read(
@@ -218,7 +227,7 @@ bool fd_boot_host_dispatch_respond(fd_binary_t *message, fd_envelope_t *envelope
     if (message->errors) {
         return false;
     }
-    wt_uart_tx(message->buffer, message->put_index);
+    fd_boot_host.configuration.transmit(message->buffer, message->put_index);
     return true;
 }
 
@@ -418,29 +427,37 @@ bool fd_boot_host_dispatch_process(fd_binary_t *message, fd_envelope_t *envelope
     return false;
 }
 
-void fd_boot_host_set_configuration_defaults(fd_boot_host_configuration_t *configuration) {
-    *configuration = (fd_boot_host_configuration_t) {
-        .target = 1,
-        .source = 0,
-        .system = 0,
-        .subsystem = 0,
+bool fd_boot_host_set_configuration_defaults(fd_boot_host_configuration_t *configuration, fd_boot_error_t *error) {
+    if (
+        (configuration->target == 0) &&
+        (configuration->source == 0) &&
+        (configuration->system == 0) &&
+        (configuration->subsystem == 0)
+    ) {
+        configuration->target = 1;
+        configuration->source = 0;
+        configuration->system = 0;
+        configuration->subsystem = 0;
+    }
 
-        .identifier = 0x626f6f74, /* boot */
-        .version = {
-            .major = 1,
-            .minor = 0,
-            .patch = 0,
-        },
+    if (configuration->identifier == 0) {
+        configuration->identifier = 0x626f6f74; /* boot */
+    }
+    if (
+        (configuration->version.major == 0) &&
+        (configuration->version.minor == 0) &&
+        (configuration->version.patch == 0)
+    ) {
+        configuration->version.major = 1;
+        configuration->version.minor = 0;
+        configuration->version.patch = 0;
+    }
+    
+    configuration->update_interface.info.get_update_storage = fd_boot_host_get_update_storage;
+    configuration->update_interface.status.progress = fd_boot_host_status_progress;
+    configuration->update_interface.update_reader.read = fd_boot_host_update_read;
 
-        .update_interface = {
-            .info = {
-                .get_update_storage = fd_boot_host_get_update_storage,
-            },
-            .update_reader = {
-                .read = fd_boot_host_update_read,
-            },
-        },
-    };
+    return fd_boot_set_update_interface_defaults(&configuration->update_interface, error);
 }
 
 bool fd_boot_host_start(fd_boot_host_configuration_t *configuration, fd_boot_error_t *error) {
