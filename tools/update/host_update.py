@@ -36,6 +36,7 @@ class Host:
     operation_execute = 4
     operation_get_update_storage = 5
     operation_update_read = 6
+    operation_status_progress = 7
 
     class GetIdentity:
 
@@ -262,6 +263,13 @@ class Host:
             operation, location, length = struct.unpack("<HLH", data)
             return operation, location, length
 
+    class StatusProgress:
+
+        @staticmethod
+        def decode(data):
+            operation, amount = struct.unpack("<Hf", data)
+            return operation, amount
+
     def __init__(self, target, source, system, subsystem):
         self.system = system
         self.subsystem = subsystem
@@ -312,6 +320,15 @@ class Host:
         elif operation == Host.operation_update_read:
             self.process_update_read_request(message, envelope)
 
+    def process_status_progress_event(self, message, envelope):
+        operation, amount = Host.StatusProgress.decode(message)
+        print(f"progress {amount * 100.0:0.1f}%")
+
+    def process_event(self, message, envelope):
+        operation = struct.unpack("<H", message[0:2])[0]
+        if operation == Host.operation_status_progress:
+            self.process_status_progress_event(message, envelope)
+
     def rx(self):
         start = time.time()
         while True:
@@ -324,6 +341,8 @@ class Host:
             message, envelope = response
             if envelope.type is Envelope.type_request:
                 self.process_request(message, envelope)
+            elif envelope.type is Envelope.type_event:
+                self.process_event(message, envelope)
             elif envelope.type is Envelope.type_response:
                 return response
 
