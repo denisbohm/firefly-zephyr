@@ -3,17 +3,22 @@ menuconfig FIREFLY_SUBSYS_BOOT
 
 if FIREFLY_SUBSYS_BOOT
 
+config FIREFLY_SUBSYS_BOOT_HOST
+        bool "Build host interface"
+	help
+	  Build host storage with serial interface.
+
 config FIREFLY_SUBSYS_BOOT_ZEPHYR
-        bool "Enable Zephyr MBEDTLS SHA-1 and AES 128 CBC"
+        bool "Build Zephyr MBEDTLS"
         select MBEDTLS
         select MBEDTLS_MAC_SHA1_ENABLED
         select MBEDTLS_CIPHER_AES_ENABLED
 	help
-	  Build Zephyr MBEDTLS boot functions.
+	  Build Zephyr MBEDTLS boot functions for SHA-1 and AES 128 CBC.
 
 config FIREFLY_SUBSYS_BOOT_NRF53
-        bool "Enable nRF53 flashing"
+        bool "Build nRF53"
 	help
-	  Build nRF53 boot functions.
+	  Build nRF53 boot flasher functions.
 
 endif
