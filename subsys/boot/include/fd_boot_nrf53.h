@@ -9,6 +9,8 @@ bool fd_boot_nrf53_flasher_write(void *context, uint32_t location, const uint8_t
 
 bool fd_boot_nrf53_flasher_finalize(void *context, fd_boot_error_t *error);
 
+bool fd_boot_nrf53_executor_cleanup(fd_boot_error_t *error);
+
 bool fd_boot_nrf53_executor_start(uint32_t address, fd_boot_error_t *error);
 
 #endif

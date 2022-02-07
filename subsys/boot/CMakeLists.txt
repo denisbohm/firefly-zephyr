@@ -3,6 +3,7 @@ set(OVERLAY_CONFIG Kconfig)
 zephyr_include_directories(include)
 
 zephyr_sources_ifdef(CONFIG_FIREFLY_SUBSYS_BOOT src/fd_boot.c)
-zephyr_sources_ifdef(CONFIG_FIREFLY_SUBSYS_BOOT_HOST src/fd_boot_host.c)
 zephyr_sources_ifdef(CONFIG_FIREFLY_SUBSYS_BOOT_NRF53 src/fd_boot_nrf53.c)
+zephyr_sources_ifdef(CONFIG_FIREFLY_SUBSYS_BOOT_SPLIT_CONTROLLER src/fd_boot_split_controller.c)
+zephyr_sources_ifdef(CONFIG_FIREFLY_SUBSYS_BOOT_SPLIT_PERIPHERAL src/fd_boot_split_peripheral.c)
 zephyr_sources_ifdef(CONFIG_FIREFLY_SUBSYS_BOOT_ZEPHYR src/fd_boot_zephyr.c)

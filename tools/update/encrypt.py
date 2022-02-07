@@ -137,6 +137,45 @@ class Update:
         return data
 
     @staticmethod
+    def write_c_code(name, data, comment):
+        h_name = f"{name}.h"
+        print(f"writing update C include to {h_name}")
+        with open(h_name, 'w') as file:
+            guard = f"{os.path.basename(name)}_h"
+            file.write(f"#ifndef {guard}\n")
+            file.write(f"#define {guard}\n")
+            file.write("\n")
+            file.write("#include <stdint.h>\n")
+            file.write("\n")
+            file.write(f"extern const uint8_t {name}_data[];\n")
+            file.write(f"extern const uint32_t {name}_length;\n")
+            file.write("\n")
+            file.write("#endif\n")
+
+        c_name = f"{name}.c"
+        print(f"writing update C source to {c_name}")
+        with open(c_name, 'w') as file:
+            file.write(f'#include "{h_name}"\n')
+            file.write('\n')
+
+            file.write(f'// AUTO GENERATED\n')
+            file.write('\n')
+            file.write(f'// {comment}\n')
+            file.write('\n')
+
+            file.write(f'const uint32_t {name}_length = {len(data)};\n')
+            file.write('\n')
+            file.write(f'const uint8_t {name}_data[] = {{\n')
+            column = 0
+            for b in data:
+                file.write(' 0x{0:02X},'.format(b))
+                column = column + 1
+                if column >= 8:
+                    file.write('\n')
+                    column = 0
+            file.write('};\n')
+
+    @staticmethod
     def package(args):
         addendum = bytes()
 
@@ -174,9 +213,12 @@ class Update:
 
         base = os.path.splitext(args.input)[0]
         output = args.output.format(base=base, major=major, minor=minor, patch=patch)
-        print(f"writing update to {output}")
+        print(f"writing update binary to {output}")
         with open(output, "wb") as f:
             f.write(update)
+
+        root, extension = os.path.splitext(output)
+        Update.write_c_code(root, update, f"firmware update binary for version: {major}.{minor}.{patch}")
 
     @staticmethod
     def main(argv):

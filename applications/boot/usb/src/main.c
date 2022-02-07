@@ -75,7 +75,7 @@ fd_boot_update_interface_t fd_boot_update_interface = {
         .get_update_storage = fd_boot_zephyr_get_update_storage,
         .get_decryption = fd_boot_zephyr_get_decryption,
     },
-    .progress = {
+    .status = {
         .progress = fd_boot_zephyr_progress,
     },
     .watchdog = {

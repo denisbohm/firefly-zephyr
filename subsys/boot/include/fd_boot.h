@@ -62,19 +62,12 @@ P bytes of padding so that the update length is a multiple of 64 bytes
   uint32_t magic
 */
 
+#include "fd_boot_error.h"
+#include "fd_boot_range.h"
+#include "fd_boot_version.h"
+
 #include <stdbool.h>
 #include <stdint.h>
-
-typedef struct {
-    uint32_t code;
-} fd_boot_error_t;
-
-void fd_boot_set_error(fd_boot_error_t *error, uint32_t code);
-
-typedef struct {
-    uint32_t location;
-    uint32_t length;
-} fd_boot_range_t;
 
 #define FD_BOOT_HASH_DATA_SIZE 20
 
@@ -207,12 +200,6 @@ typedef struct {
 } fd_boot_status_interface_t;
 
 void fd_boot_status_progress(float amount);
-
-typedef struct __attribute__((packed)) {
-    uint32_t major;
-    uint32_t minor;
-    uint32_t patch;
-} fd_boot_version_t;
 
 typedef struct {
     bool (*can_upgrade)(const fd_boot_version_t *executable_version, const fd_boot_version_t *update_version);

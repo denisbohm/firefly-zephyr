@@ -2,6 +2,7 @@
 
 from firefly.transport.envelope import Envelope
 from firefly.transport.gateway import Gateway
+from firefly.transport.gateway import GatewayException
 
 import struct
 import time
@@ -18,16 +19,16 @@ class Version:
 
 class Identity:
 
-    def __init__(self, identifier, version):
-        self.identifier = identifier
+    def __init__(self, version, identifier):
         self.version = version
+        self.identifier = identifier
 
 
-class HostException(Exception):
+class ControllerException(Exception):
     pass
 
 
-class Host:
+class Controller:
 
     operation_get_identity = 0
     operation_get_executable_metadata = 1
@@ -42,18 +43,19 @@ class Host:
 
         @staticmethod
         def encode():
-            return struct.pack("<H", Host.operation_get_identity)
+            return struct.pack("<H", Controller.operation_get_identity)
 
         @staticmethod
         def decode(data):
-            operation, identifier, major, minor, patch = struct.unpack("<HIIII", data[0:18])
-            if operation != Host.operation_get_identity:
-                raise HostException("unexpected operation")
-            return Identity(identifier, Version(major, minor, patch))
+            operation, major, minor, patch, length = struct.unpack("<HIIIB", data[0:15])
+            if operation != Controller.operation_get_identity:
+                raise ControllerException("unexpected operation")
+            identifier = data[15:15 + length].decode("utf-8")
+            return Identity(Version(major, minor, patch), identifier)
 
     def get_identity(self):
-        response, response_envelope = self.gateway.rpc(Host.GetIdentity.encode(), self.envelope)
-        return Host.GetIdentity.decode(response)
+        response, response_envelope = self.gateway.rpc(Controller.GetIdentity.encode(), self.envelope)
+        return Controller.GetIdentity.decode(response)
 
     class ExecutableMetadata:
 
@@ -73,22 +75,22 @@ class Host:
 
         @staticmethod
         def encode():
-            return struct.pack("<H", Host.operation_get_executable_metadata)
+            return struct.pack("<H", Controller.operation_get_executable_metadata)
 
         @staticmethod
         def decode(data):
             operation, success = struct.unpack("<HB", data[0:3])
             index = 3
-            if operation != Host.operation_get_executable_metadata:
-                raise HostException("unexpected operation")
+            if operation != Controller.operation_get_executable_metadata:
+                raise ControllerException("unexpected operation")
             if success == 0:
                 code = struct.unpack("<I", data[index: index + 4])[0]
-                raise HostException(f"operation failed: {code}")
+                raise ControllerException(f"operation failed: {code}")
             is_valid = data[index] != 0
             index += 1
             if not is_valid:
                 issue = data[index]
-                return Host.GetExecutableMetadataResult(is_valid=False, issue=issue)
+                return Controller.GetExecutableMetadataResult(is_valid=False, issue=issue)
 
             major = struct.unpack("<I", data[index: index + 4])[0]
             index += 4
@@ -99,13 +101,13 @@ class Host:
             length = struct.unpack("<I", data[index: index + 4])[0]
             index += 4
             hash = data[index: index + 20]
-            metadata = Host.ExecutableMetadata(version=Version(major, minor, patch), length=length, hash=hash)
+            metadata = Controller.ExecutableMetadata(version=Version(major, minor, patch), length=length, hash=hash)
 
-            return Host.GetExecutableMetadataResult(is_valid=True, metadata=metadata)
+            return Controller.GetExecutableMetadataResult(is_valid=True, metadata=metadata)
 
     def get_executable_metadata(self):
-        response, response_envelope = self.gateway.rpc(Host.GetExecutableMetadata.encode(), self.envelope)
-        return Host.GetExecutableMetadata.decode(response)
+        response, response_envelope = self.gateway.rpc(Controller.GetExecutableMetadata.encode(), self.envelope)
+        return Controller.GetExecutableMetadata.decode(response)
 
     class UpdateMetadata:
 
@@ -126,22 +128,22 @@ class Host:
 
         @staticmethod
         def encode():
-            return struct.pack("<H", Host.operation_get_update_metadata)
+            return struct.pack("<H", Controller.operation_get_update_metadata)
 
         @staticmethod
         def decode(data):
             operation, success = struct.unpack("<HB", data[0:3])
             index = 3
-            if operation != Host.operation_get_update_metadata:
-                raise HostException("unexpected operation")
+            if operation != Controller.operation_get_update_metadata:
+                raise ControllerException("unexpected operation")
             if success == 0:
                 code = struct.unpack("<I", data[index: index + 4])[0]
-                raise HostException(f"operation failed: {code}")
+                raise ControllerException(f"operation failed: {code}")
             is_valid = data[index] != 0
             index += 1
             if not is_valid:
                 issue = data[index]
-                return Host.GetExecutableMetadataResult(is_valid=False, issue=issue)
+                return Controller.GetExecutableMetadataResult(is_valid=False, issue=issue)
 
             major = struct.unpack("<I", data[index: index + 4])[0]
             index += 4
@@ -153,21 +155,21 @@ class Host:
             index += 4
             hash = data[index: index + 20]
             index += 20
-            executable_metadata = Host.ExecutableMetadata(Version(major, minor, patch), length, hash)
+            executable_metadata = Controller.ExecutableMetadata(Version(major, minor, patch), length, hash)
 
             hash = data[index: index + 20]
             index += 20
             flags = struct.unpack("<I", data[index: index + 4])[0]
             index += 4
             initialization_vector = data[index: index + 16]
-            metadata = Host.UpdateMetadata(executable_metadata, hash, flags, initialization_vector)
+            metadata = Controller.UpdateMetadata(executable_metadata, hash, flags, initialization_vector)
 
-            return Host.GetExecutableMetadataResult(is_valid=True, metadata=metadata)
+            return Controller.GetExecutableMetadataResult(is_valid=True, metadata=metadata)
 
     def get_update_metadata(self):
-        self.gateway.tx(Host.GetUpdateMetadata.encode(), self.envelope)
+        self.gateway.tx(Controller.GetUpdateMetadata.encode(), self.envelope)
         response, response_envelope = self.rx()
-        return Host.GetUpdateMetadata.decode(response)
+        return Controller.GetUpdateMetadata.decode(response)
 
     class UpdateResult:
 
@@ -179,29 +181,29 @@ class Host:
 
         @staticmethod
         def encode():
-            return struct.pack("<H", Host.operation_update)
+            return struct.pack("<H", Controller.operation_update)
 
         @staticmethod
         def decode(data):
             operation, success = struct.unpack("<HB", data[0:3])
             index = 3
-            if operation != Host.operation_update:
-                raise HostException("unexpected operation")
+            if operation != Controller.operation_update:
+                raise ControllerException("unexpected operation")
             if success == 0:
                 code = struct.unpack("<I", data[index: index + 4])[0]
-                raise HostException(f"operation failed: {code}")
+                raise ControllerException(f"operation failed: {code}")
             is_valid = data[index] != 0
             index += 1
             if not is_valid:
                 issue = data[index]
-                return Host.UpdateResult(is_valid=False, issue=issue)
+                return Controller.UpdateResult(is_valid=False, issue=issue)
 
-            return Host.UpdateResult(is_valid=True)
+            return Controller.UpdateResult(is_valid=True)
 
     def update(self):
-        self.gateway.tx(Host.Update.encode(), self.envelope)
+        self.gateway.tx(Controller.Update.encode(), self.envelope)
         response, response_envelope = self.rx()
-        return Host.Update.decode(response)
+        return Controller.Update.decode(response)
 
     class ExecuteResult:
 
@@ -213,34 +215,34 @@ class Host:
 
         @staticmethod
         def encode():
-            return struct.pack("<H", Host.operation_execute)
+            return struct.pack("<H", Controller.operation_execute)
 
         @staticmethod
         def decode(data):
             operation, success = struct.unpack("<HB", data[0:3])
             index = 3
-            if operation != Host.operation_execute:
-                raise HostException("unexpected operation")
+            if operation != Controller.operation_execute:
+                raise ControllerException("unexpected operation")
             if success == 0:
                 code = struct.unpack("<I", data[index: index + 4])[0]
-                raise HostException(f"operation failed: {code}")
+                raise ControllerException(f"operation failed: {code}")
             is_valid = data[index] != 0
             index += 1
             if not is_valid:
                 issue = data[index]
-                return Host.ExecuteResult(is_valid=False, issue=issue)
+                return Controller.ExecuteResult(is_valid=False, issue=issue)
 
-            return Host.ExecuteResult(is_valid=True)
+            return Controller.ExecuteResult(is_valid=True)
 
     def execute(self):
-        response, response_envelope = self.gateway.rpc(Host.Execute.encode(), self.envelope)
-        return Host.Execute.decode(response)
+        response, response_envelope = self.gateway.rpc(Controller.Execute.encode(), self.envelope)
+        return Controller.Execute.decode(response)
 
     class GetUpdateStorage:
 
         @staticmethod
         def encode(location, length):
-            return struct.pack("<HII", Host.operation_get_update_storage, location, length)
+            return struct.pack("<HII", Controller.operation_get_update_storage, location, length)
 
         @staticmethod
         def decode(data):
@@ -251,7 +253,7 @@ class Host:
 
         @staticmethod
         def encode(location, length, result, code=0, bytes=None):
-            data = struct.pack("<HIHB", Host.operation_update_read, location, length, 1 if result else 0)
+            data = struct.pack("<HIHB", Controller.operation_update_read, location, length, 1 if result else 0)
             if result:
                 data += bytes
             else:
@@ -287,10 +289,10 @@ class Host:
         )
 
     def process_get_update_storage_request(self, message, envelope):
-        operation = Host.GetUpdateStorage.decode(message)
+        operation = Controller.GetUpdateStorage.decode(message)
         location = 0
         length = len(self.update_file)
-        response = Host.GetUpdateStorage.encode(location, length)
+        response = Controller.GetUpdateStorage.encode(location, length)
         response_envelope = Envelope(
             target=self.target,
             source=self.source,
@@ -301,9 +303,9 @@ class Host:
         self.gateway.tx(response, response_envelope)
 
     def process_update_read_request(self, message, envelope):
-        operation, location, length = Host.UpdateRead.decode(message)
+        operation, location, length = Controller.UpdateRead.decode(message)
         data = self.update_file[location: location + length]
-        response = Host.UpdateRead.encode(location, length, True, bytes=data)
+        response = Controller.UpdateRead.encode(location, length, True, bytes=data)
         response_envelope = Envelope(
             target=self.target,
             source=self.source,
@@ -315,18 +317,18 @@ class Host:
 
     def process_request(self, message, envelope):
         operation = struct.unpack("<H", message[0:2])[0]
-        if operation == Host.operation_get_update_storage:
+        if operation == Controller.operation_get_update_storage:
             self.process_get_update_storage_request(message, envelope)
-        elif operation == Host.operation_update_read:
+        elif operation == Controller.operation_update_read:
             self.process_update_read_request(message, envelope)
 
     def process_status_progress_event(self, message, envelope):
-        operation, amount = Host.StatusProgress.decode(message)
+        operation, amount = Controller.StatusProgress.decode(message)
         print(f"progress {amount * 100.0:0.1f}%")
 
     def process_event(self, message, envelope):
         operation = struct.unpack("<H", message[0:2])[0]
-        if operation == Host.operation_status_progress:
+        if operation == Controller.operation_status_progress:
             self.process_status_progress_event(message, envelope)
 
     def rx(self):
@@ -335,9 +337,10 @@ class Host:
             response = self.gateway.rx_waiting()
             if response is None:
                 duration = time.time() - start
-                if duration > 0.5:
-                    raise HostException("timeout")
+                if duration > 1000:
+                    raise ControllerException("timeout")
                 continue
+            start = time.time()
             message, envelope = response
             if envelope.type is Envelope.type_request:
                 self.process_request(message, envelope)
@@ -350,13 +353,13 @@ class Host:
         with open(path, 'rb') as file:
             self.update_file = file.read(-1)
 
-        port = Gateway.find_serial_port(vid=0x0403, pid=0x6001)
+        port = Gateway.find_serial_port(vid=0x1366, pid=0x1055)  # nRf5340 DK J-Link
         self.gateway = Gateway(port)
         self.gateway.trace = True
 
         identity = self.get_identity()
         version = identity.version
-        print(f"boot loader {identity.identifier:08x} {version.major}.{version.minor}.{version.patch}")
+        print(f"identity: {identity.identifier} {version.major}.{version.minor}.{version.patch}")
 
         result = self.update()
         if not result.is_valid:
@@ -364,14 +367,17 @@ class Host:
             return
         print(f"update success")
 
-        result = self.execute()
-        if not result.is_valid:
-            print(f"execute failed: {result.issue}")
-            return
-        print(f"execute success")
+        try:
+            result = self.execute()
+            if not result.is_valid:
+                print(f"execute failed: {result.issue}")
+                return
+            print(f"execute success")
+        except GatewayException:
+            print("firmware is running")
 
 
-parser = argparse.ArgumentParser(description="Host Boot Loader Update")
+parser = argparse.ArgumentParser(description="Boot Split Controller Serial Example")
 parser.add_argument("--update", help="firmware update file (generated by encrypt.py)")
 parser.add_argument("--target", help="target to use in envelope", type=int)
 parser.add_argument("--source", help="source to use in envelope", type=int)
@@ -379,5 +385,5 @@ parser.add_argument("--system", help="system to use in envelope", type=int)
 parser.add_argument("--subsystem", help="subsystem to use in envelope", type=int)
 parser.set_defaults(update='update.bin', target=0, source=1, system=0, subsystem=0)
 args = parser.parse_args()
-secure_boot = Host(args.target, args.source, args.system, args.subsystem)
+secure_boot = Controller(args.target, args.source, args.system, args.subsystem)
 secure_boot.update_and_execute(args.update)

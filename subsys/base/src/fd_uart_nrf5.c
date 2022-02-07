@@ -106,7 +106,12 @@ int fd_uart_serial_handler(fd_uart_device_t *device) {
         uint8_t byte = rx->dma_data[rx->dma_index];
         fd_fifo_put(&rx->fifo, byte);
         ++rx->endrx_count;
-        fd_event_set_from_interrupt(rx->event);
+        if (device->instance->isr_rx_callback) {
+            device->instance->isr_rx_callback();
+        }
+        if (device->instance->rx_event_name) {
+            fd_event_set_from_interrupt(rx->event);
+        }
     }
     if (uarte->EVENTS_RXSTARTED) {
         nrf_uarte_event_clear(uarte, NRF_UARTE_EVENT_RXSTARTED);
@@ -130,7 +135,12 @@ int fd_uart_serial_handler(fd_uart_device_t *device) {
     if (uarte->EVENTS_ENDTX) {
         nrf_uarte_event_clear(uarte, NRF_UARTE_EVENT_ENDTX);
         if (fd_uart_tx_set_next_dma_buffer(device) == 0) {
-            fd_event_set_from_interrupt(device->tx.event);
+            if (device->instance->isr_tx_callback) {
+                device->instance->isr_tx_callback();
+            }
+            if (device->instance->tx_event_name) {
+                fd_event_set_from_interrupt(device->tx.event);
+            }
         }
     }
     if (uarte->EVENTS_TXSTOPPED) {
@@ -195,8 +205,12 @@ void fd_uart_instance_initialize(fd_uart_instance_t *instance) {
     fd_fifo_initialize(&device->tx.fifo, device->tx.fifo_data, sizeof(device->tx.fifo_data));
     fd_fifo_initialize(&device->rx.fifo, device->rx.fifo_data, sizeof(device->rx.fifo_data));
 
-    device->tx.event = fd_event_get_identifier(instance->tx_event_name);
-    device->rx.event = fd_event_get_identifier(instance->rx_event_name);
+    if (instance->tx_event_name) {
+        device->tx.event = fd_event_get_identifier(instance->tx_event_name);
+    }
+    if (instance->rx_event_name) {
+        device->rx.event = fd_event_get_identifier(instance->rx_event_name);
+    }
 
     NRF_UARTE_Type *uarte = device->uarte;
 
@@ -272,6 +286,8 @@ void fd_uart_instance_initialize(fd_uart_instance_t *instance) {
 
     fd_gpio_configure_output(instance->tx_gpio, true);
     fd_gpio_configure_input(instance->rx_gpio);
+    uarte->PSEL.TXD = instance->tx_gpio.port * 32 + instance->tx_gpio.pin;
+    uarte->PSEL.RXD = instance->rx_gpio.port * 32 + instance->rx_gpio.pin;
 
     uarte->TXD.PTR = (uint32_t)device->tx.dma_data;
     uarte->TXD.MAXCNT = 0;

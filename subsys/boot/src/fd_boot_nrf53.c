@@ -76,6 +76,25 @@ bool fd_boot_nrf53_flasher_finalize(void *context, fd_boot_error_t *error) {
     return true;
 }
 
+#define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
+
+bool fd_boot_nrf53_executor_cleanup(fd_boot_error_t *error) {
+    /* Allow any pending interrupts to be recognized */
+    __ISB();
+    __disable_irq();
+
+    /* Disable NVIC interrupts */
+    for (uint32_t i = 0; i < ARRAY_SIZE(NVIC->ICER); i++) {
+        NVIC->ICER[i] = 0xFFFFFFFF;
+    }
+    /* Clear pending NVIC interrupts */
+    for (uint32_t i = 0; i < ARRAY_SIZE(NVIC->ICPR); i++) {
+        NVIC->ICPR[i] = 0xFFFFFFFF;
+    }
+
+    return true;
+}
+
 bool fd_boot_nrf53_executor_start(uint32_t address, fd_boot_error_t *error) {
     SCB->VTOR = address;
     uint32_t *vector_table = (uint32_t *)address;

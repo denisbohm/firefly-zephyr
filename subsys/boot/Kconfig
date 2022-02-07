@@ -3,22 +3,27 @@ menuconfig FIREFLY_SUBSYS_BOOT
 
 if FIREFLY_SUBSYS_BOOT
 
-config FIREFLY_SUBSYS_BOOT_HOST
-        bool "Build host interface"
+config FIREFLY_SUBSYS_BOOT_NRF53
+        bool "firefly subsys boot nRF53 executor"
 	help
-	  Build host storage with serial interface.
+	  firefly subsys boot nRF53 executor
+
+config FIREFLY_SUBSYS_BOOT_SPLIT_CONTROLLER
+        bool "firefly subsys boot split controller"
+	help
+	  firefly subsys boot split controller
+
+config FIREFLY_SUBSYS_BOOT_SPLIT_PERIPHERAL
+        bool "firefly subsys boot split peripheral"
+	help
+	  firefly subsys boot split peripheral
 
 config FIREFLY_SUBSYS_BOOT_ZEPHYR
-        bool "Build Zephyr MBEDTLS"
+        bool "firefly subsys boot zephyr SHA & AES"
         select MBEDTLS
         select MBEDTLS_MAC_SHA1_ENABLED
         select MBEDTLS_CIPHER_AES_ENABLED
 	help
-	  Build Zephyr MBEDTLS boot functions for SHA-1 and AES 128 CBC.
-
-config FIREFLY_SUBSYS_BOOT_NRF53
-        bool "Build nRF53"
-	help
-	  Build nRF53 boot flasher functions.
+	  firefly subsys boot zephyr SHA & AES
 
 endif
