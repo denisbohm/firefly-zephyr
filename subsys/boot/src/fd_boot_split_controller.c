@@ -272,7 +272,7 @@ bool fd_boot_split_controller_execute(
     fd_binary_initialize(&request, buffer, sizeof(buffer));
     fd_binary_t response;
     fd_binary_initialize(&response, buffer, sizeof(buffer));
-    if (!fd_boot_split_controller_rpc(controller, fd_boot_split_operation_update, &request, &response, error)) {
+    if (!fd_boot_split_controller_rpc(controller, fd_boot_split_operation_execute, &request, &response, error)) {
         return false;
     }
 

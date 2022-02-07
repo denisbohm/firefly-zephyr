@@ -39,9 +39,6 @@ bool fd_fifo_put(fd_fifo_t *fifo, uint8_t data) {
     if (valid) {
         fifo->buffer[tail] = data;
         fifo->tail = next_tail;
-    } else {
-        static int overflows;
-        ++overflows;
     }
     return valid;
 }
