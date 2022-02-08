@@ -13,6 +13,14 @@
 #include <stdint.h>
 
 typedef struct {
+    void *context;
+    void (*initialize)(void *context);
+    void (*update)(void *context);
+    bool (*has_timed_out)(void *context);
+    void (*finalize)(void *context);
+} fd_boot_split_controller_timer_t;
+
+typedef struct {
     uint32_t target;
     uint32_t source;
     uint32_t system;
@@ -23,9 +31,16 @@ typedef struct {
     void (*progress)(float amount);
 
     bool (*transmit)(const uint8_t *data, uint32_t length);
+    fd_boot_split_controller_timer_t timer;
+    uint32_t duration;
 
     fd_fifo_t fifo;
 } fd_boot_split_controller_t;
+
+bool fd_boot_split_controller_set_defaults(
+    fd_boot_split_controller_t *controller,
+    fd_boot_error_t *error
+);
 
 bool fd_boot_split_controller_initialize(
     fd_boot_split_controller_t *controller,

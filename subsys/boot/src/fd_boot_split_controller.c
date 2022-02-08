@@ -5,7 +5,13 @@
 
 #include <string.h>
 
+#ifndef fd_boot_split_controller_message_limit
 #define fd_boot_split_controller_message_limit 300
+#endif
+
+#ifndef fd_boot_split_controller_timeout
+#define fd_boot_split_controller_timeout 100000
+#endif
 
 bool fd_boot_split_controller_transmit(
     fd_boot_split_controller_t *controller,
@@ -51,20 +57,24 @@ void fd_boot_split_controller_update_read(
     fd_envelope_t *envelope
 ) {
     int location = fd_binary_get_uint32(message);
-    int length = fd_binary_get_uint32(message);
+    int length = fd_binary_get_uint16(message);
 
     uint8_t response_buffer[fd_boot_split_controller_message_limit];
     fd_binary_t response;
     fd_binary_initialize(&response, response_buffer, sizeof(response_buffer));
-    fd_binary_put_uint16(&response, fd_boot_split_operation_get_update_storage);
+    fd_binary_put_uint16(&response, fd_boot_split_operation_update_read);
     fd_binary_put_uint32(&response, location);
-    fd_binary_put_uint32(&response, length);
+    fd_binary_put_uint16(&response, length);
     fd_boot_range_t range;
     controller->get_update_storage(&range);
     if ((location + length) < (range.location + range.length)) { // !!! check response buffer size also...
         bool result = true;
         fd_binary_put_uint8(&response, result ? 1 : 0);
         controller->update_read(location, &response.buffer[response.put_index], length);
+        response.put_index += length;
+    } else {
+        bool result = false;
+        fd_binary_put_uint8(&response, result ? 1 : 0);
     }
     fd_envelope_t response_envelope = {
         .target=controller->target,
@@ -151,6 +161,8 @@ bool fd_boot_split_controller_poll(
 ) {
     uint8_t byte = 0;
     while (fd_fifo_get(&controller->fifo, &byte)) {
+        fd_boot_split_controller_timer_t *timer = &controller->timer;
+        timer->update(timer->context);
         if (byte == 0) {
             if (message->put_index != 0) {
                 return true;
@@ -164,17 +176,30 @@ bool fd_boot_split_controller_poll(
 
 bool fd_boot_split_controller_io(
     fd_boot_split_controller_t *controller,
-    fd_binary_t *message
+    fd_binary_t *message,
+    bool *has_response,
+    fd_boot_error_t *error
 ) {
+    fd_boot_split_controller_timer_t *timer = &controller->timer;
+    timer->initialize(timer->context);
     while (!fd_boot_split_controller_poll(controller, message)) {
+        if (timer->has_timed_out(timer->context)) {
+            timer->finalize(timer->context);
+            fd_boot_set_error(error, 1);
+            return false;
+        }
     }
+    timer->finalize(timer->context);
 
     fd_envelope_t envelope;
     bool result = fd_envelope_decode(message, &envelope);
     if (!result) {
+        fd_boot_set_error(error, 1);
         return false;
     }
-    return fd_boot_split_controller_dispatch(controller, message, &envelope);
+    *has_response = fd_boot_split_controller_dispatch(controller, message, &envelope);
+    fd_binary_reset(message);
+    return true;
 }
 
 bool fd_boot_split_controller_rpc(
@@ -194,7 +219,11 @@ bool fd_boot_split_controller_rpc(
     };
     fd_boot_split_controller_transmit(controller, request, &request_envelope);
     while (true) {
-        if (fd_boot_split_controller_io(controller, response)) {
+        bool has_response = false;
+        if (!fd_boot_split_controller_io(controller, response, &has_response, error)) {
+            return false;
+        }
+        if (has_response) {
             break;
         }
     }
@@ -286,6 +315,45 @@ bool fd_boot_split_controller_execute(
     if (!result->is_valid) {
         result->issue = fd_binary_get_uint8(&response);
     }
+    return true;
+}
+
+void fd_boot_split_controller_timer_initialize(void *context) {
+    uint32_t *duration = (uint32_t *)context;
+    *duration = 0;
+}
+
+void fd_boot_split_controller_timer_update(void *context) {
+    uint32_t *duration = (uint32_t *)context;
+    *duration = 0;
+}
+
+bool fd_boot_split_controller_timer_has_timed_out(void *context) {
+    uint32_t *duration = (uint32_t *)context;
+    if (*duration > fd_boot_split_controller_timeout) {
+        return true;
+    }
+    ++*duration;
+    return false;
+}
+
+void fd_boot_split_controller_timer_finalize(void *context) {
+    uint32_t *duration = (uint32_t *)context;
+    *duration = 0;
+}
+
+bool fd_boot_split_controller_set_defaults(
+    fd_boot_split_controller_t *controller,
+    fd_boot_error_t *error
+) {
+    if (controller->timer.has_timed_out == 0) {
+        controller->timer.context = &controller->duration;
+        controller->timer.initialize = fd_boot_split_controller_timer_initialize;
+        controller->timer.update = fd_boot_split_controller_timer_update;
+        controller->timer.has_timed_out = fd_boot_split_controller_timer_has_timed_out;
+        controller->timer.finalize = fd_boot_split_controller_timer_finalize;
+    }
+
     return true;
 }
 

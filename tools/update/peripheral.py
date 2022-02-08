@@ -87,6 +87,8 @@ class Peripheral:
         @staticmethod
         def decode(data):
             operation, location, length = struct.unpack("<HII", data)
+            if operation != Peripheral.operation_get_update_storage:
+                raise PeripheralException("unexpected operation")
             return location, length
 
     class UpdateRead:
@@ -97,8 +99,12 @@ class Peripheral:
 
         @staticmethod
         def decode(data):
-            operation, location, length = struct.unpack("<HLH", data[0:8])
-            return data[8:8 + length]
+            operation, location, length, success = struct.unpack("<HLHB", data[0:9])
+            if operation != Peripheral.operation_update_read:
+                raise PeripheralException("unexpected operation")
+            if success == 0:
+                raise PeripheralException("update read failed")
+            return data[9:9 + length]
 
     class StatusProgress:
 
@@ -160,6 +166,14 @@ class Peripheral:
         print(f"get update storage: {location} {length}")
 
         self.gateway.tx(Peripheral.StatusProgress.encode(0.5), self.event_envelope)
+
+        location = 0
+        length = 16
+        self.gateway.tx(Peripheral.UpdateRead.encode(location, length), self.request_envelope)
+        print("waiting for boot split controller to respond to update read...")
+        message, envelope = self.gateway.rx()
+        data = Peripheral.UpdateRead.decode(message)
+        print(f"update read: {data}")
 
         self.gateway.tx(Peripheral.Update.encode(success=True, is_valid=True), self.response_envelope)
 

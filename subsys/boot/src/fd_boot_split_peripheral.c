@@ -10,7 +10,13 @@
 
 #include <string.h>
 
+#ifndef fd_boot_split_peripheral_message_limit
 #define fd_boot_split_peripheral_message_limit 300
+#endif
+
+#ifndef fd_boot_split_peripheral_timeout
+#define fd_boot_split_peripheral_timeout 100000
+#endif
 
 typedef struct {
     fd_boot_info_update_storage_t *storage;
@@ -30,6 +36,8 @@ typedef struct {
     fd_fifo_t fifo;
     uint8_t fifo_buffer[fd_boot_split_peripheral_message_limit];
 
+    uint32_t duration;
+
     union {
         void *any;
         fd_boot_split_peripheral_get_update_storage_operation_t *get_update_storage;
@@ -45,10 +53,12 @@ void fd_boot_split_peripheral_received(const uint8_t *data, uint32_t length) {
     }
 }
 
-bool fd_boot_split_peripheral_rx(fd_binary_t *message) {
+bool fd_boot_split_peripheral_poll(fd_binary_t *message) {
     fd_fifo_t *fifo = &fd_boot_split_peripheral.fifo;
     uint8_t byte = 0;
     while (fd_fifo_get(fifo, &byte)) {
+        fd_boot_split_peripheral_timer_t *timer = &fd_boot_split_peripheral.configuration.timer;
+        timer->update(timer->context);
         if (byte == 0) {
             if (message->put_index != 0) {
                 return true;
@@ -60,20 +70,34 @@ bool fd_boot_split_peripheral_rx(fd_binary_t *message) {
     return false;
 }
 
-bool fd_boot_split_peripheral_io(void) {
+bool fd_boot_split_peripheral_io(fd_boot_error_t *error) {
     uint8_t buffer[fd_boot_split_peripheral_message_limit];
     fd_binary_t message;
     fd_binary_initialize(&message, buffer, sizeof(buffer));
-    while (!fd_boot_split_peripheral_rx(&message)) {
+    fd_boot_split_peripheral_timer_t *timer = &fd_boot_split_peripheral.configuration.timer;
+    timer->initialize(timer->context);
+    while (!fd_boot_split_peripheral_poll(&message)) {
+        if (timer->has_timed_out(timer->context)) {
+            timer->finalize(timer->context);
+            fd_boot_set_error(error, 1);
+            return false;
+        }
     }
+    timer->finalize(timer->context);
 
     fd_envelope_t envelope;
     bool result = fd_envelope_decode(&message, &envelope);
     if (!result) {
+        fd_boot_set_error(error, 1);
         return false;
     }
     message.size = message.put_index;
-    return fd_dispatch_process(&message, &envelope);
+    if (!fd_dispatch_process(&message, &envelope)) {
+        fd_boot_set_error(error, 1);
+        return false;
+    }
+
+    return true;
 }
 
 bool fd_boot_split_peripheral_tx(fd_binary_t *message, int type) {
@@ -114,7 +138,7 @@ bool fd_boot_split_peripheral_get_update_storage_request(void) {
     return fd_boot_split_peripheral_tx(&message, fd_envelope_type_request);
 }
 
-bool fd_boot_split_peripheral_get_update_storage(fd_boot_info_update_storage_t *storage, fd_boot_error_t *error fd_unused) {
+bool fd_boot_split_peripheral_get_update_storage(fd_boot_info_update_storage_t *storage, fd_boot_error_t *error) {
     fd_boot_split_peripheral_get_update_storage_operation_t get_update_storage_operation = {
         .storage = storage,
     };
@@ -127,8 +151,9 @@ bool fd_boot_split_peripheral_get_update_storage(fd_boot_info_update_storage_t *
 
     // beware: this is a nested dispatch loop... -denis
     while (fd_boot_split_peripheral.operation.any != 0) {
-        // !!! add timeout...
-        fd_boot_split_peripheral_io();
+        if (!fd_boot_split_peripheral_io(error)) {
+            return false;
+        }
     }
 
     return true;
@@ -179,8 +204,9 @@ bool fd_boot_split_peripheral_update_read(
 
     // beware: this is a nested dispatch loop... -denis
     while (fd_boot_split_peripheral.operation.any != 0) {
-        // !!! add timeout...
-        fd_boot_split_peripheral_io();
+        if (!fd_boot_split_peripheral_io(error)) {
+            return false;
+        }
     }
 
     return update_read_operation.result;
@@ -431,6 +457,26 @@ bool fd_boot_split_peripheral_dispatch_process(fd_binary_t *message, fd_envelope
     return false;
 }
 
+void fd_boot_split_peripheral_timer_initialize(void *context) {
+    fd_boot_split_peripheral.duration = 0;
+}
+
+void fd_boot_split_peripheral_timer_update(void *context) {
+    fd_boot_split_peripheral.duration = 0;
+}
+
+bool fd_boot_split_peripheral_timer_has_timed_out(void *context) {
+    if (fd_boot_split_peripheral.duration > fd_boot_split_peripheral_timeout) {
+        return true;
+    }
+    ++fd_boot_split_peripheral.duration;
+    return false;
+}
+
+void fd_boot_split_peripheral_timer_finalize(void *context) {
+    fd_boot_split_peripheral.duration = 0;
+}
+
 bool fd_boot_split_peripheral_set_configuration_defaults(fd_boot_split_peripheral_configuration_t *configuration, fd_boot_error_t *error) {
     if (
         (configuration->target == 0) &&
@@ -456,6 +502,13 @@ bool fd_boot_split_peripheral_set_configuration_defaults(fd_boot_split_periphera
         configuration->identity.version.minor = 0;
         configuration->identity.version.patch = 0;
     }
+
+    if (configuration->timer.has_timed_out == 0) {
+        configuration->timer.initialize = fd_boot_split_peripheral_timer_initialize;
+        configuration->timer.update = fd_boot_split_peripheral_timer_update;
+        configuration->timer.has_timed_out = fd_boot_split_peripheral_timer_has_timed_out;
+        configuration->timer.finalize = fd_boot_split_peripheral_timer_finalize;
+    }
     
     configuration->update_interface.info.get_update_storage = fd_boot_split_peripheral_get_update_storage;
     configuration->update_interface.status.progress = fd_boot_split_peripheral_status_progress;
@@ -473,7 +526,9 @@ bool fd_boot_split_peripheral_start(fd_boot_split_peripheral_configuration_t *co
     fd_dispatch_add_process(fd_boot_split_peripheral.configuration.system, fd_boot_split_peripheral.configuration.subsystem, fd_boot_split_peripheral_dispatch_process);
 
     while (true) {
-        fd_boot_split_peripheral_io();
+        if (!fd_boot_split_peripheral_io(error)) {
+            return false;
+        }
     }
 
     fd_boot_set_error(error, 1);

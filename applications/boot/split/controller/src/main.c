@@ -47,52 +47,56 @@ void fd_boot_serial_controller_isr_rx(void) {
 }
 
 int main(void) {
-    memset(&fd_boot_serial_controller, 0, sizeof(fd_boot_serial_controller));
-    fd_boot_serial_controller.uart_instance = (fd_uart_instance_t) {
-        .uart_device_name = "NRF_UARTE0_S",
-        .tx_gpio = { .port = 0, .pin = 20 },
-        .rx_gpio = { .port = 0, .pin = 22 },
-        .baud_rate = 115200,
-        .parity = fd_uart_parity_none,
-        .stop_bits = fd_uart_stop_bits_1,
-        .isr_tx_callback = fd_boot_serial_controller_isr_tx,
-        .isr_rx_callback = fd_boot_serial_controller_isr_rx,
+    fd_boot_serial_controller = (fd_boot_serial_controller_t) {
+        .uart_instance = {
+            .uart_device_name = "NRF_UARTE0_S",
+            .tx_gpio = { .port = 0, .pin = 20 },
+            .rx_gpio = { .port = 0, .pin = 22 },
+            .baud_rate = 115200,
+            .parity = fd_uart_parity_none,
+            .stop_bits = fd_uart_stop_bits_1,
+            .isr_tx_callback = fd_boot_serial_controller_isr_tx,
+            .isr_rx_callback = fd_boot_serial_controller_isr_rx,
+        },
+        .controller = {
+            .target = 0,
+            .source = 0,
+            .system = 0,
+            .subsystem = 0,
+            .get_update_storage = fd_boot_serial_controller_get_update_storage,
+            .update_read = fd_boot_serial_controller_update_read,
+            .progress = fd_boot_serial_controller_progress,
+            .transmit = fd_boot_serial_controller_transmit,
+        },
     };
-    fd_boot_serial_controller.controller = (fd_boot_split_controller_t) {
-        .target = 0,
-        .source = 0,
-        .system = 0,
-        .subsystem = 0,
-        .get_update_storage = fd_boot_serial_controller_get_update_storage,
-        .update_read = fd_boot_serial_controller_update_read,
-        .progress = fd_boot_serial_controller_progress,
-        .transmit = fd_boot_serial_controller_transmit,
-    };
+    fd_boot_split_controller_t *controller = &fd_boot_serial_controller.controller;
     uint8_t fifo_data[128];
-    fd_fifo_initialize(&fd_boot_serial_controller.controller.fifo, fifo_data, sizeof(fifo_data));
+    fd_fifo_initialize(&controller->fifo, fifo_data, sizeof(fifo_data));
 
     fd_gpio_initialize();
     fd_uart_initialize();
     fd_uart_instance_initialize(&fd_boot_serial_controller.uart_instance);
 
     fd_boot_error_t error;
-    fd_boot_split_controller_t *controller = &fd_boot_serial_controller.controller;
-    if (!fd_boot_split_controller_initialize(controller, &error)) {
+    if (!fd_boot_split_controller_set_defaults(controller, &error)) {
         return 1;
+    }
+    if (!fd_boot_split_controller_initialize(controller, &error)) {
+        return 2;
     }
 
     fd_version_t version;
     char identifier[32];
     if (!fd_boot_split_controller_get_identity(controller, &version, identifier, sizeof(identifier), &error)) {
-        return 2;
+        return 3;
     }
 
     fd_boot_split_controller_update_result_t update_result;
     if (!fd_boot_split_controller_update(controller, &update_result, &error)) {
-        return 3;
+        return 4;
     }
     if (!update_result.is_valid) {
-        return 4;
+        return 5;
     }
 
     fd_boot_split_controller_execute_result_t execute_result;

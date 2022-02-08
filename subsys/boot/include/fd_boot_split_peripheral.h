@@ -5,6 +5,14 @@
 #include "fd_system.h"
 
 typedef struct {
+    void *context;
+    void (*initialize)(void *context);
+    void (*update)(void *context);
+    bool (*has_timed_out)(void *context);
+    void (*finalize)(void *context);
+} fd_boot_split_peripheral_timer_t;
+
+typedef struct {
     uint32_t target;
     uint32_t source;
     uint32_t system;
@@ -13,6 +21,7 @@ typedef struct {
     fd_system_identity_t identity;
 
     void (*transmit)(const uint8_t *data, uint32_t length);
+    fd_boot_split_peripheral_timer_t timer;
 
     fd_boot_update_interface_t update_interface;
 } fd_boot_split_peripheral_configuration_t;
