@@ -9,25 +9,49 @@ class SystemVersion:
         self.patch = patch
 
 
+class SystemIdentity:
+
+    def __init__(self, version, identifier):
+        self.version = version
+        self.identifier = identifier
+
+
 class System:
 
-    operation_get_version = 0
+    operation_get_identity = 0
     operation_get_assert = 1
 
+    # for backwards compatibility only -denis
     class GetVersion:
 
         @staticmethod
         def encode():
             data = bytearray()
-            data += struct.pack("<B", System.operation_get_version)
+            data += struct.pack("<B", System.operation_get_identity)
             return data
 
         @staticmethod
         def decode(data):
-            operation, major, minor, patch = struct.unpack("<BIII", data)
-            if operation != System.operation_get_version:
+            operation, major, minor, patch = struct.unpack("<BIII", data[0:13])
+            if operation != System.operation_get_identity:
                 raise Exception("unexpected operation")
             return SystemVersion(major, minor, patch)
+
+    class GetIdentity:
+
+        @staticmethod
+        def encode():
+            data = bytearray()
+            data += struct.pack("<B", System.operation_get_identity)
+            return data
+
+        @staticmethod
+        def decode(data):
+            operation, major, minor, patch, identifier_length = struct.unpack("<BIIIB", data[0:14])
+            if operation != System.operation_get_identity:
+                raise Exception("unexpected operation")
+            identifier = data[14:14 + identifier_length].decode("utf-8")
+            return SystemIdentity(SystemVersion(major, minor, patch), identifier)
 
     class Assert:
 

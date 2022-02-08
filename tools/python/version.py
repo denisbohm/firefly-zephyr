@@ -14,10 +14,8 @@ class Main:
     target_usb = 4
 
     def __init__(self):
-        # FTDI USB TTL-232
-        self.port = Gateway.find_serial_port(vid=0x0403, pid=0x6001)
         # Zephyr USB CDC
-        # self.port = Gateway.find_serial_port(vid=0x2FE3, pid=0x0100)
+        self.port = Gateway.find_serial_port(vid=0x2FE3, pid=0x0100)
         if not self.port:
             print(f"cannot find USB serial port")
             sys.exit(1)
@@ -25,7 +23,7 @@ class Main:
         self.gateway = Gateway(self.port)
 
     def system_get_version(self):
-        request = System.encode_io()
+        request = System.GetVersion.encode()
         request_envelope = Envelope(
             target=main.target_sensor_0,
             source=main.target_usb,
@@ -35,17 +33,28 @@ class Main:
         )
         self.gateway.tx(request, request_envelope)
         response, response_envelope = self.gateway.rx()
-        return System.decode_io(response)
+        return System.GetVersion.decode(response)
+
+    def system_get_identity(self):
+        request = System.GetIdentity.encode()
+        request_envelope = Envelope(
+            target=main.target_main,
+            source=main.target_usb,
+            system=Envelope.system_firefly,
+            subsystem=Envelope.subsystem_system,
+            type=Envelope.type_request
+        )
+        self.gateway.tx(request, request_envelope)
+        response, response_envelope = self.gateway.rx()
+        return System.GetIdentity.decode(response)
 
     def run(self):
-        count = 0
-        while True:
-            try:
-                version = self.system_get_version()
-                print(f"{version.major}.{version.minor}.{version.patch}")
-            except Exception as e:
-                ++count;
-                print(f"{count} {str(e)}")
+        version = self.system_get_version()
+        print(f"im_sensor {version.major}.{version.minor}.{version.patch}")
+
+        identity = self.system_get_identity()
+        version = identity.version
+        print(f"{identity.identifier} {version.major}.{version.minor}.{version.patch}")
 
 
 if __name__ == '__main__':
