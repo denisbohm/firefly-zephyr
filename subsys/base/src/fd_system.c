@@ -8,7 +8,7 @@ typedef struct {
 
 fd_system_t fd_system;
 
-const fd_system_identity_t *fd_system_get_version(void) {
+const fd_system_identity_t *fd_system_get_identity(void) {
     return fd_system.identity;
 }
 
