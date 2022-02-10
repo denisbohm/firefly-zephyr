@@ -142,25 +142,30 @@ class Update:
         print(f"writing update C include to {h_name}")
         with open(h_name, 'w') as file:
             guard = f"{os.path.basename(name)}_h"
+            file.write(f'// AUTO GENERATED\n')
+            file.write('\n')
             file.write(f"#ifndef {guard}\n")
             file.write(f"#define {guard}\n")
             file.write("\n")
-            file.write("#include <stdint.h>\n")
+            file.write('#include "fd_version.h"\n')
             file.write("\n")
             file.write(f"extern const uint8_t {name}_data[];\n")
             file.write(f"extern const uint32_t {name}_length;\n")
+            file.write(f"extern const fd_version_t {name}_version = {{\n")
+            file.write(f"    .major = {version.major},\n")
+            file.write(f"    .minor = {version.minor},\n")
+            file.write(f"    .patch = {version.patch},\n")
+            file.write("};\n")
             file.write("\n")
             file.write("#endif\n")
 
         c_name = f"{name}.c"
         print(f"writing update C source to {c_name}")
         with open(c_name, 'w') as file:
-            file.write(f'#include "{h_name}"\n')
-            file.write('\n')
-
             file.write(f'// AUTO GENERATED\n')
             file.write('\n')
-            file.write(f'// {comment}\n')
+
+            file.write(f'#include "{h_name}"\n')
             file.write('\n')
 
             file.write(f'const uint32_t {name}_length = {len(data)};\n')
@@ -218,7 +223,7 @@ class Update:
             f.write(update)
 
         root, extension = os.path.splitext(output)
-        Update.write_c_code(root, update, f"firmware update binary for version: {major}.{minor}.{patch}")
+        Update.write_c_code(root, update, version)
 
     @staticmethod
     def main(argv):
