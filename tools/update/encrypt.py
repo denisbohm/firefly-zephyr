@@ -137,7 +137,7 @@ class Update:
         return data
 
     @staticmethod
-    def write_c_code(name, data, comment):
+    def write_c_code(name, data, major, minor, patch):
         h_name = f"{name}.h"
         print(f"writing update C include to {h_name}")
         with open(h_name, 'w') as file:
@@ -149,13 +149,11 @@ class Update:
             file.write("\n")
             file.write('#include "fd_version.h"\n')
             file.write("\n")
-            file.write(f"extern const uint8_t {name}_data[];\n")
+            file.write(f"extern const fd_version_t {name}_version;\n")
+            file.write("\n")
             file.write(f"extern const uint32_t {name}_length;\n")
-            file.write(f"extern const fd_version_t {name}_version = {{\n")
-            file.write(f"    .major = {version.major},\n")
-            file.write(f"    .minor = {version.minor},\n")
-            file.write(f"    .patch = {version.patch},\n")
-            file.write("};\n")
+            file.write("\n")
+            file.write(f"extern const uint8_t {name}_data[];\n")
             file.write("\n")
             file.write("#endif\n")
 
@@ -168,6 +166,12 @@ class Update:
             file.write(f'#include "{h_name}"\n')
             file.write('\n')
 
+            file.write(f"const fd_version_t {name}_version = {{\n")
+            file.write(f"    .major = {major},\n")
+            file.write(f"    .minor = {minor},\n")
+            file.write(f"    .patch = {patch},\n")
+            file.write("};\n")
+            file.write('\n')
             file.write(f'const uint32_t {name}_length = {len(data)};\n')
             file.write('\n')
             file.write(f'const uint8_t {name}_data[] = {{\n')
@@ -191,6 +195,7 @@ class Update:
             raise Exception(f"firmware address 0x{executable_address:08X} mismatch, expected 0x{args.address:08X}")
         major, minor, patch = Update.get_executable_metadata(executable_data, args.metadata_offset)
         print(f"found: version {major}.{minor}.{patch}, {len(executable_data)} bytes at 0x{executable_address:08X}")
+
         executable, executable_hash = Update.package_executable(executable_data, args.metadata_offset)
 
         initialization_vector = os.urandom(16)
@@ -218,12 +223,15 @@ class Update:
 
         base = os.path.splitext(args.input)[0]
         output = args.output.format(base=base, major=major, minor=minor, patch=patch)
-        print(f"writing update binary to {output}")
-        with open(output, "wb") as f:
-            f.write(update)
-
         root, extension = os.path.splitext(output)
-        Update.write_c_code(root, update, version)
+        if args.type == "binary":
+            print(f"writing update binary to {output}")
+            with open(output, "wb") as f:
+                f.write(update)
+        if args.type == "c_binary":
+            Update.write_c_code(f"{root}_packaged", update, major, minor, patch)
+        if args.type == "c":
+            Update.write_c_code(root, executable_data, major, minor, patch)
 
     @staticmethod
     def main(argv):
@@ -231,6 +239,7 @@ class Update:
         parser.add_argument('--key', type=key_arg, required=True)
         parser.add_argument('--input', required=True)
         parser.add_argument('--output', default="{base}_{major}_{minor}_{patch}.bin")
+        parser.add_argument('--type', choices=['binary', 'c_binary', 'c', 'none'], default='binary')
         parser.add_argument('--metadata_offset', type=int_arg, default=256)
         parser.add_argument('--address', type=int_arg)
         args = parser.parse_args(argv)

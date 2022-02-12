@@ -33,7 +33,7 @@ zephyr_sources(src/fd_system_dispatch.c)
 zephyr_sources(src/fd_timer.c)
 zephyr_sources(src/fd_timing.c)
 zephyr_sources(src/fd_timing_nrf5.c)
-zephyr_sources(src/fd_uart_nrf5.c)
+zephyr_sources(src/fd_uart_zephyr.c)
 zephyr_sources(src/fd_work.c)
 
 if(CONFIG_FIREFLY_SUBSYS_BASE_LOG)

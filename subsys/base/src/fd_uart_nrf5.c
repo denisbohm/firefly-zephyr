@@ -41,6 +41,7 @@ typedef struct {
 
 typedef struct {
     uint32_t event;
+    uint32_t pending;
     uint8_t dma_data[FD_UART_DEVICE_TX_DMA_LIMIT];
     uint8_t fifo_data[FD_UART_DEVICE_TX_FIFO_LIMIT];
     fd_fifo_t fifo;
@@ -51,6 +52,7 @@ typedef struct {
     NRF_UARTE_Type *uarte;
     fd_uart_device_rx_t rx;
     fd_uart_device_tx_t tx;
+    uint32_t errorsrc;
 } fd_uart_device_t;
 
 typedef struct {
@@ -58,13 +60,6 @@ typedef struct {
 } fd_uart_t;
 
 fd_uart_t fd_uart;
-
-void fd_uart_rx_set_next_dma_buffer(fd_uart_device_t *device) {
-    NRF_UARTE_Type *uarte = device->uarte;
-    fd_uart_device_rx_t *rx = &device->rx;
-    uarte->RXD.PTR = (uint32_t)&rx->dma_data[rx->dma_index];
-    rx->dma_index = (rx->dma_index + 1) & 0x1;
-}
 
 size_t fd_uart_tx_set_next_dma_buffer(fd_uart_device_t *device) {
     fd_uart_device_tx_t *tx = &device->tx;
@@ -80,6 +75,7 @@ size_t fd_uart_tx_set_next_dma_buffer(fd_uart_device_t *device) {
     }
     if (i > 0) {
         NRF_UARTE_Type *uarte = device->uarte;
+        tx->pending = i;
         uarte->TXD.MAXCNT = i;
         uarte->TASKS_STARTTX = 1;
     }
@@ -101,52 +97,76 @@ int fd_uart_serial_handler(fd_uart_device_t *device) {
 #endif
     if (uarte->EVENTS_ENDRX) {
         // receivied a byte
-        fd_assert(uarte->RXD.AMOUNT == 1);
+//        fd_assert(uarte->RXD.AMOUNT == 1);
         nrf_uarte_event_clear(uarte, NRF_UARTE_EVENT_ENDRX);
         uint8_t byte = rx->dma_data[rx->dma_index];
         fd_fifo_put(&rx->fifo, byte);
-        ++rx->endrx_count;
-        if (device->instance->isr_rx_callback) {
-            device->instance->isr_rx_callback();
-        }
-        if (device->instance->rx_event_name) {
-            fd_event_set_from_interrupt(rx->event);
+//        ++rx->endrx_count;
+        if (byte == 0) {
+            fd_uart_instance_t *instance = device->instance;
+            if (instance->isr_rx_callback) {
+                instance->isr_rx_callback();
+            }
+            if (instance->rx_event_name) {
+                fd_event_set_from_interrupt(rx->event);
+            }
         }
     }
     if (uarte->EVENTS_RXSTARTED) {
         nrf_uarte_event_clear(uarte, NRF_UARTE_EVENT_RXSTARTED);
-        fd_uart_rx_set_next_dma_buffer(device);
-        ++rx->rxstarted_count;
+        uarte->RXD.PTR = (uint32_t)&rx->dma_data[rx->dma_index];
+        rx->dma_index = (rx->dma_index + 1) & 0x1;
+//        ++rx->rxstarted_count;
     }
+#if 0
     if (uarte->EVENTS_RXTO) {
         // generated when rx stop task is complete
         nrf_uarte_event_clear(uarte, NRF_UARTE_EVENT_RXTO);
         ++rx->rxto_count;
     }
+#endif
 
+#if 0
     if (uarte->EVENTS_TXSTARTED) {
         // generated when transmitter has started but no bytes sent yet
         nrf_uarte_event_clear(uarte, NRF_UARTE_EVENT_TXSTARTED);
     }
+#endif
     if (uarte->EVENTS_TXDRDY) {
         // generated after each byte is transmitted
         nrf_uarte_event_clear(uarte, NRF_UARTE_EVENT_TXDRDY);
-    }
-    if (uarte->EVENTS_ENDTX) {
-        nrf_uarte_event_clear(uarte, NRF_UARTE_EVENT_ENDTX);
-        if (fd_uart_tx_set_next_dma_buffer(device) == 0) {
-            if (device->instance->isr_tx_callback) {
-                device->instance->isr_tx_callback();
-            }
-            if (device->instance->tx_event_name) {
-                fd_event_set_from_interrupt(device->tx.event);
+        if (--device->tx.pending == 0) {
+            if (fd_uart_tx_set_next_dma_buffer(device) == 0) {
+                if (device->instance->isr_tx_callback) {
+                    device->instance->isr_tx_callback();
+                }
+                if (device->instance->tx_event_name) {
+                    fd_event_set_from_interrupt(device->tx.event);
+                }
             }
         }
     }
+#if 0
+    if (uarte->EVENTS_ENDTX) {
+        nrf_uarte_event_clear(uarte, NRF_UARTE_EVENT_ENDTX);
+        // ENDTX happens before the last byte is sent.
+        // So basically, this event appears to be useless...
+        // fd_uart_end_tx(device);
+    }
+#endif
+#if 0
     if (uarte->EVENTS_TXSTOPPED) {
         // generated when tx stop task is complete
         nrf_uarte_event_clear(uarte, NRF_UARTE_EVENT_TXSTOPPED);
     }
+#endif
+
+#if 0
+    if (uarte->EVENTS_ERROR) {
+        device->errorsrc |= uarte->ERRORSRC;
+        nrf_uarte_event_clear(uarte, NRF_UARTE_EVENT_ERROR);
+    }
+#endif
 
     return 0;
 }
@@ -296,9 +316,10 @@ void fd_uart_instance_initialize(fd_uart_instance_t *instance) {
     uarte->SHORTS = UARTE_SHORTS_ENDRX_STARTRX_Msk;
 
     uarte->INTEN =
-        UARTE_INTEN_RXSTARTED_Msk | /* UARTE_INTEN_RXDRDY_Msk | */ UARTE_INTEN_ENDRX_Msk | UARTE_INTEN_RXTO_Msk |
-        UARTE_INTEN_TXSTARTED_Msk | UARTE_INTEN_TXDRDY_Msk | UARTE_INTEN_ENDTX_Msk | UARTE_INTEN_TXSTOPPED_Msk;
-
+        UARTE_INTEN_RXSTARTED_Msk | UARTE_INTEN_ENDRX_Msk |
+//        UARTE_INTEN_RXSTARTED_Msk | /* UARTE_INTEN_RXDRDY_Msk | */ UARTE_INTEN_ENDRX_Msk | UARTE_INTEN_RXTO_Msk |
+        UARTE_INTEN_TXDRDY_Msk;
+//        UARTE_INTEN_TXSTARTED_Msk | UARTE_INTEN_TXDRDY_Msk | UARTE_INTEN_ENDTX_Msk | UARTE_INTEN_TXSTOPPED_Msk;
     uarte->ENABLE = UARTE_ENABLE_ENABLE_Enabled;
 
     uarte->TASKS_STARTRX = 1;
@@ -323,8 +344,7 @@ size_t fd_uart_instance_tx(fd_uart_instance_t *instance, const uint8_t *data, si
             break;
         }
     }
-    NRF_UARTE_Type *uarte = device->uarte;
-    if (!uarte->EVENTS_TXSTARTED || uarte->EVENTS_ENDTX) {
+    if (device->tx.pending == 0) {
         fd_uart_tx_set_next_dma_buffer(device);
     }
     return i;

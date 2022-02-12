@@ -94,6 +94,8 @@ class Gateway:
                 raise GatewayException("read timeout")
             if data[0] == 0:
                 if len(message) > 0:
+                    if self.trace:
+                        print(f"rx encoded {message.hex() }")
                     decoded = cobs.decode(message)
                     if self.trace:
                         print(f"rx {decoded.hex() }")

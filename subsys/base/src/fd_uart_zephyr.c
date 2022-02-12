@@ -88,7 +88,13 @@ void fd_uart_info_tx_start(fd_uart_info_t *info) {
         int result = uart_tx(info->device, info->tx_buffer, i, SYS_FOREVER_MS);
         fd_assert(result == 0);
     } else {
-        fd_event_set_from_interrupt(info->tx_event);
+        fd_uart_instance_t *instance = info->instance;
+        if (instance->isr_tx_callback) {
+            instance->isr_tx_callback();
+        }
+        if (instance->tx_event_name) {
+            fd_event_set_from_interrupt(info->tx_event);
+        }
     }
 }
 
@@ -103,7 +109,13 @@ void fd_uart_callback_rx_rdy(fd_uart_info_t *info, struct uart_event *event) {
     for (size_t i = 0; i < length; ++i) {
         fd_fifo_put(&info->rx_fifo, data[i]);
     }
-    fd_event_set_from_interrupt(info->rx_event);
+    fd_uart_instance_t *instance = info->instance;
+    if (instance->isr_rx_callback) {
+        instance->isr_rx_callback();
+    }
+    if (instance->rx_event_name) {
+        fd_event_set_from_interrupt(info->rx_event);
+    }
 }
 
 void fd_uart_callback_buf_request(fd_uart_info_t *info, struct uart_event *event) {
@@ -207,8 +219,12 @@ void fd_uart_instance_initialize(fd_uart_instance_t *instance) {
     fd_fifo_initialize(&info->tx_fifo, info->tx_fifo_buffer, sizeof(info->tx_fifo_buffer));
     fd_fifo_initialize(&info->rx_fifo, info->rx_fifo_buffer, sizeof(info->rx_fifo_buffer));
 
-    info->tx_event = fd_event_get_identifier(instance->tx_event_name);
-    info->rx_event = fd_event_get_identifier(instance->rx_event_name);
+    if (instance->tx_event_name) {
+        info->tx_event = fd_event_get_identifier(instance->tx_event_name);
+    }
+    if (instance->rx_event_name) {
+        info->rx_event = fd_event_get_identifier(instance->rx_event_name);
+    }
 
     info->device = device_get_binding(instance->uart_device_name);
     fd_assert(info->device != 0);
