@@ -210,6 +210,33 @@ size_t fd_uart_instance_rx(fd_uart_instance_t *instance, uint8_t *data, size_t l
     return count;
 }
 
+void fd_uart_instance_configure(fd_uart_instance_t *instance, const fd_uart_configuration_t *configuration) {
+    fd_uart_info_t *info = fd_uart_get_info(instance);
+    struct uart_config config;
+    uart_config_get(info->device, &config);
+    config.baudrate = configuration->baud_rate;
+    switch (configuration->parity) {
+        case fd_uart_parity_none:
+            config.parity = UART_CFG_PARITY_NONE;
+        break;
+        case fd_uart_parity_even:
+            config.parity = UART_CFG_PARITY_EVEN;
+        break;
+        case fd_uart_parity_odd:
+            config.parity = UART_CFG_PARITY_ODD;
+        break;
+    }
+    switch (configuration->stop_bits) {
+        case fd_uart_stop_bits_1:
+            config.stop_bits = UART_CFG_STOP_BITS_1;
+        break;
+        case fd_uart_stop_bits_2:
+            config.stop_bits = UART_CFG_STOP_BITS_2;
+        break;
+    }
+    uart_configure(info->device, &config);
+}
+
 void fd_uart_instance_initialize(fd_uart_instance_t *instance) {
     fd_assert(fd_uart.info_count < fd_uart_info_limit);
     fd_uart_info_t *info = &fd_uart.infos[fd_uart.info_count++];
