@@ -791,7 +791,7 @@ bool fd_boot_install(
     }
 
     uint32_t executable_length = metadata->executable_metadata.length;
-    uint32_t block_count = executable_length / FD_BOOT_HASH_BLOCK_SIZE;
+    uint32_t block_count = executable_length / FD_BOOT_DECRYPT_BLOCK_SIZE;
     if (block_count < 1) {
         block_count = 1;
     }
