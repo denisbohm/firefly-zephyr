@@ -1,6 +1,7 @@
 #include "fd_usb_cdc.h"
 
 #include "fd_assert.h"
+#include "fd_event.h"
 
 #include <device.h>
 #include <drivers/uart.h>
@@ -15,6 +16,7 @@
 
 typedef struct {
     fd_usb_cdc_configuration_t configuration;
+    uint32_t rx_event;
     const struct device *dev;
     uint8_t rx_ring_buffer[RING_BUF_SIZE];
     struct ring_buf rx_ring_buf;
@@ -40,7 +42,11 @@ static void fd_usb_cdc_zephyr_irq_callback(const struct device *dev, void *user_
             if (rb_len < recv_len) {
                 fd_usb_cdc_zephyr.rx_drop_count += recv_len - rb_len;
             }
-            k_work_submit(&fd_usb_cdc_zephyr.rx_work);
+            if (fd_usb_cdc_zephyr.configuration.rx_event_name) {
+                fd_event_set_from_interrupt(fd_usb_cdc_zephyr.rx_event);
+            } else {
+                k_work_submit(&fd_usb_cdc_zephyr.rx_work);
+            }
         }
 
         if (uart_irq_tx_ready(dev)) {
@@ -54,10 +60,18 @@ bool fd_usb_cdc_tx_data(const uint8_t *data, size_t length) {
     return send_len == length;
 }
 
-void fd_usb_cdc_zephyr_rx_work(struct k_work *work) {
+void fd_usb_cdc_zephyr_rx(void) {
     uint8_t buffer[64];
     int length = ring_buf_get(&fd_usb_cdc_zephyr.rx_ring_buf, buffer, sizeof(buffer));
     fd_usb_cdc_zephyr.configuration.rx_data(buffer, length);
+}
+
+void fd_usb_cdc_zephyr_rx_work(struct k_work *work) {
+    fd_usb_cdc_zephyr_rx();
+}
+
+void fd_usb_cdc_zephyr_rx_callback(uint32_t identifier) {
+    fd_usb_cdc_zephyr_rx();
 }
 
 void fd_usb_cdc_initialize(fd_usb_cdc_configuration_t configuration) {
@@ -65,7 +79,12 @@ void fd_usb_cdc_initialize(fd_usb_cdc_configuration_t configuration) {
 
     fd_usb_cdc_zephyr.configuration = configuration;
 
-    k_work_init(&fd_usb_cdc_zephyr.rx_work, fd_usb_cdc_zephyr_rx_work);
+    if (configuration.rx_event_name != 0) {
+        fd_usb_cdc_zephyr.rx_event = fd_event_get_identifier(configuration.rx_event_name);
+        fd_event_add_callback(fd_usb_cdc_zephyr.rx_event, fd_usb_cdc_zephyr_rx_callback);
+    } else {
+        k_work_init(&fd_usb_cdc_zephyr.rx_work, fd_usb_cdc_zephyr_rx_work);
+    }
 
     fd_usb_cdc_zephyr.dev = device_get_binding("CDC_ACM_0");
     if (!fd_usb_cdc_zephyr.dev) {

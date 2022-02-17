@@ -9,6 +9,7 @@ typedef void (*fd_usb_cdc_rx_data_t)(const uint8_t *data, size_t length);
 
 typedef struct {
     fd_usb_cdc_rx_data_t rx_data;
+    const char *rx_event_name;
 } fd_usb_cdc_configuration_t;
 
 void fd_usb_cdc_initialize(fd_usb_cdc_configuration_t configuration);
