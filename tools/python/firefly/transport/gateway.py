@@ -26,7 +26,7 @@ class Gateway:
             parity=serial.PARITY_NONE,
             stopbits=serial.STOPBITS_ONE,
             bytesize=serial.EIGHTBITS,
-            timeout=0.5
+            timeout=1.0
         )
         self.waiting_message = bytearray()
         self.trace = False
