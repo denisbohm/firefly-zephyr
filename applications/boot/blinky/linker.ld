@@ -32,15 +32,13 @@
 
 #include <pm_config.h>
 
-#ifdef LINK_INTO_s1
+#if CONFIG_NCS_IS_VARIANT_IMAGE
 /* We are linking against S1, create symbol containing the flash ID of S0.
  * This is used when writing code operating on the "other" slot.
  */
 _image_1_primary_slot_id = PM_S0_ID;
 
-#define ROM_ADDR PM_ADDRESS + PM_S1_ADDRESS - PM_S0_ADDRESS
-
-#else /* ! LINK_INTO_s1 */
+#else /* ! CONFIG_NCS_IS_VARIANT_IMAGE */
 
 #ifdef PM_S1_ID
 /* We are linking against S0, create symbol containing the flash ID of S1.
@@ -49,8 +47,9 @@ _image_1_primary_slot_id = PM_S0_ID;
 _image_1_primary_slot_id = PM_S1_ID;
 #endif /* PM_S1_ID */
 
+#endif /* CONFIG_NCS_IS_VARIANT_IMAGE */
+
 #define ROM_ADDR PM_ADDRESS
-#endif /* LINK_MCUBOOT_INTO_s1 */
 #define ROM_SIZE PM_SIZE
 
 #define RAM_SIZE PM_SRAM_SIZE
@@ -129,21 +128,21 @@ MEMORY
     FLASH (rx) : ORIGIN = ROM_ADDR, LENGTH = ROM_SIZE
     SRAM  (wx) : ORIGIN = RAM_ADDR, LENGTH = RAM_SIZE
     /* TI CCFG Registers */
-    LINKER_DT_REGION_FROM_NODE(FLASH_CCFG, rwx, DT_NODELABEL(ti_ccfg_partition))
+    LINKER_DT_REGION_FROM_NODE(DT_NODELABEL(ti_ccfg_partition), rwx)
     /* Data & Instruction Tightly Coupled Memory */
-    LINKER_DT_REGION_FROM_NODE(ITCM, rw, DT_CHOSEN(zephyr_itcm))
-    LINKER_DT_REGION_FROM_NODE(DTCM, rw, DT_CHOSEN(zephyr_dtcm))
+    LINKER_DT_REGION_FROM_NODE(DT_CHOSEN(zephyr_itcm), rw)
+    LINKER_DT_REGION_FROM_NODE(DT_CHOSEN(zephyr_dtcm), rw)
     /* STM32 Core Coupled Memory */
-    LINKER_DT_REGION_FROM_NODE(CCM, rw, DT_CHOSEN(zephyr_ccm))
+    LINKER_DT_REGION_FROM_NODE(DT_CHOSEN(zephyr_ccm), rw)
     /* STM32WB IPC RAM */
-    LINKER_DT_REGION_FROM_NODE(SRAM1, rw, DT_NODELABEL(sram1))
-    LINKER_DT_REGION_FROM_NODE(SRAM2, rw, DT_NODELABEL(sram2))
+    LINKER_DT_REGION_FROM_NODE(DT_NODELABEL(sram1), rw)
+    LINKER_DT_REGION_FROM_NODE(DT_NODELABEL(sram2), rw)
     /* STM32 alternate RAM configurations */
-    LINKER_DT_REGION_FROM_NODE(SRAM3, rw, DT_NODELABEL(sram3))
-    LINKER_DT_REGION_FROM_NODE(SRAM4, rw, DT_NODELABEL(sram4))
-    LINKER_DT_REGION_FROM_NODE(SDRAM1, rw, DT_NODELABEL(sdram1))
-    LINKER_DT_REGION_FROM_NODE(SDRAM2, rw, DT_NODELABEL(sdram2))
-    LINKER_DT_REGION_FROM_NODE(BACKUP_SRAM, rw, DT_NODELABEL(backup_sram))
+    LINKER_DT_REGION_FROM_NODE(DT_NODELABEL(sram3), rw)
+    LINKER_DT_REGION_FROM_NODE(DT_NODELABEL(sram4), rw)
+    LINKER_DT_REGION_FROM_NODE(DT_NODELABEL(sdram1), rw)
+    LINKER_DT_REGION_FROM_NODE(DT_NODELABEL(sdram2), rw)
+    LINKER_DT_REGION_FROM_NODE(DT_NODELABEL(backup_sram), rw)
     /* Used by and documented in include/linker/intlist.ld */
     IDT_LIST (wx) : ORIGIN = 0xFFFFF7FF, LENGTH = 2K
     }

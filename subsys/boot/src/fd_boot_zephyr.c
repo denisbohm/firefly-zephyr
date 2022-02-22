@@ -7,6 +7,7 @@
 #include <fs/fs.h>
 #include <ff.h>
 #include <drivers/flash.h>
+#include <drivers/timer/system_timer.h>
 #include <storage/flash_map.h>
 
 #include <string.h>
@@ -91,7 +92,7 @@ bool fd_boot_zephyr_hash_initialize(
         return false;
     }
     mbedtls_md_init(&fd_boot_zephyr_hash.ctx);
-    if (mbedtls_md_init_ctx(&fd_boot_zephyr_hash.ctx, fd_boot_zephyr_hash.md_info) != 0) {
+    if (mbedtls_md_setup(&fd_boot_zephyr_hash.ctx, fd_boot_zephyr_hash.md_info, 1) != 0) {
         fd_boot_set_error(error, 1);
         return false;
     }
@@ -183,8 +184,6 @@ bool fd_boot_zephyr_executable_read(void *context, uint32_t location, uint8_t *d
     memcpy(data, (uint8_t *)location, length);
     return true;
 }
-
-extern void sys_clock_disable(void);
 
 bool fd_boot_zephyr_executor_cleanup(fd_boot_error_t *error) {
     sys_clock_disable();
