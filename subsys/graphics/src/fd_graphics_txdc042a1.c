@@ -97,7 +97,9 @@ static void fd_graphics_txdc042a1_update(fd_graphics_t *graphics) {
     if (fd_graphics_area_is_empty(impl->modified_area)) {
         return;
     }
-    fd_graphics_txdc042a1_blit(graphics, impl->modified_area);
+//    fd_graphics_txdc042a1_blit(graphics, impl->modified_area);
+    fd_graphics_area_t area = { .x = 0, .y = 0, .width = impl->graphics.width, .height = impl->graphics.height };
+    fd_graphics_txdc042a1_blit(graphics, area);
     impl->modified_area = fd_graphics_area_empty;
 }
 

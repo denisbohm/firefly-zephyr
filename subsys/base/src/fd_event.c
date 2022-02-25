@@ -1,6 +1,7 @@
 #include "fd_event.h"
 
 #include "fd_assert.h"
+#include "fd_interrupt.h"
 
 #include <string.h>
 
@@ -73,20 +74,29 @@ void fd_event_set_from_interrupt(uint32_t identifier) {
 
 void fd_event_process(void) {
     bool is_set[fd_event_item_limit];
+    bool any_set = false;
+    uint32_t state = fd_interrupt_disable();
     for (uint32_t i = 0; i < fd_event.item_count; ++i) {
         fd_event_item_t *item = &fd_event.items[i];
         is_set[i] = item->is_set;
         if (is_set[i]) {
-            // disable interrupts
             item->is_set = false;
-            // enable interrupts
+            any_set = true;
         }
     }
-    for (uint32_t i = 0; i < fd_event.consumer_count; ++i) {
-        fd_event_consumer_t *consumer = &fd_event.consumers[i];
-        uint32_t identifier = consumer->identifier;
-        if (is_set[identifier]) {
-            consumer->callback(identifier);
+#ifdef FD_EVENT_WAIT
+    if (!any_set) {
+        fd_interrupt_wait();
+    }
+#endif
+    fd_interrupt_enable(state);
+    if (any_set) {
+        for (uint32_t i = 0; i < fd_event.consumer_count; ++i) {
+            fd_event_consumer_t *consumer = &fd_event.consumers[i];
+            uint32_t identifier = consumer->identifier;
+            if (is_set[identifier]) {
+                consumer->callback(identifier);
+            }
         }
     }
 }
