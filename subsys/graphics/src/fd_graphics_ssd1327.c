@@ -152,6 +152,14 @@ static void fd_graphics_ssd1327_write_bitmap(fd_graphics_t *graphics, int rx, in
     fd_graphics_ssd1327_blit(graphics, dst_area);
 }
 
+static void fd_graphics_ssd1327_display_on(fd_graphics_t *graphics) {
+    fd_ssd1327_display_on();
+}
+
+static void fd_graphics_ssd1327_display_off(fd_graphics_t *graphics) {
+    fd_ssd1327_display_off();
+}
+
 fd_graphics_t *fd_graphics_ssd1327_get(void) {
     return &fd_graphics_ssd1327.graphics;
 }
@@ -165,6 +173,8 @@ void fd_graphics_ssd1327_initialize(void) {
         .write_area = fd_graphics_ssd1327_write_area,
         .write_image = fd_graphics_ssd1327_write_image,
         .write_bitmap = fd_graphics_ssd1327_write_bitmap,
+        .display_on = fd_graphics_ssd1327_display_on,
+        .display_off = fd_graphics_ssd1327_display_off,
     };
     fd_graphics_initialize(
         &fd_graphics_ssd1327.graphics,

@@ -348,3 +348,15 @@ fd_graphics_metrics_t fd_graphics_get_string_metrics_length(fd_graphics_t *graph
 fd_graphics_metrics_t fd_graphics_get_string_metrics(fd_graphics_t *graphics, const char *string) {
     return fd_graphics_get_string_metrics_length(graphics, string, strlen(string));
 }
+
+void fd_graphics_display_on(fd_graphics_t *graphics) {
+    if (graphics->backend.display_on) {
+        graphics->backend.display_on(graphics);
+    }
+}
+
+void fd_graphics_display_off(fd_graphics_t *graphics) {
+    if (graphics->backend.display_off) {
+        graphics->backend.display_off(graphics);
+    }
+}

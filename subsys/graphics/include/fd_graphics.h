@@ -100,6 +100,8 @@ typedef struct {
     void (*write_image)(fd_graphics_t *graphics, int x, int y, const fd_graphics_image_t *image);
     void (*write_bitmap)(fd_graphics_t *graphics, int x, int y, const fd_graphics_bitmap_t *bitmap);
     void (*update)(fd_graphics_t *graphics);
+    void (*display_on)(fd_graphics_t *graphics);
+    void (*display_off)(fd_graphics_t *graphics);
 } fd_graphics_backend_t;
 
 struct fd_graphics_s {
@@ -139,5 +141,8 @@ void fd_graphics_write_string_length(fd_graphics_t *graphics, int x, int y, cons
 void fd_graphics_write_string(fd_graphics_t *graphics, int x, int y, const char *string);
 
 void fd_graphics_update(fd_graphics_t *graphics);
+
+void fd_graphics_display_on(fd_graphics_t *graphics);
+void fd_graphics_display_off(fd_graphics_t *graphics);
 
 #endif

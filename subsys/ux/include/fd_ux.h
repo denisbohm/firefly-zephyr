@@ -20,15 +20,20 @@ typedef struct {
     fd_graphics_t *graphics;
     fd_ux_screen_t *screens;
     uint32_t screen_count;
+    uint32_t initial_screen;
+    uint32_t idle_ticks;
+    void (*idle)(bool idle);
 } fd_ux_configuration_t;
 
 void fd_ux_initialize(fd_ux_configuration_t *configuration);
 
 void fd_ux_button_event(const fd_ux_button_event_t *event);
 
-bool fd_ux_is_powered_on(void);
-void fd_ux_power_on(void);
-void fd_ux_power_off(void);
+bool fd_ux_get_update_enabled(void);
+void fd_ux_set_update_enabled(bool enable);
+
+bool fd_ux_get_idle(void);
+void fd_ux_set_idle(bool idle);
 
 void fd_ux_set_animation(bool animation);
 

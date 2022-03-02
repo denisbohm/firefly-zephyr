@@ -22,25 +22,14 @@ typedef struct {
     fd_canvas_t canvas;
     fd_ux_screen_t *screen;
 
-    bool is_off;
+    bool update_enabled;
     uint32_t tick_event;
+    uint32_t idle_ticks;
     
-    volatile bool animation;
+    bool animation;
 } fd_ux_t;
 
 fd_ux_t fd_ux;
-
-bool fd_ux_is_powered_on(void) {
-    return !fd_ux.is_off;
-}
-
-void fd_ux_power_off(void) {
-    fd_ux.is_off = true;
-}
-
-void fd_ux_power_on(void) {
-    fd_ux.is_off = false;
-}
 
 void fd_ux_update(void) {
     if (fd_ux.screen->animate) {
@@ -53,12 +42,51 @@ void fd_ux_update(void) {
     fd_canvas_render(canvas);
 }
 
+bool fd_ux_get_update_enabled(void) {
+    return !fd_ux.update_enabled;
+}
+
+void fd_ux_set_update_enabled(bool update_enabled) {
+    fd_ux.update_enabled = update_enabled;
+}
+
+bool fd_ux_get_idle(void) {
+    return (fd_ux.configuration->idle_ticks != 0) && (fd_ux.idle_ticks > fd_ux.configuration->idle_ticks);
+}
+
+void fd_ux_set_idle(bool idle) {
+    if (idle) {
+        fd_ux.idle_ticks = fd_ux.configuration->idle_ticks + 1;
+    } else {
+        fd_ux.idle_ticks = 0;
+    }
+}
+
 void fd_ux_button_event(const fd_ux_button_event_t *event) {
+    bool idle = fd_ux_get_idle();
+    fd_ux.idle_ticks = 0;
+    if (idle) {
+        if (fd_ux.configuration->idle) {
+            fd_ux.configuration->idle(false);
+        }
+    }
+
     fd_ux.screen->button(event);
 }
 
 void fd_ux_tick_event(uint32_t identifier) {
-    if (!fd_ux.is_off) {
+    if (fd_ux.configuration->idle_ticks != 0) {
+        if (!fd_ux_get_idle()) {
+            ++fd_ux.idle_ticks;
+            if (fd_ux.idle_ticks > fd_ux.configuration->idle_ticks) {
+                if (fd_ux.configuration->idle) {
+                    fd_ux.configuration->idle(true);
+                }
+            }
+        }
+    }
+
+    if (fd_ux.update_enabled) {
         fd_ux_update();
     }
 }
@@ -80,10 +108,10 @@ void fd_ux_initialize(fd_ux_configuration_t *configuration) {
 
     fd_canvas_initialize(&fd_ux.canvas);
     fd_ux.canvas.graphics = configuration->graphics;
-    
-    fd_ux_set_screen(0);
 
     fd_ux.animation = true;
+    fd_ux.update_enabled = true;
+    fd_ux_set_screen(fd_ux.configuration->initial_screen);
 }
 
 static void fd_ux_set_screen_to(uint32_t screen_id, bool preview) {
