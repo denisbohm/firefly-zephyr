@@ -17,6 +17,10 @@ bool fd_ux_button_is_activated(const fd_ux_button_event_t *event, uint32_t mask)
     return ((event->buttons_0 & mask) == 0) && (((event->buttons_n | event->changes) & mask) != 0);
 }
 
+bool fd_ux_button_is_deactivated(const fd_ux_button_event_t *event, uint32_t mask) {
+    return ((event->buttons_0 & mask) == mask) && (((event->buttons_n | event->changes) & mask) == 0);
+}
+
 bool fd_ux_button_is_one_activated(const fd_ux_button_event_t *event, uint32_t mask) {
     return (event->buttons_0 == 0) && ((event->buttons_n | event->changes) == mask);
 }

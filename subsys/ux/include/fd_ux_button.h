@@ -29,4 +29,6 @@ bool fd_ux_button_is_one_activated(const fd_ux_button_event_t *event, uint32_t m
 bool fd_ux_button_is_any_activated(const fd_ux_button_event_t *event, uint32_t mask);
 bool fd_ux_button_is_all_activated(const fd_ux_button_event_t *event, uint32_t mask);
 
+bool fd_ux_button_is_deactivated(const fd_ux_button_event_t *event, uint32_t mask);
+
 #endif
