@@ -18,6 +18,7 @@ fd_ssd1327_t fd_ssd1327;
 #define fd_SSD1327_SET_ROW_ADDRESS    0x75
 #define fd_SSD1327_SET_DISPLAY_OFF    0xAE
 #define fd_SSD1327_SET_DISPLAY_ON     0xAF
+#define fd_SSD1327_SET_CONTRAST       0x81
 
 static void fd_ssd1327_cs_enable(void) {
     fd_gpio_set(fd_ssd1327.configuration.csx, false);
@@ -84,7 +85,7 @@ void fd_ssd1327_send_commands(const uint8_t *data, size_t length) {
 static void fd_ssd1327_send_init_sequence(void) {
     fd_ssd1327_reset();
 
-    uint8_t data[] = {
+    const uint8_t data[] = {
         0xfd, 0x12,       // unlock 
         0xae,             // display off
         0x15, 0x00, 0x7f, // set column address, start column 0, end column 127
@@ -117,6 +118,12 @@ void fd_ssd1327_display_off(void) {
     fd_ssd1327_cs_enable();
     fd_ssd1327_write_command_byte(fd_SSD1327_SET_DISPLAY_OFF);
     fd_ssd1327_cs_disable();
+}
+
+void fd_ssd1327_set_contrast(float contrast) {
+    uint8_t value = (uint8_t)(256.0f * contrast);
+    const uint8_t data[] = { 0x81, value };
+    fd_ssd1327_send_commands(data, sizeof(data));
 }
 
 void fd_ssd1327_initialize(fd_ssd1327_configuration_t configuration) {

@@ -27,6 +27,7 @@ typedef struct {
 
 void fd_ux_initialize(fd_ux_configuration_t *configuration);
 
+void fd_ux_tick(void);
 void fd_ux_button_event(const fd_ux_button_event_t *event);
 
 bool fd_ux_get_update_enabled(void);

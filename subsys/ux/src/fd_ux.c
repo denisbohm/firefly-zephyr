@@ -2,19 +2,10 @@
 
 #include "fd_assert.h"
 #include "fd_canvas.h"
-#include "fd_event.h"
 #include "fd_gpio.h"
 
 #include <stdio.h>
 #include <string.h>
-
-typedef struct {
-    char *tick_event_name;
-} fd_ux_static_t;
-
-static const fd_ux_static_t fd_ux_static = {
-    .tick_event_name = "fd_ux.tick",
-};
 
 typedef struct {
     fd_ux_configuration_t *configuration;
@@ -74,7 +65,7 @@ void fd_ux_button_event(const fd_ux_button_event_t *event) {
     fd_ux.screen->button(event);
 }
 
-void fd_ux_tick_event(uint32_t identifier) {
+void fd_ux_tick(void) {
     if (fd_ux.configuration->idle_ticks != 0) {
         if (!fd_ux_get_idle()) {
             ++fd_ux.idle_ticks;
@@ -95,9 +86,6 @@ void fd_ux_initialize(fd_ux_configuration_t *configuration) {
     memset(&fd_ux, 0, sizeof(fd_ux));
     fd_ux.configuration = configuration;
     
-    fd_ux.tick_event = fd_event_get_identifier(fd_ux_static.tick_event_name);
-    fd_event_add_callback(fd_ux.tick_event, fd_ux_tick_event);
-
     for (int id = 0; id < fd_ux.configuration->screen_count; ++id) {
         fd_ux.configuration->screens[id].id = id;
     }
