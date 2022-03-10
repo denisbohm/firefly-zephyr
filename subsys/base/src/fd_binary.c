@@ -22,7 +22,7 @@ uint32_t fd_binary_unpack_uint32(uint8_t *buffer) {
 
 uint64_t fd_binary_unpack_uint64(uint8_t *buffer) {
     uint64_t lo = fd_binary_unpack_uint32(buffer);
-    uint64_t hi = fd_binary_unpack_uint32(&buffer[8]);
+    uint64_t hi = fd_binary_unpack_uint32(&buffer[4]);
     return (hi << 32) | lo;
 }
 
