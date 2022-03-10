@@ -89,6 +89,6 @@ void fd_ux_button_initialize(const fd_ux_button_configuration_t *configuration) 
 
     for (uint32_t i = 0; i < fd_ux_button.configuration.count; ++i) {
         fd_gpio_t gpio = fd_ux_button.configuration.gpios[i];
-        fd_gpio_set_callback(gpio, fd_ux_button_changed);
+        fd_gpio_set_callback(gpio, fd_gpio_edge_both, fd_ux_button_changed);
     }
 }

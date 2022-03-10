@@ -4,7 +4,7 @@
 #include "fd_gpio.h"
 
 void fd_i2cm_bitbang_delay(void) {
-    fd_delay_us(5);
+    fd_delay_us(1);
 }
 
 void fd_i2cm_bitbang_configure_in(const fd_i2cm_bus_t *bus) {

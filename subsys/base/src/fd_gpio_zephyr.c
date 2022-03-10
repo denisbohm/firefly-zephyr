@@ -59,9 +59,22 @@ void fd_gpio_callback_handler(const struct device *device, struct gpio_callback 
     }
 }
 
-void fd_gpio_set_callback(fd_gpio_t gpio, fd_gpio_callback_t callback) {
+void fd_gpio_set_callback(fd_gpio_t gpio, fd_gpio_edge_t edge, fd_gpio_callback_t callback) {
     fd_gpio_port_metadata_t *metadata = fd_gpio_get_metadata(gpio.port);
-    int result = gpio_pin_interrupt_configure(metadata->device, gpio.pin, GPIO_INT_EDGE_BOTH);
+    int flags;
+    switch (edge) {
+        case fd_gpio_edge_rising:
+            flags = GPIO_INT_EDGE_RISING;
+            break;
+        case fd_gpio_edge_falling:
+            flags = GPIO_INT_EDGE_FALLING;
+            break;
+        case fd_gpio_edge_both:
+        default:
+            flags = GPIO_INT_EDGE_BOTH;
+            break;
+    }
+    int result = gpio_pin_interrupt_configure(metadata->device, gpio.pin, flags);
     fd_assert(result == 0);
     
     metadata->callbacks[gpio.pin] = callback;
