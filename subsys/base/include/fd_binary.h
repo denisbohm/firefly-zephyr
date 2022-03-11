@@ -29,12 +29,8 @@ typedef struct {
     uint32_t size;
     uint32_t put_index;
     uint32_t get_index;
-    uint32_t options;
     uint32_t errors;
 } fd_binary_t;
-
-#define fd_binary_option_little_endian 0x00000001
-#define fd_binary_option_big_endian    0x00000002
 
 #define fd_binary_error_overflow               0x00000001
 #define fd_binary_error_invalid_representation 0x00000002
