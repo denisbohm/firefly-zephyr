@@ -2,6 +2,7 @@ set(OVERLAY_CONFIG Kconfig)
 
 zephyr_include_directories(include)
 
+zephyr_sources_ifdef(CONFIG_FIREFLY_SUBSYS_STORAGE_FATFS src/fd_storage_fatfs.c)
+zephyr_sources_ifdef(CONFIG_FIREFLY_SUBSYS_STORAGE_QSPI_ENTER_FOUR_BYTE_ADDRESSING_MODE src/fd_qspi_nrf5.c)
 zephyr_sources_ifdef(CONFIG_FIREFLY_SUBSYS_STORAGE_SDCARD src/fd_sdcard.c)
 zephyr_sources_ifdef(CONFIG_FIREFLY_SUBSYS_STORAGE_SDCARD src/fd_sdcard_spi_zephyr.c)
-zephyr_sources_ifdef(CONFIG_FIREFLY_SUBSYS_STORAGE_FATFS src/fd_storage_fatfs.c)

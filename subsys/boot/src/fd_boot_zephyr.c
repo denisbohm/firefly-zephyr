@@ -185,6 +185,9 @@ bool fd_boot_zephyr_executable_read(void *context, uint32_t location, uint8_t *d
     return true;
 }
 
+// !!! can be removed for ncs 1.9
+extern void sys_clock_disable(void);
+
 bool fd_boot_zephyr_executor_cleanup(fd_boot_error_t *error) {
     sys_clock_disable();
 

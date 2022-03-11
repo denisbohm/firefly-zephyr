@@ -10,9 +10,24 @@ config FIREFLY_SUBSYS_STORAGE_FATFS
 	help
 	  Build FATFS storage functions.
 
+config FIREFLY_SUBSYS_STORAGE_QSPI_ENTER_FOUR_BYTE_ADDRESSING_MODE
+        bool "Enable QSPI four byte addressing"
+	help
+	  Enable entering four byte addressing mode for nRF QSPI during kernel initialization.
+
+if FIREFLY_SUBSYS_STORAGE_QSPI_ENTER_FOUR_BYTE_ADDRESSING_MODE
+
+config FIREFLY_SUBSYS_STORAGE_QSPI_ENTER_FOUR_BYTE_ADDRESSING_MODE_OPCODE
+        hex "Opcode for entering four byte addressing mode"
+        default 0xB7
+	help
+	  Define the opcode for entering four byte addressing mode.
+
+endif
+
 config FIREFLY_SUBSYS_STORAGE_SDCARD
         bool "Enable SDCARD functions"
 	help
-	  Build SDCARD functions functions.
+	  Build SDCARD functions.
 
 endif
