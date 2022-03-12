@@ -5,14 +5,13 @@
 #include <stddef.h>
 #include <stdint.h>
 
-typedef void (*fd_usb_cdc_rx_data_t)(const uint8_t *data, size_t length);
-
 typedef struct {
-    fd_usb_cdc_rx_data_t rx_data;
-    const char *rx_event_name;
+    void (*rx_ready)(void);
 } fd_usb_cdc_configuration_t;
 
 void fd_usb_cdc_initialize(fd_usb_cdc_configuration_t configuration);
+
+size_t fd_usb_cdc_get_rx_data(uint8_t *buffer, size_t size);
 
 bool fd_usb_cdc_tx_data(const uint8_t *data, size_t length);
 
