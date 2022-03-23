@@ -10,10 +10,13 @@ typedef enum {
     fd_system_dispatch_operation_get_assert,
 } fd_system_dispatch_operation_t;
 
+#ifndef fd_system_dispatch_failure_limit
+#define fd_system_dispatch_failure_limit 1
+#endif
+
 typedef struct {
-    const char *file;
-    int line;
-    char message[32];
+    uint32_t failure_count;
+    fd_system_dispatch_failure_t failures[fd_system_dispatch_failure_limit];
 } fd_system_dispatch_t;
 
 fd_system_dispatch_t fd_system_dispatch;
@@ -44,15 +47,16 @@ bool fd_system_dispatch_get_assert(fd_binary_t *message, fd_envelope_t *envelope
     fd_binary_initialize(&response, buffer, sizeof(buffer));
     fd_binary_put_uint8(&response, fd_system_dispatch_operation_get_assert);
     fd_binary_put_uint32(&response, fd_assert_get_count());
-    const char *file = fd_system_dispatch.file;
-    if (file) {
-        char *slash = strrchr(file, '/');
+    for (uint32_t i = 0; i < fd_system_dispatch.failure_count; ++i) {
+        const fd_system_dispatch_failure_t *failure = &fd_system_dispatch.failures[i];
+        const char *file = failure->file;
+        const char *slash = strrchr(file, '/');
         if (slash) {
             file = slash + 1;
         }
         fd_binary_put_string(&response, file);
-        fd_binary_put_uint32(&response, fd_system_dispatch.line);
-        fd_binary_put_string(&response, fd_system_dispatch.message);
+        fd_binary_put_uint32(&response, failure->line);
+        fd_binary_put_string(&response, failure->message);
     }
     fd_envelope_t response_envelope = {
         .target = envelope->source,
@@ -76,21 +80,33 @@ bool fd_system_dispatch_process(fd_binary_t *message, fd_envelope_t *envelope, f
     }
 }
 
-void fd_system_assert_callback(const char *file, int line, const char *message) {
-    if (fd_system_dispatch.file != 0) {
+uint32_t fd_system_dispatch_get_failure_count(void) {
+    return fd_system_dispatch.failure_count;
+}
+
+const fd_system_dispatch_failure_t *fd_system_dispatch_get_failure(uint32_t index) {
+    if (index >= fd_system_dispatch.failure_count) {
+        return 0;
+    }
+    return &fd_system_dispatch.failures[fd_system_dispatch.failure_count++];
+}
+
+void fd_system_dispatch_add_failure(const char *file, int line, const char *message) {
+    if (fd_system_dispatch.failure_count >= fd_system_dispatch_failure_limit) {
         return;
     }
 
-    fd_system_dispatch.file = file;
-    fd_system_dispatch.line = line;
-    strncpy(fd_system_dispatch.message, message, sizeof(fd_system_dispatch.message));
-    fd_system_dispatch.message[sizeof(fd_system_dispatch.message) - 1] = '\0';
+    fd_system_dispatch_failure_t *failure = &fd_system_dispatch.failures[fd_system_dispatch.failure_count++];
+    failure->file = file;
+    failure->line = line;
+    strncpy(failure->message, message, sizeof(failure->message));
+    failure->message[sizeof(failure->message) - 1] = '\0';
 }
 
 void fd_system_dispatch_initialize(void) {
     memset(&fd_system_dispatch, 0, sizeof(fd_system_dispatch));
 
-    fd_assert_set_callback(fd_system_assert_callback);
+    fd_assert_set_callback(fd_system_dispatch_add_failure);
 
     fd_dispatch_add_process(fd_envelope_system_firefly, fd_envelope_subsystem_system, fd_system_dispatch_process);
 }

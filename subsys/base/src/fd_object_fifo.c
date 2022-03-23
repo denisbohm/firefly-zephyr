@@ -6,7 +6,7 @@ void fd_object_fifo_initialize(fd_object_fifo_t *fifo, uint8_t *buffer, size_t s
     memset(fifo, 0, sizeof(*fifo));
     fifo->buffer = buffer;
     fifo->object_size = object_size;
-    fifo->size = size / object_size;
+    fifo->size = (uint32_t)(size / object_size);
     fd_assert(fifo->size >= 1);
 }
 

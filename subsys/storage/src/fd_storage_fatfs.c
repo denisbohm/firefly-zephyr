@@ -26,6 +26,18 @@ void fd_storage_fatfs_initialize(void) {
     memset(&fd_storage_fatfs, 0, sizeof(fd_storage_fatfs));
 }
 
+uint64_t fd_storage_fatfs_get_free(void) {
+    FATFS *fs;
+    DWORD free_clusters;
+    FRESULT result = f_getfree("NAND:", &free_clusters, &fs);
+    if (result != FR_OK) {
+        return 0.0f;
+    }
+    // DWORD total_sectors = (fs->n_fatent - 2) * fs->csize;
+    DWORD free_sectors = free_clusters * fs->csize;
+    return free_sectors * 512;
+}
+
 #ifdef fd_storage_fatfs_32bit_mode
 static void fd_storage_fatfs_qspi_instruction(uint8_t opcode) {
     nrf_qspi_cinstr_conf_t cinstr_cfg = {

@@ -26,6 +26,11 @@ func fd_uart_initialize() {
 func fd_uart_instance_initialize(instance: fd_uart_instance_t) {
 }
 
+// void fd_uart_instance_configure(fd_uart_instance_t *instance, const fd_uart_configuration_t *configuration);
+@_cdecl("fd_uart_instance_configure")
+func fd_uart_instance_configure(instance: fd_uart_instance_t, configuration: fd_uart_configuration_t) {
+}
+
 // size_t fd_uart_instance_tx(fd_uart_instance_t *instance, const uint8_t *data, size_t length);
 @_cdecl("fd_uart_instance_tx")
 func fd_uart_instance_tx(instance: fd_uart_instance_t, data: UnsafePointer<UInt8>, length: size_t) -> size_t {

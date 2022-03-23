@@ -214,6 +214,11 @@ class SimulateSSD1327 {
 
 let simulateSSD1327 = SimulateSSD1327()
 
+// void fd_ssd1327_bus_4_wire_spi_configure(fd_ssd1327_bus_4_wire_spi_configuration_t configuration);
+@_cdecl("fd_ssd1327_bus_4_wire_spi_configure")
+func fd_ssd1327_bus_4_wire_spi_configure(configuration: fd_ssd1327_bus_4_wire_spi_configuration_t) {
+}
+
 // void fd_ssd1327_bus_initialize(void);
 @_cdecl("fd_ssd1327_bus_initialize")
 func fd_ssd1327_bus_initialize() {

@@ -14,6 +14,8 @@ const char *fd_storage_fatfs_get_path(void);
 // buffer must be at least 4096 bytes
 bool fd_storage_fatfs_format(uint8_t *buffer, size_t size);
 
+uint64_t fd_storage_fatfs_get_free(void);
+
 bool fd_storage_fatfs_mount(void);
 void fd_storage_fatfs_unmount(void);
 
