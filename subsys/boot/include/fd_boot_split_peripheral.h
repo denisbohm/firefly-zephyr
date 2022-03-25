@@ -22,6 +22,7 @@ typedef struct {
 
     void (*transmit)(const uint8_t *data, uint32_t length);
     fd_boot_split_peripheral_timer_t timer;
+    bool return_on_error;
 
     fd_boot_update_interface_t update_interface;
 } fd_boot_split_peripheral_configuration_t;

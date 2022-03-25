@@ -527,7 +527,9 @@ bool fd_boot_split_peripheral_start(fd_boot_split_peripheral_configuration_t *co
 
     while (true) {
         if (!fd_boot_split_peripheral_io(error)) {
-            return false;
+            if (configuration->return_on_error) {
+                return false;
+            }
         }
     }
 
