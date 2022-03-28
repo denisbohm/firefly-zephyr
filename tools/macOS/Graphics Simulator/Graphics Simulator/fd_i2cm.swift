@@ -7,9 +7,39 @@
 
 import Foundation
 
+class SimulateI2CMDevice {
+    
+    let address: UInt32
+    
+    init(address: UInt32) {
+        self.address = address
+    }
+    
+    func fd_i2cm_device_io(device: UnsafePointer<fd_i2cm_device_t>, io: UnsafePointer<fd_i2cm_io_t>) -> Bool {
+        return false
+    }
+    
+}
+
 class SimulateI2CM {
     
+    var devices: [UInt32: SimulateI2CMDevice]
+    
     init() {
+        self.devices = [:]
+    }
+    
+    func addDevice(device: SimulateI2CMDevice) {
+        self.devices[device.address] = device
+    }
+    
+    func fd_i2cm_device_io(device: UnsafePointer<fd_i2cm_device_t>, io: UnsafePointer<fd_i2cm_io_t>) -> Bool {
+        let address = device.pointee.address
+        if !self.devices.keys.contains(address) {
+            return false
+        }
+        let simulation = self.devices[address]!
+        return simulation.fd_i2cm_device_io(device: device, io: io)
     }
     
 }
@@ -21,7 +51,7 @@ var simulateI2CM = SimulateI2CM()
 //     const fd_i2cm_device_t *devices, uint32_t device_count
 // );
 @_cdecl("fd_i2cm_initialize")
-func fd_i2cm_initialize(buses: fd_i2cm_bus_t, bus_count: UInt32, devices: fd_i2cm_device_t, device_count: UInt32) {
+func fd_i2cm_initialize(buses: UnsafePointer<fd_i2cm_bus_t>, bus_count: UInt32, devices: UnsafePointer<fd_i2cm_device_t>, device_count: UInt32) {
 }
 
 // const fd_i2cm_bus_t *fd_i2cm_get_bus(int index);
@@ -60,8 +90,8 @@ func fd_i2cm_bus_is_enabled(bus: fd_i2cm_bus_t) -> Bool {
 // start asynchronous I/O
 // bool fd_i2cm_device_io(const fd_i2cm_device_t *device, const fd_i2cm_io_t *io);
 @_cdecl("fd_i2cm_device_io")
-func fd_i2cm_device_io(device: UnsafePointer<fd_i2cm_device_t>?, io: fd_i2cm_io_t) -> Bool {
-    return false
+func fd_i2cm_device_io(device: UnsafePointer<fd_i2cm_device_t>, io: UnsafePointer<fd_i2cm_io_t>) -> Bool {
+    return simulateI2CM.fd_i2cm_device_io(device: device, io: io);
 }
 
 // wait for asynchronous I/O to complete

@@ -50,4 +50,6 @@ fd_work_queue_wait_result_t fd_work_queue_wait(fd_work_queue_t *queue);
 
 bool fd_work_queue_process(fd_work_queue_t *queue, float elapsed);
 
+bool fd_work_queue_process_all(float elapsed);
+
 #endif
