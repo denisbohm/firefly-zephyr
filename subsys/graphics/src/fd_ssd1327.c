@@ -101,7 +101,7 @@ static void fd_ssd1327_send_init_sequence(void) {
         0xab, 0x01,       // function selection a: enable vdd regulator
         0xb6, 0x0f,       // set second precharge period
         0xbe, 0x0f,       // set VCOMH voltage
-        0xbc, 0x08,       // set precharge voltage
+        0xbc, 0x00,       // set precharge voltage
         0xd5, 0x62,       // function selection b
     };
     fd_ssd1327_send_commands(data, sizeof(data));
