@@ -39,13 +39,16 @@ zephyr_sources(src/fd_timing_nrf5.c)
 zephyr_sources(src/fd_uart_zephyr.c)
 zephyr_sources(src/fd_version.c)
 
+if(CONFIG_FIREFLY_SUBSYS_BASE_LOG)
+    zephyr_sources(src/fd_log_zephyr.c)
+endif()
+
+if(CONFIG_FIREFLY_SUBSYS_BASE_TEST)
+    zephyr_sources(src/fd_test.c)
+endif()
+
 if(CONFIG_FIREFLY_SUBSYS_BASE_WORK_ZEPHYR)
     zephyr_sources(src/fd_work_zephyr.c)
 else()
     zephyr_sources(src/fd_work.c)
 endif()
-
-if(CONFIG_FIREFLY_SUBSYS_BASE_LOG)
-    zephyr_sources(src/fd_log_zephyr.c)
-endif()
-

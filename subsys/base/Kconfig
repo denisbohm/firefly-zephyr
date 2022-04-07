@@ -10,10 +10,14 @@ config FIREFLY_SUBSYS_BASE_LOG
 	help
 	  Enable Firefly Base Log.
 
+config FIREFLY_SUBSYS_BASE_TEST
+	bool "BASE TEST"
+	help
+	  Enable Firefly Base Test.
+
 config FIREFLY_SUBSYS_BASE_WORK_ZEPHYR
 	bool "BASE WORK ZEPHYR"
 	help
 	  Enable Firefly Base Work Zephyr.
 
 endif
-

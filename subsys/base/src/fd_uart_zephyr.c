@@ -237,6 +237,13 @@ void fd_uart_instance_configure(fd_uart_instance_t *instance, const fd_uart_conf
     uart_configure(info->device, &config);
 }
 
+void fd_uart_instance_reset(fd_uart_instance_t *instance) {
+    fd_assert(fd_uart.info_count < fd_uart_info_limit);
+    fd_uart_info_t *info = &fd_uart.infos[fd_uart.info_count++];
+    fd_fifo_flush(&info->rx_fifo);
+    fd_fifo_flush(&info->tx_fifo);
+}
+
 void fd_uart_instance_initialize(fd_uart_instance_t *instance) {
     fd_assert(fd_uart.info_count < fd_uart_info_limit);
     fd_uart_info_t *info = &fd_uart.infos[fd_uart.info_count++];

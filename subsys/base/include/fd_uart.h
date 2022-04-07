@@ -41,6 +41,8 @@ void fd_uart_initialize(void);
 
 void fd_uart_instance_initialize(fd_uart_instance_t *instance);
 
+void fd_uart_instance_reset(fd_uart_instance_t *instance);
+
 void fd_uart_instance_configure(fd_uart_instance_t *instance, const fd_uart_configuration_t *configuration);
 
 size_t fd_uart_instance_tx(fd_uart_instance_t *instance, const uint8_t *data, size_t length);
