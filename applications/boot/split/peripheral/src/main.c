@@ -56,10 +56,10 @@ void fd_boot_serial_peripheral_transmit(const uint8_t *data, uint32_t length) {
     fd_uart_instance_tx(&fd_boot_serial_peripheral.uart_instance, data, length);
 }
 
-void fd_boot_serial_peripheral_isr_tx(void) {
+void fd_boot_serial_peripheral_isr_tx(void *context) {
 }
 
-void fd_boot_serial_peripheral_isr_rx(void) {
+void fd_boot_serial_peripheral_isr_rx(void *context) {
     uint8_t data[32];
     uint32_t length;
     while (true) {

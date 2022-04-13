@@ -90,7 +90,7 @@ void fd_uart_info_tx_start(fd_uart_info_t *info) {
     } else {
         fd_uart_instance_t *instance = info->instance;
         if (instance->isr_tx_callback) {
-            instance->isr_tx_callback();
+            instance->isr_tx_callback(instance->isr_tx_context);
         }
         if (instance->tx_event_name) {
             fd_event_set_from_interrupt(info->tx_event);
@@ -111,7 +111,7 @@ void fd_uart_callback_rx_rdy(fd_uart_info_t *info, struct uart_event *event) {
     }
     fd_uart_instance_t *instance = info->instance;
     if (instance->isr_rx_callback) {
-        instance->isr_rx_callback();
+        instance->isr_rx_callback(instance->isr_rx_context);
     }
     if (instance->rx_event_name) {
         fd_event_set_from_interrupt(info->rx_event);
@@ -238,8 +238,7 @@ void fd_uart_instance_configure(fd_uart_instance_t *instance, const fd_uart_conf
 }
 
 void fd_uart_instance_reset(fd_uart_instance_t *instance) {
-    fd_assert(fd_uart.info_count < fd_uart_info_limit);
-    fd_uart_info_t *info = &fd_uart.infos[fd_uart.info_count++];
+    fd_uart_info_t *info = fd_uart_get_info(instance);
     fd_fifo_flush(&info->rx_fifo);
     fd_fifo_flush(&info->tx_fifo);
 }

@@ -4,6 +4,7 @@
 
 #include <zephyr.h>
 
+#include <math.h>
 #include <string.h>
 
 #ifndef fd_work_queue_limit
@@ -20,7 +21,7 @@
 
 typedef struct {
     fd_work_task_t task;
-    struct k_work work;
+    struct k_work_delayable work_delayable;
 } fd_work_item_t;
 
 typedef struct {
@@ -50,7 +51,8 @@ void fd_work_initialize(void) {
 }
 
 void fd_work_run(struct k_work *work) {
-    fd_work_item_t *item = CONTAINER_OF(work, fd_work_item_t, work);
+    struct k_work_delayable *work_delayable = k_work_delayable_from_work(work);
+    fd_work_item_t *item = CONTAINER_OF(work_delayable, fd_work_item_t, work_delayable);
     item->task.function(item->task.context);
 }
 
@@ -69,7 +71,7 @@ void fd_work_queue_initialize(fd_work_queue_t *queue, const fd_work_queue_config
     impl->configuration = *configuration;
 
     for (uint32_t i = 0; i < fd_work_task_limit; ++i) {
-        k_work_init(&impl->items[i].work, fd_work_run);
+        k_work_init_delayable(&impl->items[i].work_delayable, fd_work_run);
     }
     k_work_queue_init(&impl->work_queue);
     const struct k_work_queue_config sampling_work_queue_configuration = {
@@ -104,7 +106,6 @@ fd_work_queue_submit_result_t fd_work_queue_submit_with_delay(fd_work_queue_t *q
         fd_work.history[fd_work.history_count++] = task;
     }
 
-    fd_assert(delay == 0.0f);
     fd_assert(task.function != 0);
     fd_assert(queue->identifier < fd_work_queue_limit);
     if (queue->identifier >= fd_work_queue_limit) {
@@ -120,7 +121,8 @@ fd_work_queue_submit_result_t fd_work_queue_submit_with_delay(fd_work_queue_t *q
         item = &impl->items[impl->item_count++];
         item->task = task;
     }
-    int result = k_work_submit_to_queue(&impl->work_queue, &item->work);
+    k_timeout_t timeout = delay == 0.0f ? K_NO_WAIT : K_MSEC(ceilf(delay * 1000.0f));
+    int result = k_work_reschedule_for_queue(&impl->work_queue, &item->work_delayable, timeout);
     fd_assert(result >= 0);
     switch (result) {
         case 0: return fd_work_queue_submit_result_queued_already;
@@ -144,7 +146,7 @@ fd_work_queue_wait_result_t fd_work_queue_cancel_task(fd_work_queue_t *queue, fd
     if (item == 0) {
         return fd_work_queue_wait_result_no_wait;
     }
-    bool result = k_work_cancel(&item->work);
+    bool result = k_work_cancel_delayable(&item->work_delayable);
     return result ? fd_work_queue_wait_result_waited : fd_work_queue_wait_result_no_wait;
 }
 
@@ -159,7 +161,7 @@ fd_work_queue_wait_result_t fd_work_queue_wait_for_task(fd_work_queue_t *queue, 
         return fd_work_queue_wait_result_no_wait;
     }
     struct k_work_sync work_sync;
-    bool result = k_work_flush(&item->work, &work_sync);
+    bool result = k_work_flush_delayable(&item->work_delayable, &work_sync);
     return result ? fd_work_queue_wait_result_waited : fd_work_queue_wait_result_no_wait;
 }
 

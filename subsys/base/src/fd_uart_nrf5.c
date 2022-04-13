@@ -105,7 +105,7 @@ int fd_uart_serial_handler(fd_uart_device_t *device) {
         if (byte == 0) {
             fd_uart_instance_t *instance = device->instance;
             if (instance->isr_rx_callback) {
-                instance->isr_rx_callback();
+                instance->isr_rx_callback(instance->isr_rx_context);
             }
             if (instance->rx_event_name) {
                 fd_event_set_from_interrupt(rx->event);
@@ -138,7 +138,7 @@ int fd_uart_serial_handler(fd_uart_device_t *device) {
         if (--device->tx.pending == 0) {
             if (fd_uart_tx_set_next_dma_buffer(device) == 0) {
                 if (device->instance->isr_tx_callback) {
-                    device->instance->isr_tx_callback();
+                    device->instance->isr_tx_callback(device->instance->isr_tx_context);
                 }
                 if (device->instance->tx_event_name) {
                     fd_event_set_from_interrupt(device->tx.event);

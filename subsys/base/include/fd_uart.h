@@ -31,8 +31,10 @@ typedef struct {
     uint32_t baud_rate;
     fd_uart_parity_t parity;
     fd_uart_stop_bits_t stop_bits;
-    void (*isr_tx_callback)(void);
-    void (*isr_rx_callback)(void);
+    void *isr_tx_context;
+    void (*isr_tx_callback)(void *context);
+    void *isr_rx_context;
+    void (*isr_rx_callback)(void *context);
     const char *tx_event_name;
     const char *rx_event_name;
 } fd_uart_instance_t;

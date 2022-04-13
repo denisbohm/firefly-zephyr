@@ -31,10 +31,10 @@ bool fd_boot_serial_controller_transmit(const uint8_t *data, uint32_t length) {
     return actual == length;
 }
 
-void fd_boot_serial_controller_isr_tx(void) {
+void fd_boot_serial_controller_isr_tx(void *context) {
 }
 
-void fd_boot_serial_controller_isr_rx(void) {
+void fd_boot_serial_controller_isr_rx(void *context) {
     uint8_t data[32];
     uint32_t length;
     while (true) {
