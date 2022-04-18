@@ -42,14 +42,19 @@ void fd_assert_log_add_failure(const char *file, int line, const char *message) 
 
     for (uint32_t i = 0; i < fd_assert_log.failure_count; ++i) {
         fd_assert_log_failure_t *failure = &fd_assert_log.failures[i];
-        if ((failure->line == line) && (strncmp(failure->message, message, sizeof(failure->message)) == 0)) {
+        if (
+            (failure->line == line) &&
+            (strncmp(failure->file, file, sizeof(failure->file)) == 0) &&
+            (strncmp(failure->message, message, sizeof(failure->message)) == 0)
+        ) {
             ++failure->count;
             return;
         }
     }
 
     fd_assert_log_failure_t *failure = &fd_assert_log.failures[fd_assert_log.failure_count++];
-    failure->file = file;
+    strncpy(failure->file, file, sizeof(failure->file));
+    failure->file[sizeof(failure->file) - 1] = '\0';
     failure->line = line;
     strncpy(failure->message, message, sizeof(failure->message));
     failure->message[sizeof(failure->message) - 1] = '\0';

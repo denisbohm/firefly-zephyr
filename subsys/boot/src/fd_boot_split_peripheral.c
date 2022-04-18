@@ -517,13 +517,19 @@ bool fd_boot_split_peripheral_set_configuration_defaults(fd_boot_split_periphera
     return fd_boot_set_update_interface_defaults(&configuration->update_interface, error);
 }
 
+bool fd_boot_split_peripheral_dispatch_filter(const fd_envelope_t *envelope) {
+    return
+        (envelope->system == fd_boot_split_peripheral.configuration.system) &&
+        (envelope->subsystem == fd_boot_split_peripheral.configuration.subsystem);
+}
+
 bool fd_boot_split_peripheral_start(fd_boot_split_peripheral_configuration_t *configuration, fd_boot_error_t *error) {
     memset(&fd_boot_split_peripheral, 0, sizeof(fd_boot_split_peripheral));
     fd_boot_split_peripheral.configuration = *configuration;
     fd_fifo_initialize(&fd_boot_split_peripheral.fifo, fd_boot_split_peripheral.fifo_buffer, sizeof(fd_boot_split_peripheral.fifo_buffer));
 
     fd_dispatch_initialize(fd_boot_split_peripheral_dispatch_respond);
-    fd_dispatch_add_process(fd_boot_split_peripheral.configuration.system, fd_boot_split_peripheral.configuration.subsystem, fd_boot_split_peripheral_dispatch_process);
+    fd_dispatch_add_process(fd_boot_split_peripheral_dispatch_process, fd_boot_split_peripheral_dispatch_filter);
 
     while (true) {
         if (!fd_boot_split_peripheral_io(error)) {

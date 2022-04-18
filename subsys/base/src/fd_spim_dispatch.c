@@ -89,6 +89,12 @@ bool fd_spim_dispatch_process(fd_binary_t *message, fd_envelope_t *envelope, fd_
     }
 }
 
+bool fd_spim_dispatch_filter(const fd_envelope_t *envelope) {
+    return
+        (envelope->system == fd_envelope_system_firefly) &&
+        (envelope->subsystem == fd_envelope_subsystem_spim);
+}
+
 void fd_spim_dispatch_initialize(void) {
-    fd_dispatch_add_process(fd_envelope_system_firefly, fd_envelope_subsystem_spim, fd_spim_dispatch_process);
+    fd_dispatch_add_process(fd_spim_dispatch_process, fd_spim_dispatch_filter);
 }

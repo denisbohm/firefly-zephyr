@@ -14,6 +14,10 @@ bool fd_system_remote_response_get_version(
     fd_version_t *version
 );
 
+bool fd_system_remote_send_get_version(
+    fd_remote_send_t remote_send, void *context, uint8_t target, uint8_t source
+);
+
 bool fd_system_remote_call_get_version(
     fd_remote_call_t remote_call, void *context, uint8_t target, uint8_t source,
     fd_version_t *version
@@ -31,6 +35,11 @@ bool fd_system_remote_response_get_assert(
     fd_binary_t *response,
     uint32_t limit,
     uint32_t *total, fd_system_remote_failure_t *failures, uint32_t *count
+);
+
+bool fd_system_remote_send_get_assert(
+    fd_remote_send_t remote_send, void *context, uint8_t target, uint8_t source,
+    uint32_t limit
 );
 
 bool fd_system_remote_call_get_assert(

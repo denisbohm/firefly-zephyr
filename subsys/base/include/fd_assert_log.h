@@ -5,12 +5,16 @@
 
 void fd_assert_log_initialize(void);
 
+#ifndef fd_assert_log_failure_file_limit
+#define fd_assert_log_failure_file_limit 32
+#endif
+
 #ifndef fd_assert_log_failure_message_limit
 #define fd_assert_log_failure_message_limit 32
 #endif
 
 typedef struct {
-    const char *file;
+    char file[fd_assert_log_failure_file_limit];
     int line;
     char message[fd_assert_log_failure_message_limit];
     uint32_t count;

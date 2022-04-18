@@ -24,6 +24,16 @@ bool fd_system_remote_response_get_version(
     return response->errors == 0;
 }
 
+bool fd_system_remote_send_get_version(
+    fd_remote_send_t remote_send, void *context, uint8_t target, uint8_t source
+) {
+    uint8_t buffer[64];
+    fd_binary_t message;
+    fd_binary_initialize(&message, buffer, sizeof(buffer));
+    fd_system_remote_request_get_version(&message);
+    return remote_send(context, target, source, fd_envelope_system_firefly, fd_envelope_subsystem_system, &message);
+}
+
 bool fd_system_remote_call_get_version(
     fd_remote_call_t remote_call, void *context, uint8_t target, uint8_t source,
     fd_version_t *version
@@ -47,12 +57,12 @@ bool fd_system_remote_response_get_assert(
     uint32_t limit,
     uint32_t *total, fd_system_remote_failure_t *failures, uint32_t *count
 ) {
-    *total = fd_binary_get_uint32(response);
-    *count = 0;
     uint8_t operation = fd_binary_get_uint8(response);
     if (operation != fd_system_operation_get_assert) {
         return false;
     }
+    *total = fd_binary_get_uint32(response);
+    *count = 0;
     fd_system_remote_failure_t *failure = failures;
     while ((response->get_index < response->put_index) && (*count < limit)) {
         fd_binary_string_t file = fd_binary_get_string(response);
@@ -67,6 +77,17 @@ bool fd_system_remote_response_get_assert(
         ++failure;
     }
     return true;
+}
+
+bool fd_system_remote_send_get_assert(
+    fd_remote_send_t remote_send, void *context, uint8_t target, uint8_t source,
+    uint32_t limit
+) {
+    uint8_t buffer[32];
+    fd_binary_t message;
+    fd_binary_initialize(&message, buffer, sizeof(buffer));
+    fd_system_remote_request_get_assert(&message, limit);
+    return remote_send(context, target, source, fd_envelope_system_firefly, fd_envelope_subsystem_system, &message);
 }
 
 bool fd_system_remote_call_get_assert(
