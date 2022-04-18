@@ -12,6 +12,9 @@ typedef struct {
 
 const fd_system_identity_t *fd_system_get_identity(void);
 
+uint32_t fd_system_get_reset_cause(void);
+void fd_system_clear_reset_cause(void);
+
 void fd_system_initialize(const fd_system_identity_t *identity);
 
 #endif

@@ -1,5 +1,6 @@
 menuconfig FIREFLY_SUBSYS_BASE
 	bool "base"
+    select HWINFO
 	help
 	  Include base firmware in the system configuration.
 
