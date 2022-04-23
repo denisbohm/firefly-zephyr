@@ -1,6 +1,7 @@
 menu "subsys"
 
 rsource "base/Kconfig"
+rsource "ble/Kconfig"
 rsource "boot/Kconfig"
 rsource "crypto/Kconfig"
 rsource "graphics/Kconfig"

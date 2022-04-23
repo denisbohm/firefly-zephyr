@@ -1,0 +1,8 @@
+menuconfig FIREFLY_SUBSYS_BLE
+	bool "BLE"
+	help
+	  Include BLE firmware in the system configuration.
+
+if FIREFLY_SUBSYS_BLE
+
+endif
