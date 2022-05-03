@@ -6,6 +6,7 @@ class Envelope:
     subsystem_i2cm   = 1
     subsystem_spim   = 2
     subsystem_gpio   = 3
+    subsystem_adc    = 4
 
     type_event    = 0
     type_request  = 1

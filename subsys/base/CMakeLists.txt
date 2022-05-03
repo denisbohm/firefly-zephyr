@@ -2,6 +2,7 @@ set(OVERLAY_CONFIG Kconfig)
 
 zephyr_include_directories(include)
 
+zephyr_sources(src/fd_adc_dispatch.c)
 zephyr_sources(src/fd_adc_nrf5.c)
 zephyr_sources(src/fd_assert.c)
 zephyr_sources(src/fd_assert_log.c)

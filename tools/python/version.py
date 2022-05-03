@@ -1,5 +1,5 @@
 from firefly.transport.envelope import Envelope
-from firefly.transport.gateway import Gateway
+from firefly.transport.gateway import GatewaySerial
 from firefly.transport.system import System
 
 import sys
@@ -13,12 +13,12 @@ class Main:
 
     def __init__(self):
         # Zephyr USB CDC
-        self.port = Gateway.find_serial_port(vid=0x2FE3, pid=0x0100)
+        self.port = GatewaySerial.find_serial_port(vid=0x2FE3, pid=0x0100)
         if not self.port:
             print(f"cannot find USB serial port")
             sys.exit(1)
         print(f"using USB serial port {self.port}")
-        self.gateway = Gateway(self.port)
+        self.gateway = GatewaySerial(self.port)
 
     def system_get_identity(self):
         request = System.GetIdentity.encode()

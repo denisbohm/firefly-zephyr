@@ -1,5 +1,5 @@
 from firefly.transport.envelope import Envelope
-from firefly.transport.gateway import Gateway
+from firefly.transport.gateway import GatewaySerial
 from firefly.transport.spim import SPIM
 from firefly.transport.spim import SPIMTransaction
 
@@ -17,12 +17,12 @@ class Main:
     target_usb = 4
 
     def __init__(self):
-        self.port = Gateway.find_serial_port()  # vid=0x0403, pid=0x6001)
+        self.port = GatewaySerial.find_serial_port()  # vid=0x0403, pid=0x6001)
         if not self.port:
             print(f"cannot find USB serial port")
             sys.exit(1)
         print(f"using USB serial port {self.port}")
-        self.gateway = Gateway(self.port)
+        self.gateway = GatewaySerial(self.port)
 
     def spim_io(self, device, transactions):
         request = SPIM.encode_io(device, transactions)

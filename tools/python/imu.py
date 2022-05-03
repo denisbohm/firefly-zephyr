@@ -1,5 +1,5 @@
 from firefly.transport.envelope import Envelope
-from firefly.transport.gateway import Gateway
+from firefly.transport.gateway import GatewaySerial
 from firefly.transport.i2cm import I2CM
 from firefly.transport.i2cm import I2CMTransaction
 import sys
@@ -13,12 +13,12 @@ class Main:
     target_usb = 4
 
     def __init__(self):
-        self.port = Gateway.find_serial_port()
+        self.port = GatewaySerial.find_serial_port()
         if not self.port:
             print(f"cannot find USB serial port")
             sys.exit(1)
         print(f"using USB serial port {self.port}")
-        self.gateway = Gateway(self.port)
+        self.gateway = GatewaySerial(self.port)
 
     def i2cm_io(self, device, transactions):
         request = I2CM.encode_io(device, transactions)
