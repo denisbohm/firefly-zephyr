@@ -2,6 +2,8 @@
 
 from firefly.transport.envelope import Envelope
 from firefly.transport.gateway import Gateway
+from firefly.transport.gateway import GatewayI2C
+from firefly.transport.gateway import GatewaySerial
 from firefly.transport.gateway import GatewayException
 
 import struct
@@ -349,27 +351,23 @@ class Controller:
             elif envelope.type is Envelope.type_response:
                 return response
 
-    def enter_boot_loader(self, port):
-        port.break_condition = True
-        port.rts = True
-        time.sleep(0.25)
-        port.rts = False
-        time.sleep(0.25)
-        port.break_condition = False
+    def open_i2c(self, address):
+        self.gateway = GatewayI2C(address)
+        self.gateway.trace = True
 
-    def update_and_execute(self, path, restart, vid, pid):
+    def open_serial(self, vid, pid):
+        port = GatewaySerial.find_serial_port(vid=vid, pid=pid)
+        if port is None:
+            raise Exception("update failed: serial port not found")
+        self.gateway = GatewaySerial(port)
+        self.gateway.trace = True
+
+    def update_and_execute(self, path, restart):
         with open(path, 'rb') as file:
             self.update_file = file.read(-1)
 
-        port = Gateway.find_serial_port(vid=vid, pid=pid)
-        if port is None:
-            print("update failed: serial port not found")
-            return
-        self.gateway = Gateway(port)
-        self.gateway.trace = True
-
         if restart:
-            self.enter_boot_loader(self.gateway.serial_port)
+            self.gateway.enter_boot_loader()
 
         identity = self.get_identity()
         version = identity.version
@@ -403,14 +401,21 @@ parser.add_argument("--system", help="system to use in envelope", type=int)
 parser.add_argument("--subsystem", help="subsystem to use in envelope", type=int)
 parser.add_argument("--restart", help="restart the boot loader by holding tx low during a reset using rts",
                     action=argparse.BooleanOptionalAction)
+parser.add_argument("--i2c", help="use USB I2C (rather than Serial)")
+parser.add_argument("--i2c_address", help="I2C device address")
 parser.add_argument('--vid', type=int_arg)
 parser.add_argument('--pid', type=int_arg)
 parser.set_defaults(
     update='update.bin',
     target=0, source=1, system=0, subsystem=0,
     restart=False,
+    i2c=False, i2c_address=0x69,
     vid=0x1366, pid=0x1055  # nRf5340 DK J-Link
 )
 args = parser.parse_args()
 secure_boot = Controller(args.target, args.source, args.system, args.subsystem)
-secure_boot.update_and_execute(args.update, args.restart, args.vid, args.pid)
+if args.i2c:
+    secure_boot.open_i2c(args.i2c_address)
+else:
+    secure_boot.open_serial(args.vid, args.pid)
+secure_boot.update_and_execute(args.update, args.restart)

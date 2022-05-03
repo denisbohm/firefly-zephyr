@@ -1,5 +1,6 @@
 from cobs import cobs
 from firefly.transport.envelope import Envelope
+from pyftdi.i2c import I2cController
 import serial
 import serial.tools.list_ports
 import struct
@@ -11,25 +12,21 @@ class GatewayException(Exception):
 
 class Gateway:
 
-    @staticmethod
-    def find_serial_port(vid=0x2FE3, pid=0x0100):
-        for info in serial.tools.list_ports.comports():
-            if info.vid == vid and info.pid == pid:
-                return info.device
-        return None
-
-    def __init__(self, port):
-        self.port = port
-        self.serial_port = serial.Serial(
-            port=port,
-            baudrate=115200,
-            parity=serial.PARITY_NONE,
-            stopbits=serial.STOPBITS_ONE,
-            bytesize=serial.EIGHTBITS,
-            timeout=5.0
-        )
+    def __init__(self):
         self.waiting_message = bytearray()
         self.trace = False
+
+    def enter_boot_loader(self):
+        raise GatewayException("unimplemented")
+
+    def write(self, data):
+        raise GatewayException("unimplemented")
+
+    def read(self, n):
+        raise GatewayException("unimplemented")
+
+    def in_waiting(self):
+        raise GatewayException("unimplemented")
 
     def crc16(self, data):
         crc = 0
@@ -71,7 +68,7 @@ class Gateway:
             raise GatewayException("invalid envelope")
         return message[0:length], Envelope(crc16, length, target, source, system, subsystem, type, reserved0)
 
-    def tx(self, data, envelope):
+    def to_raw(self, data, envelope):
         enveloped = self.add_envelope(data, envelope)
         if self.trace:
             print(f"tx enveloped {enveloped.hex()}")
@@ -80,25 +77,28 @@ class Gateway:
             print(f"tx encoded {encoded.hex()}")
         #  self.serial_port.write(b'\x00')
         raw = b'\x00' + encoded + b'\x00'
-        self.serial_port.write(raw)
-        self.serial_port.flush()
+        return raw
+
+    def tx(self, data, envelope):
+        raw = self.to_raw(data, envelope)
+        self.write(raw)
 
     def rx(self):
         message = self.waiting_message
         self.waiting_message = bytearray()
         while True:
-            data = self.serial_port.read(1)
-            if len(data) != 1:
+            data = self.read(1)
+            if len(data) == 0:
                 if self.trace:
                     print(f"rx (timed out) {data.hex()}")
                 raise GatewayException("read timeout")
             if data[0] == 0:
                 if len(message) > 0:
                     if self.trace:
-                        print(f"rx encoded {message.hex() }")
+                        print(f"rx encoded {message.hex()}")
                     decoded = cobs.decode(message)
                     if self.trace:
-                        print(f"rx {decoded.hex() }")
+                        print(f"rx {decoded.hex()}")
                     deenveloped, envelope = self.get_envelope(decoded)
                     return deenveloped, envelope
             else:
@@ -106,10 +106,10 @@ class Gateway:
 
     def rx_waiting(self):
         while True:
-            count = self.serial_port.in_waiting
+            count = self.in_waiting()
             if count == 0:
                 return None
-            data = self.serial_port.read(1)
+            data = self.read(1)
             if len(data) != 1:
                 if self.trace:
                     print(f"rx (timed out) {data.hex()}")
@@ -120,7 +120,7 @@ class Gateway:
                     self.waiting_message = bytearray()
                     decoded = cobs.decode(message)
                     if self.trace:
-                        print(f"rx {decoded.hex() }")
+                        print(f"rx {decoded.hex()}")
                     deenveloped, envelope = self.get_envelope(decoded)
                     return deenveloped, envelope
             else:
@@ -129,4 +129,90 @@ class Gateway:
     def rpc(self, request, request_envelope):
         self.tx(request, request_envelope)
         return self.rx()
+
+
+class GatewayI2C(Gateway):
+
+    def __init__(self, address, url='ftdi:///1'):
+        super().__init__()
+        i2c = I2cController()
+        i2c.set_retry_count(1)
+        i2c.configure(url, frequency=100000, clockstretching=True)
+        self.i2c = i2c
+        self.port = i2c.get_port(address)
+        self.rx_data = bytearray()
+
+    def enter_boot_loader(self):
+        pass
+
+    def write(self, data):
+        self.port.write(out=data)
+
+    def read(self, n):
+        start = time.time()
+        while True:
+            if len(self.rx_data) >= n:
+                data = self.rx_data[0 : n]
+                del self.rx_data[0 : n]
+                return data
+            response = self.port.exchange(out=None, readlen=32)
+            length = response[0]
+            if length == 0:
+                duration = time.time() - start
+                if duration > 1000:
+                    raise ControllerException("timeout")
+                continue
+            start = time.time()
+            self.rx_data.extend(response[1 : 1 + length])
+
+    def in_waiting(self):
+        length = len(self.rx_data)
+        if length > 0:
+            return length
+        response = self.port.exchange(out=None, readlen=32)
+        length = response[0]
+        self.rx_data.extend(response[1: 1 + length])
+        return length
+
+
+class GatewaySerial(Gateway):
+
+    @staticmethod
+    def find_serial_port(vid=0x2FE3, pid=0x0100):
+        for info in serial.tools.list_ports.comports():
+            if info.vid == vid and info.pid == pid:
+                return info.device
+        return None
+
+    def __init__(self, port):
+        super().__init__()
+        self.port = port
+        self.serial_port = serial.Serial(
+            port=port,
+            baudrate=115200,
+            parity=serial.PARITY_NONE,
+            stopbits=serial.STOPBITS_ONE,
+            bytesize=serial.EIGHTBITS,
+            timeout=5.0
+        )
+
+    def enter_boot_loader(self):
+        port = self.serial_port
+        port.break_condition = True
+        port.rts = True
+        time.sleep(0.25)
+        port.rts = False
+        time.sleep(0.25)
+        port.break_condition = False
+
+    def write(self, data):
+        self.serial_port.write(data)
+        self.serial_port.flush()
+
+    def read(self, n):
+        return self.serial_port.read(n)
+
+    def in_waiting(self):
+        return self.serial_port.in_waiting
+
 
