@@ -1,10 +1,11 @@
 from cobs import cobs
 from firefly.transport.envelope import Envelope
 from pyftdi.i2c import I2cController
+from pyftdi.i2c import I2cNackError
 import serial
 import serial.tools.list_ports
 import struct
-
+import time
 
 class GatewayException(Exception):
     pass
@@ -148,6 +149,17 @@ class GatewayI2C(Gateway):
     def write(self, data):
         self.port.write(out=data)
 
+    def i2c_read(self):
+        limit = 32
+        try:
+            response = self.port.read(readlen=limit)
+            length = response[0]
+        except I2cNackError:
+            return bytes()
+        if length >= limit:
+            length = limit - 1
+        return response[1 : 1 + length]
+
     def read(self, n):
         start = time.time()
         while True:
@@ -155,24 +167,22 @@ class GatewayI2C(Gateway):
                 data = self.rx_data[0 : n]
                 del self.rx_data[0 : n]
                 return data
-            response = self.port.exchange(out=None, readlen=32)
-            length = response[0]
-            if length == 0:
+            response = self.i2c_read()
+            if len(response) == 0:
                 duration = time.time() - start
                 if duration > 1000:
                     raise ControllerException("timeout")
                 continue
             start = time.time()
-            self.rx_data.extend(response[1 : 1 + length])
+            self.rx_data.extend(response)
 
     def in_waiting(self):
         length = len(self.rx_data)
         if length > 0:
             return length
-        response = self.port.exchange(out=None, readlen=32)
-        length = response[0]
-        self.rx_data.extend(response[1: 1 + length])
-        return length
+        response = self.i2c_read()
+        self.rx_data.extend(response)
+        return len(self.rx_data)
 
 
 class GatewaySerial(Gateway):

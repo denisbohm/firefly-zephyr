@@ -409,7 +409,7 @@ parser.set_defaults(
     update='update.bin',
     target=0, source=1, system=0, subsystem=0,
     restart=False,
-    i2c=False, i2c_address=0x69,
+    i2c=True, i2c_address=0x69,
     vid=0x1366, pid=0x1055  # nRf5340 DK J-Link
 )
 args = parser.parse_args()
