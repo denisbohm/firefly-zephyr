@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 from firefly.transport.envelope import Envelope
-from firefly.transport.gateway import Gateway
 from firefly.transport.gateway import GatewayI2C
 from firefly.transport.gateway import GatewaySerial
 from firefly.transport.gateway import GatewayException

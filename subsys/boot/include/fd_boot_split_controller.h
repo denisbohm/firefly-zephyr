@@ -34,6 +34,7 @@ typedef struct {
     fd_boot_split_controller_timer_t timer;
     uint32_t duration;
 
+    void (*poll)(void);
     fd_fifo_t fifo;
 } fd_boot_split_controller_t;
 

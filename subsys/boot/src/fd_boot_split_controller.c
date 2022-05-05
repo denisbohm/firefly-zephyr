@@ -188,6 +188,9 @@ bool fd_boot_split_controller_io(
             fd_boot_set_error(error, 1);
             return false;
         }
+        if (controller->poll) {
+            controller->poll();
+        }
     }
     timer->finalize(timer->context);
 
