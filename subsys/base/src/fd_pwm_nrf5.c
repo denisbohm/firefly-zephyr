@@ -203,10 +203,9 @@ void fd_pwm_channel_start(const fd_pwm_channel_t *channel, float duty_cycle) {
         sequence_duty_cycle |= 0x8000;
     }
     state->sequence[channel->instance] = sequence_duty_cycle;
-    pwm->TASKS_SEQSTART[0] = 1;
-
     uint32_t pin = channel->gpio.port * 32 + channel->gpio.pin;
     pwm->PSEL.OUT[channel->instance] = (pin << PWM_PSEL_OUT_PIN_Pos) | (PWM_PSEL_OUT_CONNECT_Connected << PWM_PSEL_OUT_CONNECT_Pos);
+    pwm->TASKS_SEQSTART[0] = 1;
 }
 
 bool fd_pwm_channel_is_running(const fd_pwm_channel_t *channel) {

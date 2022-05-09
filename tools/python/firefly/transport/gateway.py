@@ -20,6 +20,12 @@ class Gateway:
     def enter_boot_loader(self):
         raise GatewayException("unimplemented")
 
+    def set_timeout(self, timeout):
+        raise GatewayException("unimplemented")
+
+    def get_timeout(self):
+        raise GatewayException("unimplemented")
+
     def write(self, data):
         raise GatewayException("unimplemented")
 
@@ -142,6 +148,13 @@ class GatewayI2C(Gateway):
         self.i2c = i2c
         self.port = i2c.get_port(address)
         self.rx_data = bytearray()
+        self.timeout = 5.0
+
+    def set_timeout(self, timeout):
+        self.timeout = timeout
+
+    def get_timeout(self):
+        return self.timeout
 
     def enter_boot_loader(self):
         pass
@@ -205,6 +218,12 @@ class GatewaySerial(Gateway):
             bytesize=serial.EIGHTBITS,
             timeout=5.0
         )
+
+    def set_timeout(self, timeout):
+        self.serial_port.timeout = timeout
+
+    def get_timeout(self):
+        return self.serial_port.timeout
 
     def enter_boot_loader(self):
         port = self.serial_port

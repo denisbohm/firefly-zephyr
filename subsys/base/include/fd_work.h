@@ -22,6 +22,7 @@ typedef struct {
 } fd_work_queue_t;
 
 typedef enum {
+    fd_work_queue_submit_result_not_queued,
     fd_work_queue_submit_result_queued_already,
     fd_work_queue_submit_result_queued,
     fd_work_queue_submit_result_queued_while_running,
@@ -47,6 +48,8 @@ fd_work_queue_wait_result_t fd_work_queue_cancel_task(fd_work_queue_t *queue, fd
 fd_work_queue_wait_result_t fd_work_queue_wait_for_task(fd_work_queue_t *queue, fd_work_task_t task);
 
 fd_work_queue_wait_result_t fd_work_queue_wait(fd_work_queue_t *queue);
+
+void fd_work_sleep(float seconds);
 
 bool fd_work_queue_process(fd_work_queue_t *queue, float elapsed);
 

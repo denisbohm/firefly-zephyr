@@ -80,5 +80,6 @@ uint8_t fd_spim_device_tx1_rx1(const fd_spim_device_t *device, uint8_t tx_byte);
 void fd_spim_device_tx1(const fd_spim_device_t *device, uint8_t tx_byte);
 void fd_spim_device_tx2(const fd_spim_device_t *device, uint8_t byte0, uint8_t byte1);
 void fd_spim_device_txn(const fd_spim_device_t *device, const uint8_t *tx_bytes, uint32_t tx_byte_count);
+void fd_spim_device_rxn(const fd_spim_device_t *device, uint8_t *rx_bytes, uint32_t rx_byte_count);
 
 #endif

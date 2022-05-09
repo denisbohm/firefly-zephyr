@@ -123,13 +123,12 @@ fd_work_queue_submit_result_t fd_work_queue_submit_with_delay(fd_work_queue_t *q
     }
     k_timeout_t timeout = delay == 0.0f ? K_NO_WAIT : K_MSEC(ceilf(delay * 1000.0f));
     int result = k_work_reschedule_for_queue(&impl->work_queue, &item->work_delayable, timeout);
-    fd_assert(result >= 0);
     switch (result) {
         case 0: return fd_work_queue_submit_result_queued_already;
         case 1: return fd_work_queue_submit_result_queued;
         case 2: return fd_work_queue_submit_result_queued_while_running;
+        default: return fd_work_queue_submit_result_not_queued;
     }
-    return fd_work_queue_submit_result_queued;
 }
 
 fd_work_queue_submit_result_t fd_work_queue_submit(fd_work_queue_t *queue, fd_work_task_t task) {
@@ -178,6 +177,11 @@ fd_work_queue_wait_result_t fd_work_queue_wait(fd_work_queue_t *queue) {
         case 1: return fd_work_queue_wait_result_no_wait;
     }
     return fd_work_queue_wait_result_waited;
+}
+
+void fd_work_sleep(float seconds) {
+    uint32_t usec = (int)ceil(seconds * 1000000.0f);
+    k_sleep(K_USEC(usec));
 }
 
 bool fd_work_queue_process(fd_work_queue_t *queue, float elapsed) {

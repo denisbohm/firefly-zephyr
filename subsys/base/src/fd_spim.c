@@ -137,3 +137,7 @@ void fd_spim_device_tx2(const fd_spim_device_t *device, uint8_t byte0, uint8_t b
 void fd_spim_device_txn(const fd_spim_device_t *device, const uint8_t *tx_bytes, uint32_t tx_byte_count) {
     fd_spim_device_txn_rxn(device, tx_bytes, tx_byte_count, 0, 0);
 }
+
+void fd_spim_device_rxn(const fd_spim_device_t *device, uint8_t *rx_bytes, uint32_t rx_byte_count) {
+    fd_spim_device_txn_rxn(device, 0, 0, rx_bytes, rx_byte_count);
+}
