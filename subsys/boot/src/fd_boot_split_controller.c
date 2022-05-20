@@ -67,7 +67,7 @@ void fd_boot_split_controller_update_read(
     fd_binary_put_uint16(&response, length);
     fd_boot_range_t range;
     controller->get_update_storage(&range);
-    if ((location + length) < (range.location + range.length)) { // !!! check response buffer size also...
+    if ((location + length) <= (range.location + range.length)) { // !!! check response buffer size also...
         bool result = true;
         fd_binary_put_uint8(&response, result ? 1 : 0);
         controller->update_read(location, &response.buffer[response.put_index], length);
