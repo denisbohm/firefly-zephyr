@@ -65,7 +65,7 @@ void fd_boot_zephyr_progress(float amount) {
 
 void fd_boot_usb_start(void) {
     fd_usb_msc_initialize();
-    fd_usb_initialize();
+    fd_usb_initialize(0);
 }
 
 fd_boot_update_interface_t fd_boot_update_interface = {

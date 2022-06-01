@@ -75,6 +75,7 @@ void fd_ssd1327_bus_initialize(void) {
 #endif
     fd_assert(spim != 0);
     fd_ssd1327_bus_4_wire_spi.spim = spim;
+    spim->FREQUENCY = SPIM_FREQUENCY_FREQUENCY_M8;
     spim->CONFIG = (SPIM_CONFIG_CPOL_ActiveLow << SPIM_CONFIG_CPOL_Pos) | (SPIM_CONFIG_CPHA_Trailing << SPIM_CONFIG_CPHA_Pos);
     spim->PSEL.SCK = NRF_GPIO_PIN_MAP(sclk.port, sclk.pin);
     spim->PSEL.MOSI = NRF_GPIO_PIN_MAP(mosi.port, mosi.pin);
