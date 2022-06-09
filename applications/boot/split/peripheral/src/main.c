@@ -124,7 +124,8 @@ int main(void) {
     fd_gpio_initialize();
     fd_uart_initialize();
     fd_uart_instance_initialize(&fd_boot_serial_peripheral.uart_instance);
-    if (!fd_boot_split_peripheral_start(&configuration, &error)) {
+    fd_boot_split_peripheral_initialize(&configuration);
+    if (!fd_boot_split_peripheral_run(&error)) {
         return 4;
     }
     
