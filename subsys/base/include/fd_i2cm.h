@@ -62,5 +62,6 @@ bool fd_i2cm_device_txn(const fd_i2cm_device_t *device, const uint8_t *tx_bytes,
 bool fd_i2cm_device_rxn(const fd_i2cm_device_t *device, uint8_t *rx_bytes, uint32_t rx_byte_count);
 bool fd_i2cm_device_sequence_tx1_rx1(const fd_i2cm_device_t *device, uint8_t tx_byte, uint8_t *rx_byte);
 bool fd_i2cm_device_sequence_tx1_tx1(const fd_i2cm_device_t *device, uint8_t tx_byte0, uint8_t tx_byte1);
+bool fd_i2cm_device_sequence_txn_rxn(const fd_i2cm_device_t *device, const uint8_t* tx_bytes, uint32_t tx_byte_count, uint8_t* rx_bytes, uint32_t rx_byte_count);
 
 #endif
