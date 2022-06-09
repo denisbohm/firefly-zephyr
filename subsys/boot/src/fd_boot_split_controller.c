@@ -328,7 +328,7 @@ void fd_boot_split_controller_timer_initialize(void *context) {
 
 void fd_boot_split_controller_timer_update(void *context) {
     uint32_t *duration = (uint32_t *)context;
-    *duration = 0;
+    *duration += 1;
 }
 
 bool fd_boot_split_controller_timer_has_timed_out(void *context) {
