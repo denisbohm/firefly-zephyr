@@ -126,6 +126,10 @@ void fd_gpio_configure_input_pull_up(fd_gpio_t gpio) {
     gpio_pin_configure(fd_gpio_get_device(gpio.port), gpio.pin, GPIO_INPUT | GPIO_PULL_UP);
 }
 
+void fd_gpio_configure_input_pull_down(fd_gpio_t gpio) {
+    gpio_pin_configure(fd_gpio_get_device(gpio.port), gpio.pin, GPIO_INPUT | GPIO_PULL_DOWN);
+}
+
 void fd_gpio_set(fd_gpio_t gpio, bool value) {
     gpio_pin_set(fd_gpio_get_device(gpio.port), gpio.pin, value ? 1 : 0);
 }

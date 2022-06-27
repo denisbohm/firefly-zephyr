@@ -43,7 +43,13 @@ endif()
 zephyr_sources(src/fd_timer.c)
 zephyr_sources(src/fd_timing.c)
 zephyr_sources(src/fd_timing_nrf5.c)
+
+if(CONFIG_FIREFLY_SUBSYS_BASE_UART_NRF5)
+zephyr_sources(src/fd_uart_nrf5.c)
+else()
 zephyr_sources(src/fd_uart_zephyr.c)
+endif()
+
 zephyr_sources(src/fd_version.c)
 
 if(CONFIG_FIREFLY_SUBSYS_BASE_LOG)

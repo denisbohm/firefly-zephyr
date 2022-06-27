@@ -10,7 +10,7 @@
 #endif
 
 #ifndef fd_boot_split_controller_timeout
-#define fd_boot_split_controller_timeout 100000
+#define fd_boot_split_controller_timeout 0xffffffff
 #endif
 
 bool fd_boot_split_controller_transmit(

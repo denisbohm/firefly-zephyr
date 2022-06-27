@@ -243,6 +243,28 @@ void fd_uart_instance_reset(fd_uart_instance_t *instance) {
     fd_fifo_flush(&info->tx_fifo);
 }
 
+void fd_uart_instance_power_on(fd_uart_instance_t *instance) {
+    fd_uart_info_t *info = fd_uart_get_info(instance);
+    int result = pm_device_state_set(info->device, PM_DEVICE_STATE_ACTIVE);
+    fd_assert(result == 0);
+    fd_uart_info_rx_start(info);
+}
+
+void fd_uart_instance_power_off(fd_uart_instance_t *instance) {
+    fd_uart_info_t *info = fd_uart_get_info(instance);
+    uart_rx_disable(info->device);
+    int result = pm_device_state_set(info->device, PM_DEVICE_STATE_SUSPENDED);
+    fd_assert(result == 0);
+}
+
+bool fd_uart_instance_is_powered_on(fd_uart_instance_t *instance) {
+    fd_uart_info_t *info = fd_uart_get_info(instance);
+    enum pm_device_state state;
+    int result = pm_device_state_get(info->device, &state);
+    fd_assert(result == 0);
+    return state == PM_DEVICE_STATE_ACTIVE;
+}
+
 void fd_uart_instance_initialize(fd_uart_instance_t *instance) {
     fd_assert(fd_uart.info_count < fd_uart_info_limit);
     fd_uart_info_t *info = &fd_uart.infos[fd_uart.info_count++];

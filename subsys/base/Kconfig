@@ -20,6 +20,11 @@ config FIREFLY_SUBSYS_BASE_TEST
 	help
 	  Enable Firefly Base Test.
 
+config FIREFLY_SUBSYS_BASE_UART_NRF5
+	bool "BASE UART NRF5"
+	help
+	  Enable Firefly Base UART nRF5.
+
 config FIREFLY_SUBSYS_BASE_WORK_ZEPHYR
 	bool "BASE WORK ZEPHYR"
 	help

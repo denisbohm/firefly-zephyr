@@ -17,6 +17,7 @@ void fd_gpio_configure_output_open_drain(fd_gpio_t gpio, bool value);
 void fd_gpio_configure_output_open_drain_pull_up(fd_gpio_t gpio, bool value);
 void fd_gpio_configure_input(fd_gpio_t gpio);
 void fd_gpio_configure_input_pull_up(fd_gpio_t gpio);
+void fd_gpio_configure_input_pull_down(fd_gpio_t gpio);
 
 typedef void (*fd_gpio_callback_t)(void);
 

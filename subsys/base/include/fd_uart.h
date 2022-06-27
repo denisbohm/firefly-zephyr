@@ -52,4 +52,8 @@ void fd_uart_instance_tx_flush(fd_uart_instance_t *instance);
 
 size_t fd_uart_instance_rx(fd_uart_instance_t *instance, uint8_t *data, size_t length);
 
+void fd_uart_instance_power_on(fd_uart_instance_t *instance);
+void fd_uart_instance_power_off(fd_uart_instance_t *instance);
+bool fd_uart_instance_is_powered_on(fd_uart_instance_t *instance);
+
 #endif
