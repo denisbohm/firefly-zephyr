@@ -7,6 +7,8 @@
 #include <zephyr.h>
 #include <device.h>
 #include <drivers/uart.h>
+#include <pm/device.h>
+#include <version.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -245,7 +247,11 @@ void fd_uart_instance_reset(fd_uart_instance_t *instance) {
 
 void fd_uart_instance_power_on(fd_uart_instance_t *instance) {
     fd_uart_info_t *info = fd_uart_get_info(instance);
+#if KERNEL_VERSION_MAJOR >= 3
+    int result = pm_device_action_run(info->device, PM_DEVICE_ACTION_RESUME);
+#else
     int result = pm_device_state_set(info->device, PM_DEVICE_STATE_ACTIVE);
+#endif
     fd_assert(result == 0);
     fd_uart_info_rx_start(info);
 }
@@ -253,7 +259,11 @@ void fd_uart_instance_power_on(fd_uart_instance_t *instance) {
 void fd_uart_instance_power_off(fd_uart_instance_t *instance) {
     fd_uart_info_t *info = fd_uart_get_info(instance);
     uart_rx_disable(info->device);
+#if KERNEL_VERSION_MAJOR >= 3
+    int result = pm_device_action_run(info->device, PM_DEVICE_ACTION_SUSPEND);
+#else
     int result = pm_device_state_set(info->device, PM_DEVICE_STATE_SUSPENDED);
+#endif
     fd_assert(result == 0);
 }
 

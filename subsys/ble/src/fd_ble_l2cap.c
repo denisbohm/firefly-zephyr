@@ -4,6 +4,7 @@
 
 #include <bluetooth/l2cap.h>
 #include <sys/ring_buffer.h>
+#include <version.h>
 
 #include <string.h>
 
@@ -25,8 +26,13 @@ fd_ble_l2cap_t fd_ble_l2cap;
 #define CREDITS 10
 #define DATA_MTU (23 * CREDITS)
 
+#if KERNEL_VERSION_MAJOR >= 3
+NET_BUF_POOL_FIXED_DEFINE(fd_ble_l2cap_tx_pool, 1, BT_L2CAP_SDU_BUF_SIZE(DATA_MTU), 8, NULL);
+NET_BUF_POOL_FIXED_DEFINE(fd_ble_l2cap_rx_pool, 1, DATA_MTU, 8, NULL);
+#else
 NET_BUF_POOL_FIXED_DEFINE(fd_ble_l2cap_tx_pool, 1, BT_L2CAP_SDU_BUF_SIZE(DATA_MTU), NULL);
 NET_BUF_POOL_FIXED_DEFINE(fd_ble_l2cap_rx_pool, 1, DATA_MTU, NULL);
+#endif
 
 static struct net_buf *fd_ble_l2cap_chan_ops_alloc_buf(struct bt_l2cap_chan *chan) {
 	struct net_buf *buf = net_buf_alloc(fd_ble_l2cap.rx_pool, K_NO_WAIT);
