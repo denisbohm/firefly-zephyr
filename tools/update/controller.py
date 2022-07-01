@@ -361,16 +361,18 @@ class Controller:
         self.gateway = GatewaySerial(port)
         self.gateway.trace = True
 
-    def update_and_execute(self, path, restart):
-        with open(path, 'rb') as file:
-            self.update_file = file.read(-1)
-
+    def update_and_execute(self, path, restart, version):
         if restart:
             self.gateway.enter_boot_loader()
 
         identity = self.get_identity()
         version = identity.version
         print(f"identity: {identity.identifier} {version.major}.{version.minor}.{version.patch}")
+        if version:
+            return
+
+        with open(path, 'rb') as file:
+            self.update_file = file.read(-1)
 
         result = self.update()
         if not result.is_valid:
@@ -400,6 +402,8 @@ parser.add_argument("--system", help="system to use in envelope", type=int)
 parser.add_argument("--subsystem", help="subsystem to use in envelope", type=int)
 parser.add_argument("--restart", help="restart the boot loader by holding tx low during a reset using rts",
                     action=argparse.BooleanOptionalAction)
+parser.add_argument("--version", help="print the boot loader version and exit",
+                    action=argparse.BooleanOptionalAction)
 parser.add_argument("--i2c", help="use USB I2C (rather than Serial)")
 parser.add_argument("--i2c_address", help="I2C device address")
 parser.add_argument('--vid', type=int_arg)
@@ -408,6 +412,7 @@ parser.set_defaults(
     update='update.bin',
     target=0, source=1, system=0, subsystem=0,
     restart=False,
+    version=False,
     i2c=True, i2c_address=0x69,
     vid=0x1366, pid=0x1055  # nRf5340 DK J-Link
 )
@@ -417,4 +422,4 @@ if args.i2c:
     secure_boot.open_i2c(args.i2c_address)
 else:
     secure_boot.open_serial(args.vid, args.pid)
-secure_boot.update_and_execute(args.update, args.restart)
+secure_boot.update_and_execute(args.update, args.restart, args.version)

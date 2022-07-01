@@ -197,6 +197,17 @@ class Update:
         print(f"found: version {major}.{minor}.{patch}, {len(executable_data)} bytes at 0x{executable_address:08X}")
 
         executable, executable_hash = Update.package_executable(executable_data, args.metadata_offset)
+        if args.type == "hex":
+            base = os.path.splitext(args.input)[0]
+            output = args.output.format(base=base, major=major, minor=minor, patch=patch)
+            root, extension = os.path.splitext(output)
+            hex_output = root + ".hex"
+            print(f"writing update hex to {hex_output}")
+            with open(hex_output, "w") as f:
+                hex = IntelHex()
+                hex.frombytes(executable, offset=executable_address)
+                hex.write_hex_file(f)
+            return
 
         initialization_vector = os.urandom(16)
         encrypted_executable = Update.encrypt_data(args.key, initialization_vector, executable)
@@ -239,7 +250,7 @@ class Update:
         parser.add_argument('--key', type=key_arg, required=True)
         parser.add_argument('--input', required=True)
         parser.add_argument('--output', default="{base}_{major}_{minor}_{patch}.bin")
-        parser.add_argument('--type', choices=['binary', 'c_binary', 'c', 'none'], default='binary')
+        parser.add_argument('--type', choices=['binary', 'c_binary', 'c', 'hex', 'none'], default='binary')
         parser.add_argument('--metadata_offset', type=int_arg, default=256)
         parser.add_argument('--address', type=int_arg)
         args = parser.parse_args(argv)
