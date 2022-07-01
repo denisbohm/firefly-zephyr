@@ -361,14 +361,14 @@ class Controller:
         self.gateway = GatewaySerial(port)
         self.gateway.trace = True
 
-    def update_and_execute(self, path, restart, version):
-        if restart:
+    def update_and_execute(self, path, do_restart, do_version):
+        if do_restart:
             self.gateway.enter_boot_loader()
 
         identity = self.get_identity()
         version = identity.version
         print(f"identity: {identity.identifier} {version.major}.{version.minor}.{version.patch}")
-        if version:
+        if do_version:
             return
 
         with open(path, 'rb') as file:
@@ -404,7 +404,8 @@ parser.add_argument("--restart", help="restart the boot loader by holding tx low
                     action=argparse.BooleanOptionalAction)
 parser.add_argument("--version", help="print the boot loader version and exit",
                     action=argparse.BooleanOptionalAction)
-parser.add_argument("--i2c", help="use USB I2C (rather than Serial)")
+parser.add_argument("--i2c", help="use USB I2C (rather than Serial)",
+                    action=argparse.BooleanOptionalAction)
 parser.add_argument("--i2c_address", help="I2C device address")
 parser.add_argument('--vid', type=int_arg)
 parser.add_argument('--pid', type=int_arg)
@@ -414,7 +415,8 @@ parser.set_defaults(
     restart=False,
     version=False,
     i2c=True, i2c_address=0x69,
-    vid=0x1366, pid=0x1055  # nRf5340 DK J-Link
+    vid=0x0403, pid=0x6001  # FTDI TTL232RG-VIP
+    # vid=0x1366, pid=0x1055  # nRf5340 DK J-Link
 )
 args = parser.parse_args()
 secure_boot = Controller(args.target, args.source, args.system, args.subsystem)
