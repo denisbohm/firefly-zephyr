@@ -242,25 +242,67 @@ bool fd_spim_device_is_selected(const fd_spim_device_t *device) {
     return !fd_gpio_get(device->csn);
 }
 
+static inline
+NRF_GPIO_Type *fd_spim_transfer_get_nrf_gpio(uint32_t port) {
+    return (NRF_GPIO_Type *)(NRF_P0_BASE + port * 0x300UL);
+}
+
 uint8_t fd_spim_transfer_byte(const fd_spim_bus_t *bus, uint8_t tx) {
     // mode 1: CPOL=0, CPHA=1
+
+    NRF_GPIO_Type *sclk_gpio = fd_spim_transfer_get_nrf_gpio(bus->sclk.port);
+    uint32_t sclk_mask = 1UL << bus->sclk.pin;
+
+    NRF_GPIO_Type *mosi_gpio = fd_spim_transfer_get_nrf_gpio(bus->mosi.port);
+    uint32_t mosi_mask = 1UL << bus->mosi.pin;
+
+    NRF_GPIO_Type *miso_gpio = fd_spim_transfer_get_nrf_gpio(bus->miso.port);
+    uint32_t miso_mask = 1UL << bus->miso.pin;
+
     uint8_t rx = 0;
     for (uint32_t i = 0; i < 8; ++i) {
-        fd_gpio_set(bus->mosi, (tx & 0x80) != 0);
+        // fd_gpio_set(bus->mosi, (tx & 0x80) != 0);
+        if (tx & 0x80) {
+            mosi_gpio->OUTSET = mosi_mask;
+        } else {
+            mosi_gpio->OUTCLR = mosi_mask;
+        }
         tx <<= 1;
-        fd_gpio_set(bus->sclk, true);
-        fd_delay_us(1);
-        rx = (rx << 1) | (fd_gpio_get(bus->miso) ? 1 : 0);
-        fd_gpio_set(bus->sclk, false);
-        fd_delay_us(1);
+
+        // fd_gpio_set(bus->sclk, true);
+        sclk_gpio->OUTSET = sclk_mask;
+        // fd_delay_us(1);
+        __asm("nop\nnop\nnop");
+
+        // rx = (rx << 1) | (fd_gpio_get(bus->miso) ? 1 : 0);
+        rx <<= 1;
+        if (miso_gpio->IN & miso_mask) {
+            rx |= 1;
+        }
+
+        // fd_gpio_set(bus->sclk, false);
+        sclk_gpio->OUTCLR = sclk_mask;
+        //fd_delay_us(1);
+        __asm("nop\nnop\nnop");
     }
     return rx;
 }
 
 void fd_spim_transfer_bit_bang(const fd_spim_bus_t *bus, const uint8_t *tx_bytes, uint32_t tx_byte_count, uint8_t *rx_bytes, uint32_t rx_byte_count) {
     fd_assert(fd_spim_bus_is_enabled(bus));
-    fd_gpio_set(bus->sclk, false);
-    fd_delay_us(1);
+
+    NRF_GPIO_Type *sclk_gpio = fd_spim_transfer_get_nrf_gpio(bus->sclk.port);
+    uint32_t sclk_mask = 1UL << bus->sclk.pin;
+
+    NRF_GPIO_Type *mosi_gpio = fd_spim_transfer_get_nrf_gpio(bus->mosi.port);
+    uint32_t mosi_mask = 1UL << bus->mosi.pin;
+
+    NRF_GPIO_Type *miso_gpio = fd_spim_transfer_get_nrf_gpio(bus->miso.port);
+    uint32_t miso_mask = 1UL << bus->miso.pin;
+
+    //fd_gpio_set(bus->sclk, false);
+    sclk_gpio->OUTCLR = sclk_mask;
+
     const uint8_t *tx = tx_bytes;
     uint8_t *rx = rx_bytes;
     size_t tx_remaining = tx_byte_count;
@@ -271,7 +313,35 @@ void fd_spim_transfer_bit_bang(const fd_spim_bus_t *bus, const uint8_t *tx_bytes
             tx_byte = *tx++;
             --tx_remaining;
         }
-        uint8_t rx_byte = fd_spim_transfer_byte(bus, tx_byte);
+
+        //uint8_t rx_byte = fd_spim_transfer_byte(bus, tx_byte);
+        uint8_t rx_byte = 0;
+        for (uint32_t j = 0; j < 8; ++j) {
+            // fd_gpio_set(bus->mosi, (tx & 0x80) != 0);
+            if (tx_byte & 0x80) {
+                mosi_gpio->OUTSET = mosi_mask;
+            } else {
+                mosi_gpio->OUTCLR = mosi_mask;
+            }
+            tx_byte <<= 1;
+
+            // fd_gpio_set(bus->sclk, true);
+            sclk_gpio->OUTSET = sclk_mask;
+            // fd_delay_us(1);
+            __asm("nop\nnop\nnop");
+
+            // rx = (rx << 1) | (fd_gpio_get(bus->miso) ? 1 : 0);
+            rx_byte <<= 1;
+            if (miso_gpio->IN & miso_mask) {
+                rx_byte |= 1;
+            }
+
+            // fd_gpio_set(bus->sclk, false);
+            sclk_gpio->OUTCLR = sclk_mask;
+            //fd_delay_us(1);
+            __asm("nop\nnop\nnop");
+        }
+
         if (rx_remaining > 0) {
             *rx++ = rx_byte;
             --rx_remaining;
@@ -302,7 +372,10 @@ void fd_spim_transfer_peripheral(const fd_spim_bus_t *bus, const uint8_t *tx_byt
 }
 
 void fd_spim_transfer(const fd_spim_bus_t *bus, const uint8_t *tx_bytes, uint32_t tx_byte_count, uint8_t *rx_bytes, uint32_t rx_byte_count) {
-    if (bus->instance == 0) {
+    if (
+        (bus->instance == 0) ||
+        ((tx_byte_count <= 1) && (rx_byte_count <= 1))
+    ) {
         fd_spim_transfer_bit_bang(bus, tx_bytes, tx_byte_count, rx_bytes, rx_byte_count);
     } else {
         fd_spim_transfer_peripheral(bus, tx_bytes, tx_byte_count, rx_bytes, rx_byte_count);
