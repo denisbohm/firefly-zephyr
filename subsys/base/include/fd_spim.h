@@ -34,6 +34,7 @@ typedef struct {
     fd_gpio_t miso;
     uint32_t frequency;
     fd_spim_mode_t mode;
+    bool power_off;
 } fd_spim_bus_t;
 
 typedef struct {

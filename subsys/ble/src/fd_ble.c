@@ -20,15 +20,33 @@ typedef struct {
 fd_ble_t fd_ble;
 
 void fd_ble_connected(struct bt_conn *conn, uint8_t err) {
-	if (err == 0) {
-        fd_ble.conn = bt_conn_ref(conn);
-	}
+	if (err != 0) {
+        return;
+    }
+
+    fd_ble.conn = bt_conn_ref(conn);
+
+    if (fd_ble.configuration->connected) {
+        fd_ble.configuration->connected(conn);
+    }
 }
 
 void fd_ble_disconnected(struct bt_conn *conn, uint8_t reason) {
 	fd_ble.disconnect_reason = reason;
     bt_conn_unref(conn);
     fd_ble.conn = 0;
+
+    if (fd_ble.configuration->disconnected) {
+        fd_ble.configuration->disconnected(conn);
+    }
+}
+
+bool fd_ble_is_connected(void) {
+    return fd_ble.conn != 0;
+}
+
+void *fd_ble_get_connection(void) {
+    return fd_ble.conn;
 }
 
 void fd_ble_initialize(const fd_ble_configuration_t *configuration) {

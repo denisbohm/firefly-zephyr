@@ -1,6 +1,7 @@
 #include "fd_spim.h"
 
 #include "fd_assert.h"
+#include "fd_delay.h"
 
 #include "nrf.h"
 #include "hal/nrf_gpio.h"
@@ -65,15 +66,25 @@ void fd_spim_initialize(
 
     for (uint32_t i = 0; i < device_count; ++i) {
         const fd_spim_device_t *device = &devices[i];
-        fd_gpio_configure_output(device->csn, true);
+        if (device->bus->power_off) {
+            fd_gpio_configure_default(device->csn);
+        } else {
+            fd_gpio_configure_output(device->csn, true);
+        }
     }
     for (uint32_t i = 0; i < bus_count; ++i) {
         const fd_spim_bus_t *bus = &buses[i];
-        fd_spim_configure_output(bus->sclk);
-        fd_gpio_set(bus->sclk, true);
-        fd_spim_configure_output(bus->mosi);
-        fd_gpio_set(bus->mosi, true);
-        fd_gpio_configure_default(bus->miso);
+        if (bus->power_off) {
+            fd_gpio_configure_default(bus->sclk);
+            fd_gpio_configure_default(bus->mosi);
+            fd_gpio_configure_default(bus->miso);
+        } else {
+            fd_spim_configure_output(bus->sclk);
+            fd_gpio_set(bus->sclk, false);
+            fd_spim_configure_output(bus->mosi);
+            fd_gpio_set(bus->mosi, false);
+            fd_gpio_configure_default(bus->miso);
+        }
 
         fd_spim_bus_disable(bus);
     }
@@ -98,11 +109,25 @@ void fd_spim_bus_enable(const fd_spim_bus_t *bus) {
         return;
     }
 
+    if (bus->power_off) {
+        for (uint32_t i = 0; i < fd_spim.device_count; ++i) {
+            const fd_spim_device_t *device = &fd_spim.devices[i];
+            if (device->bus == bus) {
+                fd_spim_configure_output(device->csn);
+                fd_gpio_set(device->csn, true);
+            }
+        }
+    }
+
     fd_spim_configure_output(bus->sclk);
-    fd_gpio_set(bus->sclk, true);
+    fd_gpio_set(bus->sclk, false);
     fd_spim_configure_output(bus->mosi);
-    fd_gpio_set(bus->mosi, true);
+    fd_gpio_set(bus->mosi, false);
     fd_gpio_configure_input_pull_up(bus->miso);
+
+    if (bus->instance == 0) {
+        return;
+    }
 
     NRF_SPIM_Type *spim = (NRF_SPIM_Type *)bus->instance;
     switch (bus->frequency) {
@@ -121,7 +146,21 @@ void fd_spim_bus_enable(const fd_spim_bus_t *bus) {
             break;
 #endif
     }
-    spim->CONFIG = (SPIM_CONFIG_CPOL_ActiveLow << SPIM_CONFIG_CPOL_Pos) | (SPIM_CONFIG_CPHA_Trailing << SPIM_CONFIG_CPHA_Pos);
+    switch (bus->mode) {
+        case fd_spim_mode_0:
+            spim->CONFIG = (SPIM_CONFIG_CPOL_ActiveHigh << SPIM_CONFIG_CPOL_Pos) | (SPIM_CONFIG_CPHA_Leading << SPIM_CONFIG_CPHA_Pos);
+            break;
+        case fd_spim_mode_1:
+            spim->CONFIG = (SPIM_CONFIG_CPOL_ActiveHigh << SPIM_CONFIG_CPOL_Pos) | (SPIM_CONFIG_CPHA_Trailing << SPIM_CONFIG_CPHA_Pos);
+            break;
+        case fd_spim_mode_2:
+            spim->CONFIG = (SPIM_CONFIG_CPOL_ActiveLow << SPIM_CONFIG_CPOL_Pos) | (SPIM_CONFIG_CPHA_Leading << SPIM_CONFIG_CPHA_Pos);
+            break;
+        case fd_spim_mode_3:
+        default:
+            spim->CONFIG = (SPIM_CONFIG_CPOL_ActiveLow << SPIM_CONFIG_CPOL_Pos) | (SPIM_CONFIG_CPHA_Trailing << SPIM_CONFIG_CPHA_Pos);
+            break;
+    }
     spim->PSEL.SCK = NRF_GPIO_PIN_MAP(bus->sclk.port, bus->sclk.pin);
     spim->PSEL.MOSI = NRF_GPIO_PIN_MAP(bus->mosi.port, bus->mosi.pin);
     spim->PSEL.MISO = NRF_GPIO_PIN_MAP(bus->miso.port, bus->miso.pin);
@@ -135,6 +174,28 @@ void fd_spim_bus_disable(const fd_spim_bus_t *bus) {
         return;
     }
 
+    if (bus->power_off) {
+        fd_gpio_configure_default(bus->sclk);
+        fd_gpio_configure_default(bus->mosi);
+        fd_gpio_configure_default(bus->miso);
+        for (uint32_t i = 0; i < fd_spim.device_count; ++i) {
+            const fd_spim_device_t *device = &fd_spim.devices[i];
+            if (device->bus == bus) {
+                fd_gpio_configure_default(device->csn);
+            }
+        }
+    } else {
+        fd_spim_configure_output(bus->sclk);
+        fd_gpio_set(bus->sclk, false);
+        fd_spim_configure_output(bus->mosi);
+        fd_gpio_set(bus->mosi, false);
+        fd_gpio_configure_default(bus->miso);
+    }
+
+    if (bus->instance == 0) {
+        return;
+    }
+    
     NRF_SPIM_Type *spim = (NRF_SPIM_Type *)bus->instance;
     spim->INTENCLR = SPIM_INTENCLR_END_Msk;
     spim->EVENTS_STARTED = 0;
@@ -154,15 +215,14 @@ void fd_spim_bus_disable(const fd_spim_bus_t *bus) {
     spim->PSEL.SCK = 0xFFFFFFFF;
     spim->PSEL.MOSI = 0xFFFFFFFF;
     spim->PSEL.MISO = 0xFFFFFFFF;
-
-    fd_spim_configure_output(bus->sclk);
-    fd_gpio_set(bus->sclk, true);
-    fd_spim_configure_output(bus->mosi);
-    fd_gpio_set(bus->mosi, true);
-    fd_gpio_configure_default(bus->miso);
 }
 
 bool fd_spim_bus_is_enabled(const fd_spim_bus_t *bus) {
+    if (bus->instance == 0) {
+        NRF_GPIO_Type *nrf_gpio = fd_spim_get_nrf_gpio(bus->miso.port);
+        return ((nrf_gpio->PIN_CNF[bus->miso.pin] >> GPIO_PIN_CNF_INPUT_Pos) & 1) == 0;
+    }
+
     NRF_SPIM_Type *spim = (NRF_SPIM_Type *)bus->instance;
     const uint32_t mask = SPIM_ENABLE_ENABLE_Enabled << SPIM_ENABLE_ENABLE_Pos;
     return (spim->ENABLE & mask) == mask;
@@ -182,7 +242,45 @@ bool fd_spim_device_is_selected(const fd_spim_device_t *device) {
     return !fd_gpio_get(device->csn);
 }
 
-void fd_spim_transfer(const fd_spim_bus_t *bus, const uint8_t *tx_bytes, uint32_t tx_byte_count, uint8_t *rx_bytes, uint32_t rx_byte_count) {
+uint8_t fd_spim_transfer_byte(const fd_spim_bus_t *bus, uint8_t tx) {
+    // mode 1: CPOL=0, CPHA=1
+    uint8_t rx = 0;
+    for (uint32_t i = 0; i < 8; ++i) {
+        fd_gpio_set(bus->mosi, (tx & 0x80) != 0);
+        tx <<= 1;
+        fd_gpio_set(bus->sclk, true);
+        fd_delay_us(1);
+        rx = (rx << 1) | (fd_gpio_get(bus->miso) ? 1 : 0);
+        fd_gpio_set(bus->sclk, false);
+        fd_delay_us(1);
+    }
+    return rx;
+}
+
+void fd_spim_transfer_bit_bang(const fd_spim_bus_t *bus, const uint8_t *tx_bytes, uint32_t tx_byte_count, uint8_t *rx_bytes, uint32_t rx_byte_count) {
+    fd_assert(fd_spim_bus_is_enabled(bus));
+    fd_gpio_set(bus->sclk, false);
+    fd_delay_us(1);
+    const uint8_t *tx = tx_bytes;
+    uint8_t *rx = rx_bytes;
+    size_t tx_remaining = tx_byte_count;
+    size_t rx_remaining = rx_byte_count;
+    while ((tx_remaining > 0) || (rx_remaining > 0)) {
+        uint8_t tx_byte = 0;
+        if (tx_remaining > 0) {
+            tx_byte = *tx++;
+            --tx_remaining;
+        }
+        uint8_t rx_byte = fd_spim_transfer_byte(bus, tx_byte);
+        if (rx_remaining > 0) {
+            *rx++ = rx_byte;
+            --rx_remaining;
+        }
+    }
+    fd_gpio_set(bus->mosi, false);
+}
+
+void fd_spim_transfer_peripheral(const fd_spim_bus_t *bus, const uint8_t *tx_bytes, uint32_t tx_byte_count, uint8_t *rx_bytes, uint32_t rx_byte_count) {
     fd_assert(fd_spim_bus_is_enabled(bus));
     NRF_SPIM_Type *spim = (NRF_SPIM_Type *)bus->instance;
     spim->TXD.PTR = (uint32_t)tx_bytes;
@@ -200,6 +298,14 @@ void fd_spim_transfer(const fd_spim_bus_t *bus, const uint8_t *tx_bytes, uint32_
         }
         tx_remaining -= tx_amount;
         rx_remaining -= rx_amount;
+    }
+}
+
+void fd_spim_transfer(const fd_spim_bus_t *bus, const uint8_t *tx_bytes, uint32_t tx_byte_count, uint8_t *rx_bytes, uint32_t rx_byte_count) {
+    if (bus->instance == 0) {
+        fd_spim_transfer_bit_bang(bus, tx_bytes, tx_byte_count, rx_bytes, rx_byte_count);
+    } else {
+        fd_spim_transfer_peripheral(bus, tx_bytes, tx_byte_count, rx_bytes, rx_byte_count);
     }
 }
 
