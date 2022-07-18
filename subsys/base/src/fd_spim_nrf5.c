@@ -242,11 +242,6 @@ bool fd_spim_device_is_selected(const fd_spim_device_t *device) {
     return !fd_gpio_get(device->csn);
 }
 
-static inline
-NRF_GPIO_Type *fd_spim_transfer_get_nrf_gpio(uint32_t port) {
-    return (NRF_GPIO_Type *)(NRF_P0_BASE + port * 0x300UL);
-}
-
 uint8_t fd_spim_transfer_byte(const fd_spim_bus_t *bus, uint8_t tx) {
     // mode 1: CPOL=0, CPHA=1
 
