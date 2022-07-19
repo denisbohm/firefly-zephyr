@@ -245,13 +245,13 @@ bool fd_spim_device_is_selected(const fd_spim_device_t *device) {
 uint8_t fd_spim_transfer_byte(const fd_spim_bus_t *bus, uint8_t tx) {
     // mode 1: CPOL=0, CPHA=1
 
-    NRF_GPIO_Type *sclk_gpio = fd_spim_transfer_get_nrf_gpio(bus->sclk.port);
+    NRF_GPIO_Type *sclk_gpio = fd_spim_get_nrf_gpio(bus->sclk.port);
     uint32_t sclk_mask = 1UL << bus->sclk.pin;
 
-    NRF_GPIO_Type *mosi_gpio = fd_spim_transfer_get_nrf_gpio(bus->mosi.port);
+    NRF_GPIO_Type *mosi_gpio = fd_spim_get_nrf_gpio(bus->mosi.port);
     uint32_t mosi_mask = 1UL << bus->mosi.pin;
 
-    NRF_GPIO_Type *miso_gpio = fd_spim_transfer_get_nrf_gpio(bus->miso.port);
+    NRF_GPIO_Type *miso_gpio = fd_spim_get_nrf_gpio(bus->miso.port);
     uint32_t miso_mask = 1UL << bus->miso.pin;
 
     uint8_t rx = 0;
@@ -286,13 +286,13 @@ uint8_t fd_spim_transfer_byte(const fd_spim_bus_t *bus, uint8_t tx) {
 void fd_spim_transfer_bit_bang(const fd_spim_bus_t *bus, const uint8_t *tx_bytes, uint32_t tx_byte_count, uint8_t *rx_bytes, uint32_t rx_byte_count) {
     fd_assert(fd_spim_bus_is_enabled(bus));
 
-    NRF_GPIO_Type *sclk_gpio = fd_spim_transfer_get_nrf_gpio(bus->sclk.port);
+    NRF_GPIO_Type *sclk_gpio = fd_spim_get_nrf_gpio(bus->sclk.port);
     uint32_t sclk_mask = 1UL << bus->sclk.pin;
 
-    NRF_GPIO_Type *mosi_gpio = fd_spim_transfer_get_nrf_gpio(bus->mosi.port);
+    NRF_GPIO_Type *mosi_gpio = fd_spim_get_nrf_gpio(bus->mosi.port);
     uint32_t mosi_mask = 1UL << bus->mosi.pin;
 
-    NRF_GPIO_Type *miso_gpio = fd_spim_transfer_get_nrf_gpio(bus->miso.port);
+    NRF_GPIO_Type *miso_gpio = fd_spim_get_nrf_gpio(bus->miso.port);
     uint32_t miso_mask = 1UL << bus->miso.pin;
 
     //fd_gpio_set(bus->sclk, false);
