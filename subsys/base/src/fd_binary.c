@@ -20,6 +20,12 @@ uint32_t fd_binary_unpack_uint32(uint8_t *buffer) {
     return (buffer[3] << 24) | (buffer[2] << 16) | (buffer[1] << 8) | buffer[0];
 }
 
+uint64_t fd_binary_unpack_uint48(uint8_t *buffer) {
+    uint64_t lo = fd_binary_unpack_uint32(buffer);
+    uint64_t hi = fd_binary_unpack_uint16(&buffer[4]);
+    return (hi << 32) | lo;
+}
+
 uint64_t fd_binary_unpack_uint64(uint8_t *buffer) {
     uint64_t lo = fd_binary_unpack_uint32(buffer);
     uint64_t hi = fd_binary_unpack_uint32(&buffer[4]);
@@ -75,9 +81,24 @@ void fd_binary_pack_uint32(uint8_t *buffer, uint32_t value) {
     buffer[3] = value >> 24;
 }
 
+void fd_binary_pack_uint48(uint8_t *buffer, uint64_t value) {
+    buffer[0] = value;
+    buffer[1] = value >> 8;
+    buffer[2] = value >> 16;
+    buffer[3] = value >> 24;
+    buffer[4] = value >> 32;
+    buffer[5] = value >> 40;
+}
+
 void fd_binary_pack_uint64(uint8_t *buffer, uint64_t value) {
-    fd_binary_pack_uint32(buffer, (uint32_t)value);
-    fd_binary_pack_uint32(&buffer[4], (uint32_t)(value >> 32));
+    buffer[0] = value;
+    buffer[1] = value >> 8;
+    buffer[2] = value >> 16;
+    buffer[3] = value >> 24;
+    buffer[4] = value >> 32;
+    buffer[5] = value >> 40;
+    buffer[6] = value >> 48;
+    buffer[7] = value >> 56;
 }
 
 void fd_binary_pack_float16(uint8_t *buffer, float value) {
@@ -179,6 +200,15 @@ uint32_t fd_binary_get_uint32(fd_binary_t *binary) {
     uint8_t *buffer = &binary->buffer[binary->get_index];
     binary->get_index += 4;
     return fd_binary_unpack_uint32(buffer);
+}
+
+uint64_t fd_binary_get_uint48(fd_binary_t *binary) {
+    if (!fd_binary_get_check(binary, 6)) {
+        return 0;
+    }
+    uint8_t *buffer = &binary->buffer[binary->get_index];
+    binary->get_index += 6;
+    return fd_binary_unpack_uint48(buffer);
 }
 
 uint64_t fd_binary_get_uint64(fd_binary_t *binary) {
@@ -307,6 +337,14 @@ void fd_binary_put_uint32(fd_binary_t *binary, uint32_t value) {
         uint8_t *buffer = &binary->buffer[binary->put_index];
         binary->put_index += 4;
         fd_binary_pack_uint32(buffer, value);
+    }
+}
+
+void fd_binary_put_uint48(fd_binary_t *binary, uint64_t value) {
+    if (fd_binary_put_check(binary, sizeof(value))) {
+        uint8_t *buffer = &binary->buffer[binary->put_index];
+        binary->put_index += 6;
+        fd_binary_pack_uint48(buffer, value);
     }
 }
 
