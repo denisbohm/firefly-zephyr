@@ -20,5 +20,8 @@ void fd_ble_dis_initialize(const fd_ble_dis_configuration_t *configuration) {
     if (configuration->firmware_revision) {
     	settings_runtime_set("bt/dis/fw", configuration->firmware_revision, strlen(configuration->firmware_revision));
     }
+    if (configuration->device_name) {
+        bt_set_name(configuration->device_name);
+    }
 }
 

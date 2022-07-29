@@ -8,11 +8,11 @@
 #include <string.h>
 
 #ifndef fd_work_queue_limit
-#define fd_work_queue_limit 4
+#define fd_work_queue_limit 8
 #endif
 
 #ifndef fd_work_task_limit
-#define fd_work_task_limit 8
+#define fd_work_task_limit 16
 #endif
 
 #ifndef fd_work_stack_limit

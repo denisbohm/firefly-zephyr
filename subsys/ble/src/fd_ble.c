@@ -19,12 +19,26 @@ typedef struct {
 
 fd_ble_t fd_ble;
 
+void fd_ble_le_param_updated(struct bt_conn *conn, uint16_t interval, uint16_t latency, uint16_t timeout) {
+    struct bt_conn_info info = {0};
+    int result = bt_conn_get_info(conn, &info);
+    fd_assert(result == 0);
+}
+
 void fd_ble_connected(struct bt_conn *conn, uint8_t err) {
 	if (err != 0) {
         return;
     }
 
     fd_ble.conn = bt_conn_ref(conn);
+
+    struct bt_conn_info info = {0};
+    int result = bt_conn_get_info(conn, &info);
+    fd_assert(result == 0);
+
+    struct bt_le_conn_param param = BT_LE_CONN_PARAM_INIT(6 /* 7.5 ms */, 6 /* 30 ms */, 0, 400);
+    result = bt_conn_le_param_update(conn, &param);
+    fd_assert(result == 0);
 
     if (fd_ble.configuration->connected) {
         fd_ble.configuration->connected(conn);
@@ -68,6 +82,7 @@ void fd_ble_initialize(const fd_ble_configuration_t *configuration) {
     fd_ble.conn_cb = (struct bt_conn_cb) {
 	    .connected = fd_ble_connected,
 	    .disconnected = fd_ble_disconnected,
+        .le_param_updated = fd_ble_le_param_updated,
     };
     bt_conn_cb_register(&fd_ble.conn_cb);
 
