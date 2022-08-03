@@ -9,6 +9,7 @@ typedef struct {
     const uint8_t *custom_service_uuid;
     void (*connected)(void *connection);
     void (*disconnected)(void *connection);
+    void (*mtu_updated)(uint16_t mtu);
 } fd_ble_configuration_t;
 
 void fd_ble_initialize(const fd_ble_configuration_t *configuration);

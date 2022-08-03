@@ -13,6 +13,7 @@ typedef struct {
     const fd_ble_configuration_t *configuration;
     struct bt_data advertising_data[2];
     struct bt_conn_cb conn_cb;
+    struct bt_gatt_cb gatt_cb;
     struct bt_conn *conn;
     uint8_t disconnect_reason;
 } fd_ble_t;
@@ -23,6 +24,13 @@ void fd_ble_le_param_updated(struct bt_conn *conn, uint16_t interval, uint16_t l
     struct bt_conn_info info = {0};
     int result = bt_conn_get_info(conn, &info);
     fd_assert(result == 0);
+}
+
+void fd_ble_mtu_updated(struct bt_conn *conn, uint16_t tx, uint16_t rx) {
+    if (fd_ble.configuration->mtu_updated) {
+        uint16_t mtu = bt_gatt_get_mtu(conn);
+        fd_ble.configuration->mtu_updated(mtu);
+    }
 }
 
 void fd_ble_connected(struct bt_conn *conn, uint8_t err) {
@@ -88,6 +96,11 @@ void fd_ble_initialize(const fd_ble_configuration_t *configuration) {
 
 	int err = bt_enable(NULL);
     fd_assert(err == 0);
+
+    fd_ble.gatt_cb = (struct bt_gatt_cb) {
+	    .att_mtu_updated = fd_ble_mtu_updated,
+    };
+	bt_gatt_cb_register(&fd_ble.gatt_cb);
 
 	settings_load();
 }
