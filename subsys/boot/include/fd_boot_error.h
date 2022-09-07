@@ -3,6 +3,9 @@
 
 #include <stdint.h>
 
+#define fd_boot_error_generic 1
+#define fd_boot_error_timeout 2
+
 typedef struct {
     uint32_t code;
 } fd_boot_error_t;

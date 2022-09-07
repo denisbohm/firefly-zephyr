@@ -21,6 +21,7 @@ typedef struct {
     fd_system_identity_t identity;
 
     void (*transmit)(const uint8_t *data, uint32_t length);
+    void (*aftercare)(void);
     fd_boot_split_peripheral_timer_t timer;
     bool return_on_error;
 

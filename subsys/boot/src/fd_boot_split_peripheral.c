@@ -79,7 +79,7 @@ bool fd_boot_split_peripheral_io(fd_boot_error_t *error) {
     while (!fd_boot_split_peripheral_poll(&message)) {
         if (timer->has_timed_out(timer->context)) {
             timer->finalize(timer->context);
-            fd_boot_set_error(error, 1);
+            fd_boot_set_error(error, fd_boot_error_timeout);
             return false;
         }
     }
@@ -138,6 +138,19 @@ bool fd_boot_split_peripheral_get_update_storage_request(void) {
     return fd_boot_split_peripheral_tx(&message, fd_envelope_type_request);
 }
 
+bool fd_boot_split_peripheral_io_nested(fd_boot_error_t *error) {
+    // beware: this is a nested dispatch... -denis
+    // fd_assert(fd_boot_split_peripheral.operation.any != 0);
+    if (!fd_boot_split_peripheral_io(error)) {
+        return false;
+    }
+    if (fd_boot_split_peripheral.operation.any != 0) {
+        // received an unexpected operation
+        return false;
+    }
+    return true;
+}
+
 bool fd_boot_split_peripheral_get_update_storage(fd_boot_info_update_storage_t *storage, fd_boot_error_t *error) {
     fd_boot_split_peripheral_get_update_storage_operation_t get_update_storage_operation = {
         .storage = storage,
@@ -150,10 +163,8 @@ bool fd_boot_split_peripheral_get_update_storage(fd_boot_info_update_storage_t *
     }
 
     // beware: this is a nested dispatch loop... -denis
-    while (fd_boot_split_peripheral.operation.any != 0) {
-        if (!fd_boot_split_peripheral_io(error)) {
-            return false;
-        }
+    if (!fd_boot_split_peripheral_io_nested(error)) {
+        return false;
     }
 
     return true;
@@ -202,11 +213,8 @@ bool fd_boot_split_peripheral_update_read(
         return false;
     }
 
-    // beware: this is a nested dispatch loop... -denis
-    while (fd_boot_split_peripheral.operation.any != 0) {
-        if (!fd_boot_split_peripheral_io(error)) {
-            return false;
-        }
+    if (!fd_boot_split_peripheral_io_nested(error)) {
+        return false;
     }
 
     return update_read_operation.result;
@@ -537,6 +545,11 @@ bool fd_boot_split_peripheral_run(fd_boot_error_t *error) {
         if (!fd_boot_split_peripheral_io(error)) {
             if (fd_boot_split_peripheral.configuration.return_on_error) {
                 return false;
+            }
+            if (error->code == fd_boot_error_timeout) {
+                if (fd_boot_split_peripheral.configuration.aftercare) {
+                    fd_boot_split_peripheral.configuration.aftercare();
+                }
             }
         }
     }
