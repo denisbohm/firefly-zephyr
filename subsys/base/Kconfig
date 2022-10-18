@@ -11,6 +11,12 @@ config FIREFLY_SUBSYS_BASE_LOG
 	help
 	  Enable Firefly Base Log.
 
+config FIREFLY_SUBSYS_BASE_LOG_LIMIT
+	int "BASE LOG LIMIT"
+	default 256
+	help
+	  Enable Firefly Base Log Limit.
+
 config FIREFLY_SUBSYS_BASE_ASSERT_LOG_LIMIT
      int "firefly assert log limit"
      default 1
