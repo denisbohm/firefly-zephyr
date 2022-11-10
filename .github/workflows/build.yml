@@ -1,0 +1,27 @@
+name: Build
+
+on: [pull_request, workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: denisbohm/nrfconnect-sdk:latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          path: workspace/firefly-zephyr
+
+      - name: Build Boot USB
+        working-directory: workspace/firefly-zephyr
+        run: |
+          cd applications/boot/usb
+          west build
+          mv build/zephyr/merged.hex ../../../../boot-usb.hex
+
+      - name: Upload Binaries
+        uses: actions/upload-artifact@v3
+        with:
+          name: binaries
+          path: |
+            boot-usb.hex
