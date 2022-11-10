@@ -15,6 +15,7 @@ typedef struct {
 void fd_ble_initialize(const fd_ble_configuration_t *configuration);
 
 void fd_ble_start_advertising(void);
+void fd_ble_stop_advertising(void);
 
 bool fd_ble_is_connected(void);
 

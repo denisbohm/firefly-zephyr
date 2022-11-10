@@ -22,9 +22,14 @@ typedef struct {
 typedef struct {
     fd_usb_configuration_t configuration;
     fd_usb_status_count_t status_count;
+    bool is_connected;
 } fd_usb_t;
 
 fd_usb_t fd_usb;
+
+bool fd_usb_is_connected(void) {
+    return fd_usb.is_connected;
+}
 
 void fd_usb_dc_status_callback(enum usb_dc_status_code cb_status, const uint8_t *param) {
     switch (cb_status) {
@@ -36,6 +41,7 @@ void fd_usb_dc_status_callback(enum usb_dc_status_code cb_status, const uint8_t 
             break;
         case USB_DC_CONNECTED: // USB connection established, hardware enumeration is completed
             ++fd_usb.status_count.connected;
+            fd_usb.is_connected = true;
             if (fd_usb.configuration.connected) {
                 fd_usb.configuration.connected();
             }
@@ -45,6 +51,7 @@ void fd_usb_dc_status_callback(enum usb_dc_status_code cb_status, const uint8_t 
             break;
         case USB_DC_DISCONNECTED: // USB connection lost
             ++fd_usb.status_count.disconnected;
+            fd_usb.is_connected = false;
             if (fd_usb.configuration.disconnected) {
                 fd_usb.configuration.disconnected();
             }

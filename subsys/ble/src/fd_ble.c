@@ -33,15 +33,15 @@ void fd_ble_mtu_updated(struct bt_conn *conn, uint16_t tx, uint16_t rx) {
     }
 }
 
-void fd_ble_connected(struct bt_conn *conn, uint8_t err) {
-	if (err != 0) {
+void fd_ble_connected(struct bt_conn *conn, uint8_t result) {
+	if (result != 0) {
         return;
     }
 
     fd_ble.conn = bt_conn_ref(conn);
 
     struct bt_conn_info info = {0};
-    int result = bt_conn_get_info(conn, &info);
+    result = bt_conn_get_info(conn, &info);
     fd_assert(result == 0);
 
     struct bt_le_conn_param param = BT_LE_CONN_PARAM_INIT(6 /* 7.5 ms */, 6 /* 30 ms */, 0, 400);
@@ -94,8 +94,8 @@ void fd_ble_initialize(const fd_ble_configuration_t *configuration) {
     };
     bt_conn_cb_register(&fd_ble.conn_cb);
 
-	int err = bt_enable(NULL);
-    fd_assert(err == 0);
+	int result = bt_enable(NULL);
+    fd_assert(result == 0);
 
     fd_ble.gatt_cb = (struct bt_gatt_cb) {
 	    .att_mtu_updated = fd_ble_mtu_updated,
@@ -106,12 +106,17 @@ void fd_ble_initialize(const fd_ble_configuration_t *configuration) {
 }
 
 void fd_ble_start_advertising(void) {
-	int err = bt_le_adv_start(
+	int result = bt_le_adv_start(
         BT_LE_ADV_CONN_NAME,
         fd_ble.advertising_data,
         ARRAY_SIZE(fd_ble.advertising_data),
         0,
         0
     );
-    fd_assert(err == 0);
+    fd_assert((result == 0) || (result == -EALREADY));
+}
+
+void fd_ble_stop_advertising(void) {
+    int result = bt_le_adv_stop();
+    fd_assert(result == 0);
 }
