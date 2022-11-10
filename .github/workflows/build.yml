@@ -12,6 +12,12 @@ jobs:
         with:
           path: workspace/firefly-zephyr
 
+      - name: Initialize
+        working-directory: workspace/firefly-zephyr
+        run: |
+          west init -l
+          west update --narrow -o=--depth=1
+
       - name: Build Boot USB
         working-directory: workspace/firefly-zephyr
         run: |
