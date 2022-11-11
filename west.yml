@@ -1,0 +1,15 @@
+manifest:
+  remotes:
+    - name: ncs
+      url-base: https://github.com/nrfconnect
+    - name: denisbohm
+      url-base: https://github.com/denisbohm
+  projects:
+    - name: sdk-nrf
+      remote: ncs
+      path: nrf
+      revision: v2.1.0
+      import: true
+      clone-depth: 1
+  self:
+      path: firefly-zephyr
