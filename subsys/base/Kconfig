@@ -26,6 +26,41 @@ config FIREFLY_SUBSYS_BASE_TEST
 	help
 	  Enable Firefly Base Test.
 
+config FIREFLY_SUBSYS_BASE_ADC_NRF5
+	bool "BASE ADC NRF5"
+	help
+	  Enable Firefly Base ADC nRF5.
+
+config FIREFLY_SUBSYS_BASE_I2CM_NRF5
+	bool "BASE I2CM NRF5"
+	help
+	  Enable Firefly Base I2CM nRF5.
+
+config FIREFLY_SUBSYS_BASE_INTERRUPT_NRF5
+	bool "BASE INTERRUPT NRF5"
+	help
+	  Enable Firefly Base INTERRUPT nRF5.
+
+config FIREFLY_SUBSYS_BASE_PWM_NRF5
+	bool "BASE PWM NRF5"
+	help
+	  Enable Firefly Base PWM nRF5.
+
+config FIREFLY_SUBSYS_BASE_RTC_NRF5
+	bool "BASE RTC NRF5"
+	help
+	  Enable Firefly Base RTC nRF5.
+
+config FIREFLY_SUBSYS_BASE_SPIM_NRF5
+	bool "BASE SPIM NRF5"
+	help
+	  Enable Firefly Base SPIM nRF5.
+
+config FIREFLY_SUBSYS_BASE_TIMING_NRF5
+	bool "BASE TIMING NRF5"
+	help
+	  Enable Firefly Base TIMING nRF5.
+
 config FIREFLY_SUBSYS_BASE_UART_NRF5
 	bool "BASE UART NRF5"
 	help

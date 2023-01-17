@@ -1,6 +1,6 @@
 #include "fd_delay.h"
 
-#include "zephyr.h"
+#include "zephyr/kernel.h"
 
 void fd_delay_ms(uint32_t ms) {
     k_busy_wait(ms * 1000);

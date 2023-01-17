@@ -1,6 +1,6 @@
 #include "fd_rtc.h"
 
-#include <zephyr.h>
+#include <zephyr/kernel.h>
 
 #include "nrf.h"
 

@@ -2,7 +2,7 @@
 
 #include "fd_assert.h"
 
-#include <usb/usb_device.h>
+#include <zephyr/usb/usb_device.h>
 
 typedef struct {
     uint32_t error;

@@ -5,7 +5,7 @@
 #include "fd_usb.h"
 #include "fd_usb_msc.h"
 
-#include <zephyr.h>
+#include <zephyr/kernel.h>
 
 #include <nrf5340_application.h>
 

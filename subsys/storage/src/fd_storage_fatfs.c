@@ -2,13 +2,13 @@
 
 #include "fd_assert.h"
 
-#include <zephyr.h>
-#include <usb/usb_device.h>
-#include <fs/fs.h>
-#include <storage/flash_map.h>
+#include <zephyr/kernel.h>
+#include <zephyr/usb/usb_device.h>
+#include <zephyr/fs/fs.h>
+#include <zephyr/storage/flash_map.h>
 #include <ff.h>
-#include <drivers/flash.h>
-#include <device.h>
+#include <zephyr/drivers/flash.h>
+#include <zephyr/device.h>
 
 #ifdef FD_STORAGE_FATFS_TEST_QSPI
 #include <nrf.h>

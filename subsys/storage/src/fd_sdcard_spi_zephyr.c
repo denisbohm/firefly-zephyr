@@ -3,8 +3,8 @@
 #include "fd_assert.h"
 #include "fd_gpio.h"
 
-#include <zephyr.h>
-#include <drivers/spi.h>
+#include <zephyr/kernel.h>
+#include <zephyr/drivers/spi.h>
 
 static struct spi_config fd_sdcard_spi_zephyr_config_slow = {
     .operation = SPI_WORD_SET(8) | SPI_TRANSFER_MSB,

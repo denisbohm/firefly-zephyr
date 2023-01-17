@@ -4,10 +4,10 @@
 #include "fd_event.h"
 #include "fd_fifo.h"
 
-#include <zephyr.h>
-#include <device.h>
-#include <drivers/uart.h>
-#include <pm/device.h>
+#include <zephyr/kernel.h>
+#include <zephyr/device.h>
+#include <zephyr/drivers/uart.h>
+#include <zephyr/pm/device.h>
 #include <version.h>
 
 #include <stdio.h>

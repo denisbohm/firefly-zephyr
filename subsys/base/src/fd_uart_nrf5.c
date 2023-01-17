@@ -4,7 +4,7 @@
 #include "fd_event.h"
 #include "fd_fifo.h"
 
-#include <zephyr.h>
+#include <zephyr/kernel.h>
 
 #include <nrf.h>
 #include <nrfx_uarte.h>

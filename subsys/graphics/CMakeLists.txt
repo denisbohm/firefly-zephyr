@@ -2,6 +2,8 @@ set(OVERLAY_CONFIG Kconfig)
 
 zephyr_include_directories(include)
 
+if(CONFIG_FIREFLY_SUBSYS_GRAPHICS)
+
 zephyr_sources(src/fd_canvas.c)
 zephyr_sources(src/fd_drawing.c)
 zephyr_sources(src/fd_drawing_icon.c)
@@ -28,3 +30,5 @@ zephyr_sources(src/fd_view_icon.c)
 zephyr_sources(src/fd_view_image.c)
 zephyr_sources(src/fd_view_rectangle.c)
 zephyr_sources(src/fd_view_text.c)
+
+endif()

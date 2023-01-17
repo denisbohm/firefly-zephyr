@@ -1,6 +1,6 @@
 #include "fd_counter.h"
 
-#include <zephyr.h>
+#include <zephyr/kernel.h>
 
 #include <string.h>
 

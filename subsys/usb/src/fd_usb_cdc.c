@@ -2,14 +2,14 @@
 
 #include "fd_assert.h"
 
-#include <device.h>
-#include <drivers/uart.h>
+#include <zephyr/kernel.h>
+#include <zephyr/device.h>
+#include <zephyr/drivers/uart.h>
+#include <zephyr/sys/ring_buffer.h>
+#include <zephyr/usb/usb_device.h>
+
 #include <stdio.h>
 #include <string.h>
-#include <sys/ring_buffer.h>
-#include <zephyr.h>
-
-#include <usb/usb_device.h>
 
 #define RING_BUF_SIZE 1024
 

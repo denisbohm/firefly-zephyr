@@ -2,7 +2,7 @@
 
 #include "fd_assert.h"
 
-#include <zephyr.h>
+#include <zephyr/kernel.h>
 
 #include <math.h>
 #include <string.h>
