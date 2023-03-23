@@ -53,6 +53,18 @@ void fd_boot_split_peripheral_received(const uint8_t *data, uint32_t length) {
     }
 }
 
+bool fd_boot_split_peripheral_has_first_message(void) {
+    fd_binary_t message;
+    fd_binary_initialize(&message, fd_boot_split_peripheral.fifo_buffer, fd_boot_split_peripheral.fifo.tail);
+    fd_envelope_t envelope;
+    bool result = fd_envelope_decode(&message, &envelope);
+    if (!result) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 bool fd_boot_split_peripheral_poll(fd_binary_t *message) {
     fd_fifo_t *fifo = &fd_boot_split_peripheral.fifo;
     uint8_t byte = 0;

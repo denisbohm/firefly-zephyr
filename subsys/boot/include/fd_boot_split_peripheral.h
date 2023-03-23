@@ -32,6 +32,8 @@ bool fd_boot_split_peripheral_set_configuration_defaults(fd_boot_split_periphera
 
 void fd_boot_split_peripheral_initialize(fd_boot_split_peripheral_configuration_t *configuration);
 
+bool fd_boot_split_peripheral_has_first_message(void);
+
 bool fd_boot_split_peripheral_run(fd_boot_error_t *error);
 
 // Pass serial data received via interrupt handler to this function.
