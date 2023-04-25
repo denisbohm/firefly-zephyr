@@ -536,9 +536,9 @@ bool fd_boot_get_update_metadata(
         result->issue = fd_boot_get_update_metadata_issue_length;
         return true;
     }
-    uint32_t executable_length = info_storage.range.length - 64 - 128;
+    uint32_t executable_length = info_storage.range.length - 64 /* footer */ - 128 /* metadata */;
     if ((metadata.flags & fd_boot_update_metadata_flag_encrypted) != 0) {
-        executable_length -= 128;
+        executable_length -= 128 /* encrypted metadata */;
     }
     if (metadata.executable_metadata.length != executable_length) {
         result->issue = fd_boot_get_update_metadata_issue_length;
