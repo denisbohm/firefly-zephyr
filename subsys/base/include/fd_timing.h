@@ -16,6 +16,8 @@ typedef struct {
 
 void fd_timing_initialize(void);
 
+double fd_timing_get_us_per_timestamp(void);
+
 void fd_timing_enable(void);
 uint32_t fd_timing_get_timestamp(void);
 void fd_timing_disable(void);

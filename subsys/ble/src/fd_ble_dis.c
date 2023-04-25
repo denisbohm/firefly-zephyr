@@ -1,7 +1,7 @@
 #include "fd_ble_dis.h"
 
-#include <bluetooth/bluetooth.h>
-#include <settings/settings.h>
+#include <zephyr/bluetooth/bluetooth.h>
+#include <zephyr/settings/settings.h>
 
 #include <string.h>
 

@@ -2,12 +2,12 @@
 
 #include "fd_assert.h"
 
-#include <bluetooth/bluetooth.h>
-#include <bluetooth/hci.h>
-#include <bluetooth/conn.h>
-#include <bluetooth/uuid.h>
-#include <bluetooth/gatt.h>
-#include <settings/settings.h>
+#include <zephyr/bluetooth/bluetooth.h>
+#include <zephyr/bluetooth/hci.h>
+#include <zephyr/bluetooth/conn.h>
+#include <zephyr/bluetooth/uuid.h>
+#include <zephyr/bluetooth/gatt.h>
+#include <zephyr/settings/settings.h>
 
 typedef struct {
     const fd_ble_configuration_t *configuration;
@@ -113,7 +113,9 @@ void fd_ble_start_advertising(void) {
         0,
         0
     );
-    fd_assert((result == 0) || (result == -EALREADY));
+    // When the HCI command returns HCI_ERROR_CODE_CMD_DISALLOWED (the device is not in a state to process the command)
+    // we only get the return -EIO.  This is happening for the ST BlueNRG-MS after disconnecting for some reason. --denis
+    fd_assert((result == 0) || (result == -EALREADY) || (result == -EIO));
 }
 
 void fd_ble_stop_advertising(void) {

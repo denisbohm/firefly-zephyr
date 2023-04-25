@@ -18,3 +18,7 @@ void fd_timing_disable(void) {
 uint32_t fd_timing_get_timestamp(void) {
     return DWT->CYCCNT;
 }
+
+double fd_timing_get_us_per_timestamp(void) {
+    return 1.0 / 64.0;
+}

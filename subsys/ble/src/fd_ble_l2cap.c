@@ -2,8 +2,8 @@
 
 #include "fd_assert.h"
 
-#include <bluetooth/l2cap.h>
-#include <sys/ring_buffer.h>
+#include <zephyr/bluetooth/l2cap.h>
+#include <zephyr/sys/ring_buffer.h>
 #include <version.h>
 
 #include <string.h>

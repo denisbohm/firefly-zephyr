@@ -10,7 +10,8 @@
 #endif
 
 #ifndef fd_boot_split_controller_timeout
-#define fd_boot_split_controller_timeout 0xffffffff
+//#define fd_boot_split_controller_timeout 0xffffffff
+#define fd_boot_split_controller_timeout 1000
 #endif
 
 bool fd_boot_split_controller_transmit(
@@ -162,9 +163,9 @@ bool fd_boot_split_controller_poll(
     uint8_t byte = 0;
     while (fd_fifo_get(&controller->fifo, &byte)) {
         fd_boot_split_controller_timer_t *timer = &controller->timer;
-        timer->update(timer->context);
         if (byte == 0) {
             if (message->put_index != 0) {
+                timer->update(timer->context);
                 return true;
             }
         } else {
@@ -205,11 +206,10 @@ bool fd_boot_split_controller_io(
     return true;
 }
 
-bool fd_boot_split_controller_rpc(
+bool fd_boot_split_controller_rps(
     fd_boot_split_controller_t *controller,
     fd_boot_split_operation_t operation,
     fd_binary_t *request,
-    fd_binary_t *response,
     fd_boot_error_t *error
 ) {
     fd_binary_put_uint16(request, operation);
@@ -220,7 +220,17 @@ bool fd_boot_split_controller_rpc(
         .subsystem = controller->subsystem,
         .type = fd_envelope_type_request,
     };
-    fd_boot_split_controller_transmit(controller, request, &request_envelope);
+    return fd_boot_split_controller_transmit(controller, request, &request_envelope);
+}
+
+bool fd_boot_split_controller_rpc(
+    fd_boot_split_controller_t *controller,
+    fd_boot_split_operation_t operation,
+    fd_binary_t *request,
+    fd_binary_t *response,
+    fd_boot_error_t *error
+) {
+    fd_boot_split_controller_rps(controller, operation, request, error);
     while (true) {
         bool has_response = false;
         if (!fd_boot_split_controller_io(controller, response, &has_response, error)) {
@@ -317,6 +327,19 @@ bool fd_boot_split_controller_execute(
     result->is_valid = fd_binary_get_uint8(&response) != 0;
     if (!result->is_valid) {
         result->issue = fd_binary_get_uint8(&response);
+    }
+    return true;
+}
+
+bool fd_boot_split_controller_send_execute(
+    fd_boot_split_controller_t *controller,
+    fd_boot_error_t *error
+) {
+    uint8_t buffer[64];
+    fd_binary_t request;
+    fd_binary_initialize(&request, buffer, sizeof(buffer));
+    if (!fd_boot_split_controller_rps(controller, fd_boot_split_operation_execute, &request, error)) {
+        return false;
     }
     return true;
 }

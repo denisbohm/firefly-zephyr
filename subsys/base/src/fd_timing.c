@@ -37,7 +37,7 @@ void fd_timing_end(fd_timing_t *timing) {
 }
 
 void fd_timing_format(const fd_timing_t *timing, char *buffer, size_t size) {
-    const double us_per_clock = 1.0 / 64.0;
+    const double us_per_clock = fd_timing_get_us_per_timestamp();
 
     if (timing->count <= 0) {
         snprintf(buffer, size, "0 calls");

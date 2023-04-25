@@ -84,4 +84,9 @@ bool fd_boot_split_controller_execute(
     fd_boot_error_t *error
 );
 
+bool fd_boot_split_controller_send_execute(
+    fd_boot_split_controller_t *controller,
+    fd_boot_error_t *error
+);
+
 #endif
