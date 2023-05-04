@@ -6,6 +6,7 @@ rsource "boot/Kconfig"
 rsource "crypto/Kconfig"
 rsource "graphics/Kconfig"
 rsource "storage/Kconfig"
+rsource "swd/Kconfig"
 rsource "usb/Kconfig"
 rsource "ux/Kconfig"
 

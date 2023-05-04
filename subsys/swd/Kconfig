@@ -1,0 +1,5 @@
+menuconfig FIREFLY_SUBSYS_SWD
+	bool "SWD"
+    select HWINFO
+	help
+	  Include ARM Cortex Serial Wire Debug firmware in the system configuration.
