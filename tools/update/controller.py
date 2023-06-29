@@ -365,9 +365,20 @@ class Controller:
         if do_restart:
             self.gateway.enter_boot_loader()
 
-        identity = self.get_identity()
-        version = identity.version
-        print(f"identity: {identity.identifier} {version.major}.{version.minor}.{version.patch}")
+        identity = None
+        for i in range(3): 
+            try:
+                identity = self.get_identity() # transfer 1st dummy frame to detect I2C
+                version = identity.version
+                print(f"identity: {identity.identifier} {version.major}.{version.minor}.{version.patch}")
+                break
+            except:
+                pass
+            
+        if identity == None:
+            print(f"Get identity failed! Retry!")
+            return
+
         if do_version:
             return
 
