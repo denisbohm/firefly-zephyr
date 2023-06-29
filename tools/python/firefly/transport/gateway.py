@@ -157,7 +157,17 @@ class GatewayI2C(Gateway):
         return self.timeout
 
     def enter_boot_loader(self):
-        pass
+        D3_PIN = 3
+        port = self.i2c.get_gpio()
+        port.set_direction(pins=(1<<D3_PIN), direction=(1<<D3_PIN)) # config AD3 as output
+        pins = port.read()
+        pins &= ~(1 << D3_PIN) # config AD3 as LOW to trigger reset
+        port.write(pins) 
+        time.sleep(0.25)
+        pins = port.read()
+        pins |= 1 << D3_PIN # config D3 as HIGH to enable PMM
+        port.write(pins) 
+        time.sleep(0.25)
 
     def write(self, data):
         self.port.write(out=data)
