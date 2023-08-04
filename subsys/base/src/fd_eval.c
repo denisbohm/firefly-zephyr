@@ -111,6 +111,22 @@ typedef struct {
     fd_eval_node_t *tree;
 } fd_eval_t;
 
+fd_eval_string_t fd_eval_string_initialize(const char *string) {
+    return (fd_eval_string_t) { .string = string, .length = strlen(string) };
+}
+
+fd_eval_value_t fd_eval_value_initialize_boolean(double boolean) {
+    return (fd_eval_value_t) { .type = fd_eval_value_type_boolean, .boolean = boolean };
+}
+
+fd_eval_value_t fd_eval_value_initialize_integer(double integer) {
+    return (fd_eval_value_t) { .type = fd_eval_value_type_integer, .integer = integer };
+}
+
+fd_eval_value_t fd_eval_value_initialize_real(double real) {
+    return (fd_eval_value_t) { .type = fd_eval_value_type_real, .real = real };
+}
+
 fd_eval_node_t *fd_eval_allocate_node(fd_eval_t *eval) {
     fd_eval_node_heap_t *heap = &eval->heap;
     if (heap->index >= heap->count) {
@@ -330,9 +346,8 @@ bool fd_eval_get_symbol_value_default(fd_eval_string_t token, fd_eval_value_t *v
     return false;
 }
 
-void fd_eval_parse(fd_eval_t *eval, const char *expression, void *heap, size_t heap_size, fd_eval_get_symbol_value_t get_symbol_value) {
-    eval->input.string = expression;
-    eval->input.length = strlen(eval->input.string);
+void fd_eval_parse(fd_eval_t *eval, fd_eval_string_t expression, void *heap, size_t heap_size, fd_eval_get_symbol_value_t get_symbol_value) {
+    eval->input = expression;
     eval->heap.nodes = heap;
     eval->heap.count = heap_size / sizeof(fd_eval_node_t);
     eval->get_symbol_value = get_symbol_value != NULL ? get_symbol_value : fd_eval_get_symbol_value_default;
@@ -342,7 +357,7 @@ void fd_eval_parse(fd_eval_t *eval, const char *expression, void *heap, size_t h
     fd_eval_expect(eval, end);
 }
 
-bool fd_eval_check(const char *expression) {
+bool fd_eval_check(fd_eval_string_t expression) {
     fd_eval_t eval = {};
     fd_eval_parse(&eval, expression, NULL, 0, NULL);
     return !eval.error;
@@ -852,7 +867,7 @@ fd_eval_value_t fd_eval_evaluate(fd_eval_t *eval, fd_eval_node_t *node) {
     return eval->error_value;
 }
 
-fd_eval_result_t fd_eval_calculate(const char *expression, void *heap, size_t heap_size, fd_eval_get_symbol_value_t get_symbol_value) {
+fd_eval_result_t fd_eval_calculate(fd_eval_string_t expression, void *heap, size_t heap_size, fd_eval_get_symbol_value_t get_symbol_value) {
     fd_eval_t eval = {};
     fd_eval_parse(&eval, expression, heap, heap_size, get_symbol_value);
     fd_eval_result_t result;

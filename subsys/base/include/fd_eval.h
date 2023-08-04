@@ -27,7 +27,7 @@ typedef struct {
 
 #define fd_eval_heap_align __attribute__ ((aligned (8)))
 
-typedef bool (*fd_eval_get_symbol_value_t)(fd_eval_string_t token, fd_eval_value_t *value);
+typedef bool (*fd_eval_get_symbol_value_t)(fd_eval_string_t symbol, fd_eval_value_t *value);
 
 typedef struct {
     bool success;
@@ -35,12 +35,25 @@ typedef struct {
 } fd_eval_result_t;
 
 // return the result of evaluating the expression
-fd_eval_result_t fd_eval_calculate(const char *expression, void *heap, size_t heap_size, fd_eval_get_symbol_value_t get_symbol_value);
+fd_eval_result_t fd_eval_calculate(fd_eval_string_t expression, void *heap, size_t heap_size, fd_eval_get_symbol_value_t get_symbol_value);
 
 // returns true for a valid expression (does not evaluate it)
-bool fd_eval_check(const char *expression);
+bool fd_eval_check(fd_eval_string_t expression);
 
 // return true when the two strings are equal
 bool fd_eval_string_equals(fd_eval_string_t a, const char *b);
+
+// initialize a eval string from a C string
+fd_eval_string_t fd_eval_string_initialize(const char *string);
+
+// initialize a eval value
+fd_eval_value_t fd_eval_value_initialize_boolean(double boolean);
+fd_eval_value_t fd_eval_value_initialize_integer(double integer);
+fd_eval_value_t fd_eval_value_initialize_real(double real);
+
+// data type conversions
+fd_eval_value_t fd_eval_as_boolean(fd_eval_value_t value);
+fd_eval_value_t fd_eval_as_integer(fd_eval_value_t value);
+fd_eval_value_t fd_eval_as_real(fd_eval_value_t value);
 
 #endif
