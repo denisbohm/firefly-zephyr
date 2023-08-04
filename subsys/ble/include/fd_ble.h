@@ -12,7 +12,7 @@ typedef struct {
     void (*mtu_updated)(uint16_t mtu);
 } fd_ble_configuration_t;
 
-void fd_ble_initialize(const fd_ble_configuration_t *configuration);
+bool fd_ble_initialize(const fd_ble_configuration_t *configuration);
 
 void fd_ble_start_advertising(void);
 void fd_ble_stop_advertising(void);

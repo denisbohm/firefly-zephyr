@@ -71,7 +71,7 @@ void *fd_ble_get_connection(void) {
     return fd_ble.conn;
 }
 
-void fd_ble_initialize(const fd_ble_configuration_t *configuration) {
+bool fd_ble_initialize(const fd_ble_configuration_t *configuration) {
     memset(&fd_ble, 0, sizeof(fd_ble));
     fd_ble.configuration = configuration;
 
@@ -96,6 +96,9 @@ void fd_ble_initialize(const fd_ble_configuration_t *configuration) {
 
 	int result = bt_enable(NULL);
     fd_assert(result == 0);
+    if (result != 0) {
+        return false;
+    }
 
     fd_ble.gatt_cb = (struct bt_gatt_cb) {
 	    .att_mtu_updated = fd_ble_mtu_updated,
@@ -103,6 +106,8 @@ void fd_ble_initialize(const fd_ble_configuration_t *configuration) {
 	bt_gatt_cb_register(&fd_ble.gatt_cb);
 
 	settings_load();
+
+    return true;
 }
 
 void fd_ble_start_advertising(void) {
