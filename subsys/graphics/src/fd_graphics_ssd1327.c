@@ -10,7 +10,7 @@
 // are not part of the actual graphics update area. -denis
 
 #define fd_graphics_ssd1327_width 128
-#define fd_graphics_ssd1327_height 96
+#define fd_graphics_ssd1327_height 128
 
 typedef struct {
     fd_graphics_t graphics;

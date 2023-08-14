@@ -42,6 +42,7 @@ static void fd_ssd1327_reset(void) {
     fd_gpio_set(fd_ssd1327.configuration.resx, false);
     fd_delay_us(100);
     fd_gpio_set(fd_ssd1327.configuration.resx, true);
+    fd_delay_us(100);
 }
 
 static void fd_ssd1327_write_command(const uint8_t *data, uint32_t length) {
