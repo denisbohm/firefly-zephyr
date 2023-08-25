@@ -16,6 +16,14 @@ bool fd_fifo_is_empty(fd_fifo_t *fifo) {
     return fifo->head == fifo->tail;
 }
 
+uint32_t fd_fifo_get_count(fd_fifo_t *fifo) {
+    const uint32_t head = fifo->head;
+    const uint32_t tail = fifo->tail;
+    const uint32_t size = fifo->size;
+    const uint32_t count = head <= tail ? (tail - head) : (size - head + tail);
+    return count;
+}
+
 bool fd_fifo_get(fd_fifo_t *fifo, uint8_t *byte) {
     bool valid = fifo->head != fifo->tail;
     if (valid) {

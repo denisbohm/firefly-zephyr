@@ -1,28 +1,48 @@
 #include "fd_log.h"
 
+#include "fd_fifo.h"
+
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log_backend.h>
-#include <zephyr/logging/log_output_dict.h>
-#include <zephyr/logging/log_backend_std.h>
 
 typedef struct {
+    struct k_sem semaphore;
+    fd_fifo_t fifo;
     uint32_t format;
-    uint8_t __aligned(4) pipe_buffer[CONFIG_FIREFLY_SUBSYS_BASE_LOG_LIMIT];
-    uint8_t __aligned(4) output_buffer[32];
-    struct k_pipe pipe;
+    uint8_t output_buffer[32];
+    uint8_t buffer[CONFIG_FIREFLY_SUBSYS_BASE_LOG_LIMIT];
 } fd_log_t;
 
 fd_log_t fd_log;
 
 size_t fd_log_get(uint8_t *data, size_t size) {
-    size_t bytes_read = 0;
-    k_pipe_get(&fd_log.pipe, data, size, &bytes_read, 0, K_NO_WAIT);
-    return bytes_read;
+    k_sem_take(&fd_log.semaphore, K_FOREVER);
+    uint32_t length = 0;
+    uint8_t byte;
+    while ((length < size) && fd_fifo_get(&fd_log.fifo, &byte)) {
+        *data++ = byte;
+        ++length;
+    }
+    k_sem_give(&fd_log.semaphore);
+    return length;
 }
 
 int fd_log_write(uint8_t *data, size_t length, void *ctx) {
-    size_t bytes_written = 0;
-    k_pipe_put(&fd_log.pipe, data, length, &bytes_written, 0, K_NO_WAIT);
+    k_sem_take(&fd_log.semaphore, K_FOREVER);
+
+    // make room
+    uint32_t available = fd_log.fifo.size - fd_fifo_get_count(&fd_log.fifo);
+    while (available <= length) {
+        uint8_t byte;
+        fd_fifo_get(&fd_log.fifo, &byte);
+    }
+
+    // write data
+    for (uint32_t i = 0; i < length; ++i) {
+        fd_fifo_put(&fd_log.fifo, data[i]);
+    }
+
+    k_sem_give(&fd_log.semaphore);
     return length;
 }
 
@@ -31,19 +51,19 @@ LOG_OUTPUT_DEFINE(fd_log_output, fd_log_write, fd_log.output_buffer, sizeof(fd_l
 static void fd_log_init(const struct log_backend *const backend) {
     fd_log.format = LOG_OUTPUT_TEXT;
 
-    k_pipe_init(&fd_log.pipe, fd_log.pipe_buffer, sizeof(fd_log.pipe_buffer));
+    fd_fifo_initialize(&fd_log.fifo, fd_log.buffer, sizeof(fd_log.buffer));
+
+    k_sem_init(&fd_log.semaphore, 1, 1);
 }
 
 static void fd_log_panic(struct log_backend const *const backend) {
-    log_backend_deactivate(backend);
 }
 
 static void fd_log_dropped(const struct log_backend *const backend, uint32_t cnt) {
-    log_backend_std_dropped(&fd_log_output, cnt);
 }
 
 static void fd_log_process(const struct log_backend *const backend, union log_msg_generic *msg) {
-    uint32_t flags = log_backend_std_get_flags();
+    const uint32_t flags = LOG_OUTPUT_FLAG_CRLF_LFONLY | LOG_OUTPUT_FLAG_LEVEL | LOG_OUTPUT_FLAG_TIMESTAMP;
     log_format_func_t log_output_func = log_format_func_t_get(fd_log.format);
     log_output_func(&fd_log_output, &msg->log, flags);
 }
