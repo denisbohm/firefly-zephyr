@@ -15,16 +15,25 @@ typedef struct {
     struct bt_conn_cb conn_cb;
     struct bt_gatt_cb gatt_cb;
     struct bt_conn *conn;
+    struct bt_conn_info conn_info;
+#if defined(CONFIG_BT_USER_DATA_LEN_UPDATE)
+    struct bt_conn_le_data_len_info conn_le_data_len_info;
+#endif
     uint8_t disconnect_reason;
 } fd_ble_t;
 
 fd_ble_t fd_ble;
 
 void fd_ble_le_param_updated(struct bt_conn *conn, uint16_t interval, uint16_t latency, uint16_t timeout) {
-    struct bt_conn_info info = {0};
-    int result = bt_conn_get_info(conn, &info);
+    int result = bt_conn_get_info(conn, &fd_ble.conn_info);
     fd_assert(result == 0);
 }
+
+#if defined(CONFIG_BT_USER_DATA_LEN_UPDATE)
+void fd_ble_le_data_len_updated(struct bt_conn *conn, struct bt_conn_le_data_len_info *info) {
+    fd_ble.conn_le_data_len_info = *info;
+}
+#endif
 
 void fd_ble_mtu_updated(struct bt_conn *conn, uint16_t tx, uint16_t rx) {
     if (fd_ble.configuration->mtu_updated) {
@@ -47,6 +56,15 @@ void fd_ble_connected(struct bt_conn *conn, uint8_t result) {
     struct bt_le_conn_param param = BT_LE_CONN_PARAM_INIT(6 /* 7.5 ms */, 6 /* 30 ms */, 0, 400);
     result = bt_conn_le_param_update(conn, &param);
     fd_assert(result == 0);
+
+#if 1
+    struct bt_conn_le_data_len_param len_param = {
+        .tx_max_len = 251,
+        .tx_max_time = 2120,
+    };
+    result = bt_conn_le_data_len_update(conn, &len_param);
+    fd_assert(result == 0);
+#endif
 
     if (fd_ble.configuration->connected) {
         fd_ble.configuration->connected(conn);
@@ -91,6 +109,9 @@ bool fd_ble_initialize(const fd_ble_configuration_t *configuration) {
 	    .connected = fd_ble_connected,
 	    .disconnected = fd_ble_disconnected,
         .le_param_updated = fd_ble_le_param_updated,
+#if defined(CONFIG_BT_USER_DATA_LEN_UPDATE)
+        .le_data_len_updated = fd_ble_le_data_len_updated,
+#endif
     };
     bt_conn_cb_register(&fd_ble.conn_cb);
 
