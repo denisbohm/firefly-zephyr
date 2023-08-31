@@ -32,9 +32,11 @@ int fd_log_write(uint8_t *data, size_t length, void *ctx) {
 
     // make room
     uint32_t available = fd_log.fifo.size - fd_fifo_get_count(&fd_log.fifo);
-    while (available <= length) {
+    for (uint32_t i = available; i <= length; ++i) {
         uint8_t byte;
-        fd_fifo_get(&fd_log.fifo, &byte);
+        if (!fd_fifo_get(&fd_log.fifo, &byte)) {
+            break;
+        }
     }
 
     // write data
