@@ -18,7 +18,7 @@ void fd_ble_start_advertising(void);
 void fd_ble_stop_advertising(void);
 
 bool fd_ble_is_connected(void);
-
 void *fd_ble_get_connection(void);
+uint8_t fd_ble_get_disconnect_reason(void);
 
 #endif

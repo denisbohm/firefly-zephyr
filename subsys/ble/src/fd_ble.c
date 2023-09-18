@@ -42,6 +42,10 @@ void fd_ble_mtu_updated(struct bt_conn *conn, uint16_t tx, uint16_t rx) {
     }
 }
 
+uint8_t fd_ble_get_disconnect_reason(void) {
+    return fd_ble.disconnect_reason;
+}
+
 void fd_ble_connected(struct bt_conn *conn, uint8_t result) {
 	if (result != 0) {
         return;
