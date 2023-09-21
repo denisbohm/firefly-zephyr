@@ -12,6 +12,7 @@
 typedef struct {
     const fd_ble_configuration_t *configuration;
     struct bt_data advertising_data[2];
+    struct bt_data scan_response_data[1];
     struct bt_conn_cb conn_cb;
     struct bt_gatt_cb gatt_cb;
     struct bt_conn *conn;
@@ -109,6 +110,12 @@ bool fd_ble_initialize(const fd_ble_configuration_t *configuration) {
         .data_len = 16,
     };
 
+    fd_ble.scan_response_data[0] = (struct bt_data) {
+        .type = BT_DATA_MANUFACTURER_DATA,
+        .data = configuration->manufacturer_data,
+        .data_len = configuration->manufacturer_data_size,
+    };
+
     fd_ble.conn_cb = (struct bt_conn_cb) {
 	    .connected = fd_ble_connected,
 	    .disconnected = fd_ble_disconnected,
@@ -140,8 +147,8 @@ void fd_ble_start_advertising(void) {
         BT_LE_ADV_CONN_NAME,
         fd_ble.advertising_data,
         ARRAY_SIZE(fd_ble.advertising_data),
-        0,
-        0
+        fd_ble.scan_response_data,
+        fd_ble.configuration->manufacturer_data_size > 0 ? ARRAY_SIZE(fd_ble.scan_response_data) : 0
     );
     // When the HCI command returns HCI_ERROR_CODE_CMD_DISALLOWED (the device is not in a state to process the command)
     // we only get the return -EIO.  This is happening for the ST BlueNRG-MS after disconnecting for some reason. --denis

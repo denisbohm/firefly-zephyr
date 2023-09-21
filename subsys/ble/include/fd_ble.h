@@ -7,6 +7,8 @@
 
 typedef struct {
     const uint8_t *custom_service_uuid;
+    const uint8_t *manufacturer_data;
+    size_t manufacturer_data_size;
     void (*connected)(void *connection);
     void (*disconnected)(void *connection);
     void (*mtu_updated)(uint16_t mtu);
