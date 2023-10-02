@@ -123,7 +123,7 @@ void fd_graphics_reset(fd_graphics_t *graphics);
 
 void fd_graphics_set_clipping(fd_graphics_t *graphics, fd_graphics_area_t area);
 void fd_graphics_remove_clipping(fd_graphics_t *graphics);
-fd_graphics_area_t aw_graphics_get_clipping(fd_graphics_t *graphics);
+fd_graphics_area_t fd_graphics_get_clipping(fd_graphics_t *graphics);
 
 void fd_graphics_set_font(fd_graphics_t *graphics, const fd_graphics_font_t *font);
 void fd_graphics_set_background(fd_graphics_t *graphics, fd_graphics_color_t color);
