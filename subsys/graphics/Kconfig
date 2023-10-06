@@ -2,3 +2,22 @@ menuconfig FIREFLY_SUBSYS_GRAPHICS
 	bool "graphics"
 	help
 	  Include graphics firmware in the system configuration.
+
+if FIREFLY_SUBSYS_GRAPHICS
+
+config FIREFLY_SUBSYS_GRAPHICS_ILI9341
+	bool "ILI9341"
+	help
+	  Enable Firefly Graphics ILI9341.
+
+config FIREFLY_SUBSYS_GRAPHICS_SSD1327
+	bool "SSD1327"
+	help
+	  Enable Firefly Graphics SSD1327.
+
+config FIREFLY_SUBSYS_GRAPHICS_TXDC0421A1
+	bool "TXDC0421A1"
+	help
+	  Enable Firefly Graphics TXDC0421A1.
+
+endif
