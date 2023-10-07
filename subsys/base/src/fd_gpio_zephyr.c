@@ -15,7 +15,7 @@ typedef struct {
     struct gpio_callback gpio_callbacks[32];
 } fd_gpio_port_metadata_t;
 
-#define fd_gpio_port_metadata_count 2
+#define fd_gpio_port_metadata_count 10
 
 fd_gpio_port_metadata_t fd_gpio_port_metadatas[fd_gpio_port_metadata_count];
 
@@ -25,7 +25,9 @@ void fd_gpio_initialize(void) {
         fd_gpio_port_metadata_t *metadata = &fd_gpio_port_metadatas[i];
         snprintf(name, sizeof(name), "GPIO_%d", i);
         metadata->device = device_get_binding(name);
-        fd_assert(metadata->device);
+        if (metadata->device == NULL) {
+            break;
+        }
     }
 }
 
