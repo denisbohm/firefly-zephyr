@@ -16,6 +16,8 @@ typedef struct {
 
 bool fd_ble_initialize(const fd_ble_configuration_t *configuration);
 
+void fd_ble_set_service_uuid(const uint8_t uuid[16]);
+
 void fd_ble_start_advertising(void);
 void fd_ble_stop_advertising(void);
 

@@ -11,6 +11,7 @@
 
 typedef struct {
     const fd_ble_configuration_t *configuration;
+    uint8_t service_uuid[16];
     struct bt_data advertising_data[2];
     struct bt_data scan_response_data[1];
     struct bt_conn_cb conn_cb;
@@ -97,6 +98,9 @@ void *fd_ble_get_connection(void) {
 bool fd_ble_initialize(const fd_ble_configuration_t *configuration) {
     memset(&fd_ble, 0, sizeof(fd_ble));
     fd_ble.configuration = configuration;
+    if (configuration->custom_service_uuid != NULL) {
+        memcpy(fd_ble.service_uuid, configuration->custom_service_uuid, sizeof(fd_ble.service_uuid));
+    }
 
     static const uint8_t flags[] = { BT_LE_AD_GENERAL | BT_LE_AD_NO_BREDR };
     fd_ble.advertising_data[0] = (struct bt_data) {
@@ -140,6 +144,11 @@ bool fd_ble_initialize(const fd_ble_configuration_t *configuration) {
 	settings_load();
 
     return true;
+}
+
+void fd_ble_set_service_uuid(const uint8_t uuid[16]) {
+    memcpy(fd_ble.service_uuid, uuid, sizeof(fd_ble.service_uuid));
+    fd_ble.advertising_data[1].data = fd_ble.service_uuid;
 }
 
 void fd_ble_start_advertising(void) {
