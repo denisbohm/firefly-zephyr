@@ -164,6 +164,10 @@ fd_graphics_t *fd_graphics_ssd1327_get(void) {
     return &fd_graphics_ssd1327.graphics;
 }
 
+uint8_t *fd_graphics_ssd1327_frame_buffer(void) {
+    return fd_graphics_ssd1327.buffer;
+}
+
 void fd_graphics_ssd1327_initialize(void) {
     memset(&fd_graphics_ssd1327, 0, sizeof(fd_graphics_ssd1327));
     fd_graphics_ssd1327.graphics.impl = &fd_graphics_ssd1327;

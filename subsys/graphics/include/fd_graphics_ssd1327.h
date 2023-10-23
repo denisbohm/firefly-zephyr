@@ -7,4 +7,6 @@ void fd_graphics_ssd1327_initialize(void);
 
 fd_graphics_t *fd_graphics_ssd1327_get(void);
 
+uint8_t *fd_graphics_ssd1327_frame_buffer(void);
+
 #endif
