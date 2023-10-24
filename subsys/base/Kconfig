@@ -61,6 +61,11 @@ config FIREFLY_SUBSYS_BASE_TIMING_NRF5
 	help
 	  Enable Firefly Base TIMING nRF5.
 
+config FIREFLY_SUBSYS_BASE_TIMING_STM32
+	bool "BASE TIMING STM32"
+	help
+	  Enable Firefly Base TIMING STM32.
+
 config FIREFLY_SUBSYS_BASE_UART_NRF5
 	bool "BASE UART NRF5"
 	help
