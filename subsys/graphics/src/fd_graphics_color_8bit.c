@@ -6,9 +6,7 @@ static fd_graphics_color_8bit_t *fd_graphics_color_8bit_impl(fd_graphics_t *grap
     return (fd_graphics_color_8bit_t *)graphics->impl;
 }
 
-static void fd_graphics_color_8bit_set_pixel(fd_graphics_t *graphics, int lx, int ly, fd_graphics_color_t color) {
-    int x = graphics->width - lx - 1;
-    int y = graphics->height - ly - 1;
+static void fd_graphics_color_8bit_set_pixel(fd_graphics_t *graphics, int x, int y, fd_graphics_color_t color) {
     uint32_t span = graphics->width;
     uint32_t index = 3 * (y * span + x);
     uint8_t *frame_buffer = fd_graphics_color_8bit_impl(graphics)->frame_buffer;
