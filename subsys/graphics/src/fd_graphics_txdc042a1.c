@@ -2,6 +2,7 @@
 
 #include "fd_graphics.h"
 #include "fd_txdc042a1.h"
+#include "fd_unused.h"
 
 #include <string.h>
 
@@ -92,7 +93,7 @@ static void fd_graphics_txdc042a1_blit(fd_graphics_t *graphics, fd_graphics_area
     fd_txdc042a1_write_image_end();
 }
 
-static void fd_graphics_txdc042a1_update(fd_graphics_t *graphics) {
+static void fd_graphics_txdc042a1_update(fd_graphics_t *graphics, fd_graphics_area_t area fd_unused) {
     fd_graphics_txdc042a1_t *impl = fd_graphics_txdc042a1_impl(graphics);
     if (fd_graphics_area_is_empty(impl->modified_area)) {
         return;

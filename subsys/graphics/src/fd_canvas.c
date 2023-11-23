@@ -30,15 +30,16 @@ void fd_canvas_update(fd_canvas_t *canvas) {
 }
 
 void fd_canvas_render(fd_canvas_t *canvas) {
-    if (fd_graphics_area_is_empty(canvas->change.area)) {
+    fd_graphics_area_t area = canvas->change.area;
+    if (fd_graphics_area_is_empty(area)) {
         return;
     }
     
     fd_graphics_reset(canvas->graphics);
-    fd_graphics_set_clipping(canvas->graphics, canvas->change.area);
+    fd_graphics_set_clipping(canvas->graphics, area);
     if (!canvas->change.opaque) {
         fd_graphics_set_foreground(canvas->graphics, (fd_graphics_color_t) { .argb = 0xff000000 });
-        fd_graphics_write_area(canvas->graphics, canvas->change.area);
+        fd_graphics_write_area(canvas->graphics, area);
     }
     fd_graphics_set_background(canvas->graphics, (fd_graphics_color_t) { .argb = 0xff000000 });
     fd_graphics_set_foreground(canvas->graphics, (fd_graphics_color_t) { .argb = 0xffffffff });
@@ -58,7 +59,7 @@ void fd_canvas_render(fd_canvas_t *canvas) {
             fd_drawing_t *drawing = &plane->drawings[j];
             get_area_parameters.drawing = drawing;
             drawing->class->get_area(&get_area_parameters);
-            if (!fd_graphics_area_intersects(canvas->change.area, get_area_parameters.area)) {
+            if (!fd_graphics_area_intersects(area, get_area_parameters.area)) {
                 continue;
             }
             render_parameters.drawing = drawing;
@@ -66,7 +67,7 @@ void fd_canvas_render(fd_canvas_t *canvas) {
         }
     }
     fd_graphics_reset(canvas->graphics);
-    fd_graphics_update(canvas->graphics);
+    fd_graphics_update(canvas->graphics, area);
 }
 
 void fd_canvas_initialize(fd_canvas_t *canvas) {

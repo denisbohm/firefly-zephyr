@@ -17,7 +17,7 @@ static void fd_graphics_color_8bit_set_pixel(fd_graphics_t *graphics, int lx, in
     frame_buffer[index++] = color.b;
 }
 
-static void fd_graphics_color_8bit_blit(fd_graphics_t *graphics, fd_graphics_area_t larea) {
+static void fd_graphics_color_8bit_blit(fd_graphics_t *graphics, fd_graphics_area_t area) {
 }
 
 static void fd_graphics_color_8bit_write_background(fd_graphics_t *graphics) {

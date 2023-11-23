@@ -312,9 +312,9 @@ void fd_graphics_write_string(fd_graphics_t *graphics, int x, int y, const char 
     fd_graphics_write_string_length(graphics, x, y, string, strlen(string));
 }
 
-void fd_graphics_update(fd_graphics_t *graphics) {
+void fd_graphics_update(fd_graphics_t *graphics, fd_graphics_area_t area) {
     if (graphics->backend.update) {
-        graphics->backend.update(graphics);
+        graphics->backend.update(graphics, area);
     }
 }
 
