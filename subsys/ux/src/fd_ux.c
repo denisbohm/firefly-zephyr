@@ -131,6 +131,10 @@ static void fd_ux_set_screen_to(uint32_t screen_id, bool preview) {
     fd_canvas_render(canvas);
 }
 
+uint32_t fd_ux_get_screen(void) {
+    return fd_ux.screen != NULL ? fd_ux.screen->id : 0;
+}
+
 void fd_ux_set_screen(uint32_t screen_id) {
     fd_ux_set_screen_to(screen_id, false);
 }

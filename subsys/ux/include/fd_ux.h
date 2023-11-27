@@ -38,6 +38,7 @@ void fd_ux_set_idle(bool idle);
 
 void fd_ux_set_animation(bool animation);
 
+uint32_t fd_ux_get_screen(void);
 void fd_ux_set_screen(uint32_t id);
 void fd_ux_set_screen_preview(uint32_t id);
 
