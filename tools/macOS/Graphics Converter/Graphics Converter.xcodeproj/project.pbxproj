@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		921456C92B178A0A0006D767 /* libfreetype.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 922492F125F6C4A0003668D6 /* libfreetype.a */; };
 		922492D125F6C146003668D6 /* Graphics_ConverterApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 922492D025F6C146003668D6 /* Graphics_ConverterApp.swift */; };
 		922492D325F6C146003668D6 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 922492D225F6C146003668D6 /* ContentView.swift */; };
 		922492D525F6C146003668D6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 922492D425F6C146003668D6 /* Assets.xcassets */; };
@@ -14,7 +15,6 @@
 		922492E525F6C209003668D6 /* FontConverter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 922492E125F6C209003668D6 /* FontConverter.swift */; };
 		922492E625F6C209003668D6 /* FreeType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 922492E225F6C209003668D6 /* FreeType.swift */; };
 		922492E725F6C209003668D6 /* ConverterModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 922492E425F6C209003668D6 /* ConverterModel.swift */; };
-		922492F225F6C4A0003668D6 /* libfreetype.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 922492F125F6C4A0003668D6 /* libfreetype.a */; };
 		922492F625F6C5FF003668D6 /* MerriweatherSans-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 922492F525F6C5FF003668D6 /* MerriweatherSans-Regular.ttf */; };
 		92D34D86271732B0007BCFCF /* B612-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 92D34D85271732B0007BCFCF /* B612-Regular.ttf */; };
 /* End PBXBuildFile section */
@@ -31,7 +31,7 @@
 		922492E225F6C209003668D6 /* FreeType.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FreeType.swift; sourceTree = "<group>"; };
 		922492E325F6C209003668D6 /* Graphics-Converter-Bridging-Header.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Graphics-Converter-Bridging-Header.h"; sourceTree = "<group>"; };
 		922492E425F6C209003668D6 /* ConverterModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConverterModel.swift; sourceTree = "<group>"; };
-		922492F125F6C4A0003668D6 /* libfreetype.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfreetype.a; path = ../../../../../../../usr/local/lib/libfreetype.a; sourceTree = "<group>"; };
+		922492F125F6C4A0003668D6 /* libfreetype.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfreetype.a; path = /opt/homebrew/Cellar/freetype/2.13.2/lib/libfreetype.a; sourceTree = "<absolute>"; };
 		922492F525F6C5FF003668D6 /* MerriweatherSans-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "MerriweatherSans-Regular.ttf"; path = "Merriweather_Sans/static/MerriweatherSans-Regular.ttf"; sourceTree = "<group>"; };
 		92D34D85271732B0007BCFCF /* B612-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "B612-Regular.ttf"; path = "B612/B612-Regular.ttf"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -41,7 +41,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				922492F225F6C4A0003668D6 /* libfreetype.a in Frameworks */,
+				921456C92B178A0A0006D767 /* libfreetype.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -311,11 +311,15 @@
 				DEVELOPMENT_TEAM = TVNL896ZKT;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
-				HEADER_SEARCH_PATHS = /usr/local/include/freetype2;
+				HEADER_SEARCH_PATHS = /opt/homebrew/include/freetype2;
 				INFOPLIST_FILE = "Graphics Converter/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/opt/homebrew/Cellar/freetype/2.13.2/lib,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.fireflydesign.Graphics-Converter";
@@ -337,11 +341,15 @@
 				DEVELOPMENT_TEAM = TVNL896ZKT;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
-				HEADER_SEARCH_PATHS = /usr/local/include/freetype2;
+				HEADER_SEARCH_PATHS = /opt/homebrew/include/freetype2;
 				INFOPLIST_FILE = "Graphics Converter/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/opt/homebrew/Cellar/freetype/2.13.2/lib,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.fireflydesign.Graphics-Converter";

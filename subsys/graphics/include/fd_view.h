@@ -43,4 +43,6 @@ void fd_view_string_update(fd_view_resource_string_t *resource, const char *stri
 void fd_view_string_update_int(fd_view_resource_string_t *resource, int value);
 void fd_view_string_update_int_suffix(fd_view_resource_string_t *resource, int value, const char *suffix);
 
+void fd_view_string_update_reference(fd_view_resource_string_t *resource, const char *string);
+
 #endif

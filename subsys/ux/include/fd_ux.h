@@ -32,6 +32,7 @@ void fd_ux_button_event(const fd_ux_button_event_t *event);
 
 bool fd_ux_get_update_enabled(void);
 void fd_ux_set_update_enabled(bool enable);
+void fd_ux_update(void);
 
 bool fd_ux_get_idle(void);
 void fd_ux_set_idle(bool idle);

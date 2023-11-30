@@ -5,7 +5,19 @@
 #include <stdio.h>
 #include <string.h>
 
-void fd_view_string_update_string(fd_view_resource_string_t *resource, const char *string) {
+void fd_view_string_update_reference(fd_view_resource_string_t *resource, const char *string) {
+    fd_assert(resource->size == 0);
+
+    if (resource->string == string) {
+        return;
+    }
+
+    resource->string = string;
+    resource->length = strlen(string);
+    ++resource->revision;
+}
+
+void fd_view_string_update(fd_view_resource_string_t *resource, const char *string) {
     fd_assert(resource->size > 0);
     
     size_t length = strlen(string);
@@ -16,10 +28,6 @@ void fd_view_string_update_string(fd_view_resource_string_t *resource, const cha
     memcpy((char *)resource->string, string, length);
     resource->length = length;
     ++resource->revision;
-}
-
-void fd_view_string_update(fd_view_resource_string_t *resource, const char *string) {
-    fd_view_string_update_string(resource, string);
 }
 
 void fd_view_string_update_int_suffix(fd_view_resource_string_t *resource, int value, const char *suffix) {
@@ -33,7 +41,7 @@ void fd_view_string_update_int_suffix(fd_view_resource_string_t *resource, int v
     }
     snprintf(buffer, size, "%d%s", value, suffix);
 
-    fd_view_string_update_string(resource, buffer);
+    fd_view_string_update(resource, buffer);
 }
 
 void fd_view_string_update_int(fd_view_resource_string_t *resource, int value) {

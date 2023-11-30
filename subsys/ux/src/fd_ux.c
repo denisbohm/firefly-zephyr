@@ -23,13 +23,8 @@ typedef struct {
 fd_ux_t fd_ux;
 
 void fd_ux_update(void) {
-    if (fd_ux.screen->animate) {
-        fd_ux.screen->animate();
-    }
-    
     fd_canvas_t *canvas = &fd_ux.canvas;
     fd_canvas_update(canvas);
-
     fd_canvas_render(canvas);
 }
 
@@ -78,6 +73,9 @@ void fd_ux_tick(void) {
     }
 
     if (fd_ux.update_enabled) {
+        if (fd_ux.screen->animate) {
+            fd_ux.screen->animate();
+        }
         fd_ux_update();
     }
 }
@@ -103,11 +101,15 @@ void fd_ux_initialize(fd_ux_configuration_t *configuration) {
 }
 
 static void fd_ux_set_screen_to(uint32_t screen_id, bool preview) {
+    fd_ux_screen_t *screen = &fd_ux.configuration->screens[screen_id];
+    if (fd_ux.screen == screen) {
+        return;
+    }
+
     if (fd_ux.screen) {
         fd_ux.screen->deactivate();
     }
     
-    fd_ux_screen_t *screen = &fd_ux.configuration->screens[screen_id];
     fd_ux.screen = screen;
     
     fd_canvas_t *canvas = &fd_ux.canvas;
