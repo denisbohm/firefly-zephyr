@@ -15,6 +15,15 @@ static void fd_graphics_color_8bit_set_pixel(fd_graphics_t *graphics, int x, int
     frame_buffer[index++] = color.b;
 }
 
+static void fd_graphics_color_8bit_get_pixel(fd_graphics_t *graphics, int x, int y, fd_graphics_color_t *color) {
+    uint32_t span = graphics->width;
+    uint32_t index = 3 * (y * span + x);
+    uint8_t *frame_buffer = fd_graphics_color_8bit_impl(graphics)->frame_buffer;
+    color->r = frame_buffer[index++];
+    color->g = frame_buffer[index++];
+    color->b = frame_buffer[index++];
+}
+
 static void fd_graphics_color_8bit_blit(fd_graphics_t *graphics, fd_graphics_area_t area) {
 }
 
@@ -80,16 +89,15 @@ static void fd_graphics_color_8bit_write_bitmap(fd_graphics_t *graphics, int rx,
     uint32_t fr = graphics->foreground.r;
     uint32_t fg = graphics->foreground.g;
     uint32_t fb = graphics->foreground.b;
-    uint32_t sr = graphics->background.r;
-    uint32_t sg = graphics->background.g;
-    uint32_t sb = graphics->background.b;
     uint32_t max = (1 << bitmap->depth) - 1;
     for (int cy = 0; cy < dst_area.height; ++cy) {
         for (int cx = 0; cx < dst_area.width; ++cx) {
             int alpha = fd_graphics_bitmap_get_pixel(bitmap, sx + cx, sy + cy);
-            uint8_t r = (uint8_t)((fr * alpha + sr * (max - alpha)) / max);
-            uint8_t g = (uint8_t)((fg * alpha + sg * (max - alpha)) / max);
-            uint8_t b = (uint8_t)((fb * alpha + sb * (max - alpha)) / max);
+            fd_graphics_color_t color;
+            fd_graphics_color_8bit_get_pixel(graphics, dx + cx, dy + cy, &color);
+            uint8_t r = (uint8_t)((fr * alpha + color.r * (max - alpha)) / max);
+            uint8_t g = (uint8_t)((fg * alpha + color.g * (max - alpha)) / max);
+            uint8_t b = (uint8_t)((fb * alpha + color.b * (max - alpha)) / max);
             fd_graphics_color_8bit_set_pixel(graphics, dx + cx, dy + cy, (fd_graphics_color_t){ .r = r, .g = g, .b = b });
         }
     }

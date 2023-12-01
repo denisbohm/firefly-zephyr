@@ -151,17 +151,48 @@ void fd_ble_set_service_uuid(const uint8_t uuid[16]) {
     fd_ble.advertising_data[1].data = fd_ble.service_uuid;
 }
 
-void fd_ble_start_advertising(void) {
-	int result = bt_le_adv_start(
-        BT_LE_ADV_CONN_NAME,
+void fd_ble_set_manufacturer_data(const uint8_t *data, size_t size) {
+    fd_ble.scan_response_data[0] = (struct bt_data) {
+        .type = BT_DATA_MANUFACTURER_DATA,
+        .data = data,
+        .data_len = size,
+    };
+}
+
+void fd_ble_start_advertising_with_id(uint32_t id) {
+    int result = bt_le_adv_stop();
+    fd_assert(result >= 0);
+    struct bt_le_adv_param adv_param = {
+        .id = id,
+        .sid = 0,
+        .secondary_max_skip = 0,
+        .options = BT_LE_ADV_OPT_CONNECTABLE | BT_LE_ADV_OPT_USE_NAME,
+        .interval_min = BT_GAP_ADV_FAST_INT_MIN_2,
+        .interval_max = BT_GAP_ADV_FAST_INT_MAX_2,
+        .peer = NULL,
+    };
+	result = bt_le_adv_start(
+        &adv_param,
         fd_ble.advertising_data,
         ARRAY_SIZE(fd_ble.advertising_data),
         fd_ble.scan_response_data,
-        fd_ble.configuration->manufacturer_data_size > 0 ? ARRAY_SIZE(fd_ble.scan_response_data) : 0
+        fd_ble.scan_response_data[0].data_len > 0 ? ARRAY_SIZE(fd_ble.scan_response_data) : 0
     );
     // When the HCI command returns HCI_ERROR_CODE_CMD_DISALLOWED (the device is not in a state to process the command)
     // we only get the return -EIO.  This is happening for the ST BlueNRG-MS after disconnecting for some reason. --denis
     fd_assert((result == 0) || (result == -EALREADY) || (result == -EIO));
+}
+
+void fd_ble_start_advertising(void) {
+    fd_ble_start_advertising_with_id(BT_ID_DEFAULT);
+}
+
+void fd_ble_disconnect(void) {
+    if (fd_ble.conn == NULL) {
+        return;
+    }
+    int result = bt_conn_disconnect(fd_ble.conn, BT_HCI_ERR_REMOTE_USER_TERM_CONN);
+    fd_assert(result >= 0);
 }
 
 void fd_ble_stop_advertising(void) {

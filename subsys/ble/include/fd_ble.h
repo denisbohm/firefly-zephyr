@@ -17,12 +17,15 @@ typedef struct {
 bool fd_ble_initialize(const fd_ble_configuration_t *configuration);
 
 void fd_ble_set_service_uuid(const uint8_t uuid[16]);
+void fd_ble_set_manufacturer_data(const uint8_t *data, size_t size);
 
+void fd_ble_start_advertising_with_id(uint32_t id);
 void fd_ble_start_advertising(void);
 void fd_ble_stop_advertising(void);
 
 bool fd_ble_is_connected(void);
 void *fd_ble_get_connection(void);
 uint8_t fd_ble_get_disconnect_reason(void);
+void fd_ble_disconnect(void);
 
 #endif
