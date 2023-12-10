@@ -24,11 +24,17 @@ class ConverterModel: ObservableObject {
     
     init() {
         let prefix = "fd_"
-        let height:Float = 14
         let depth = 4
+        /*
+        let height:Float = 14
         let cFontName = "B612-Regular"
         let cFontSymbol = "b612_regular_14"
         let fileName = Bundle.main.path(forResource: "B612-Regular", ofType: "ttf")!
+         */
+        let height:Float = 28
+        let cFontName = "Roboto-Medium"
+        let cFontSymbol = "roboto_medium_28"
+        let fileName = Bundle.main.path(forResource: "Roboto-Medium", ofType: "ttf")!
         let characters =
             "!\"#$%&'()*+,-./" +
             "0123456789" +

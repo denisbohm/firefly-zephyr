@@ -80,6 +80,10 @@ uint8_t *fd_graphics_image_get_pixel(const fd_graphics_image_t *image, int x, in
     return &image->data[(x * image->height + y) * 3];
 }
 
+uint8_t *fd_graphics_image_get_pixel_argb(const fd_graphics_image_t *image, int x, int y) {
+    return &image->data[(y * image->width + x) * 4];
+}
+
 static const fd_graphics_font_t fd_graphics_empty_font = {
     .name = "empty",
     .height = 0,

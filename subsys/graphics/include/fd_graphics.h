@@ -61,6 +61,7 @@ typedef struct {
 } fd_graphics_image_t;
 
 uint8_t *fd_graphics_image_get_pixel(const fd_graphics_image_t *image, int x, int y);
+uint8_t *fd_graphics_image_get_pixel_argb(const fd_graphics_image_t *image, int x, int y);
 
 typedef struct {
     int character;

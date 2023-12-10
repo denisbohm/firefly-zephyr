@@ -17,6 +17,7 @@
 		922492E725F6C209003668D6 /* ConverterModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 922492E425F6C209003668D6 /* ConverterModel.swift */; };
 		922492F625F6C5FF003668D6 /* MerriweatherSans-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 922492F525F6C5FF003668D6 /* MerriweatherSans-Regular.ttf */; };
 		92D34D86271732B0007BCFCF /* B612-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 92D34D85271732B0007BCFCF /* B612-Regular.ttf */; };
+		92F311E42B217386008CA31B /* Roboto-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 92F311E32B217386008CA31B /* Roboto-Medium.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -34,6 +35,7 @@
 		922492F125F6C4A0003668D6 /* libfreetype.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfreetype.a; path = /opt/homebrew/Cellar/freetype/2.13.2/lib/libfreetype.a; sourceTree = "<absolute>"; };
 		922492F525F6C5FF003668D6 /* MerriweatherSans-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "MerriweatherSans-Regular.ttf"; path = "Merriweather_Sans/static/MerriweatherSans-Regular.ttf"; sourceTree = "<group>"; };
 		92D34D85271732B0007BCFCF /* B612-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "B612-Regular.ttf"; path = "B612/B612-Regular.ttf"; sourceTree = "<group>"; };
+		92F311E32B217386008CA31B /* Roboto-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Roboto-Medium.ttf"; path = "Roboto/Roboto-Medium.ttf"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -68,6 +70,7 @@
 		922492CF25F6C146003668D6 /* Graphics Converter */ = {
 			isa = PBXGroup;
 			children = (
+				92F311E32B217386008CA31B /* Roboto-Medium.ttf */,
 				92D34D85271732B0007BCFCF /* B612-Regular.ttf */,
 				922492F525F6C5FF003668D6 /* MerriweatherSans-Regular.ttf */,
 				922492E425F6C209003668D6 /* ConverterModel.swift */,
@@ -157,6 +160,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				92F311E42B217386008CA31B /* Roboto-Medium.ttf in Resources */,
 				922492D825F6C146003668D6 /* Preview Assets.xcassets in Resources */,
 				922492D525F6C146003668D6 /* Assets.xcassets in Resources */,
 				92D34D86271732B0007BCFCF /* B612-Regular.ttf in Resources */,

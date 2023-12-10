@@ -64,12 +64,19 @@ static void fd_graphics_color_8bit_write_image(fd_graphics_t *graphics, int x, i
     int dy = dst_area.y;
     int sx = dx - x;
     int sy = dy - y;
+    uint32_t max = (1 << 8) - 1;
     for (int cy = 0; cy < dst_area.height; ++cy) {
         for (int cx = 0; cx < dst_area.width; ++cx) {
-            uint8_t *src = fd_graphics_image_get_pixel(image, sx + cx, sy + cy);
-            uint8_t r = *src++;
-            uint8_t g = *src++;
-            uint8_t b = *src++;
+            uint8_t *src = fd_graphics_image_get_pixel_argb(image, sx + cx, sy + cy);
+            uint8_t alpha = *src++;
+            uint8_t sr = *src++;
+            uint8_t sg = *src++;
+            uint8_t sb = *src++;
+            fd_graphics_color_t color;
+            fd_graphics_color_8bit_get_pixel(graphics, dx + cx, dy + cy, &color);
+            uint8_t r = (uint8_t)((sr * alpha + color.r * (max - alpha)) / max);
+            uint8_t g = (uint8_t)((sg * alpha + color.g * (max - alpha)) / max);
+            uint8_t b = (uint8_t)((sb * alpha + color.b * (max - alpha)) / max);
             fd_graphics_color_8bit_set_pixel(graphics, dx + cx, dy + cy, (fd_graphics_color_t){ .r = r, .g = g, .b = b });
         }
     }
