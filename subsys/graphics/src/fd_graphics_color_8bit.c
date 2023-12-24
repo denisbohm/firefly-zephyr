@@ -2,6 +2,8 @@
 
 #include <string.h>
 
+#pragma GCC optimize("O3")
+
 static fd_graphics_color_8bit_t *fd_graphics_color_8bit_impl(fd_graphics_t *graphics) {
     return (fd_graphics_color_8bit_t *)graphics->impl;
 }
