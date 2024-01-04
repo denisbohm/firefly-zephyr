@@ -16,6 +16,7 @@ typedef struct {
     bool update_enabled;
     uint32_t tick_event;
     uint32_t idle_ticks;
+    bool is_idle;
     
     bool animation;
 } fd_ux_t;
@@ -25,6 +26,12 @@ fd_ux_t fd_ux;
 void fd_ux_update(void) {
     fd_canvas_t *canvas = &fd_ux.canvas;
     fd_canvas_update(canvas);
+    if (!fd_ux.is_idle) {
+        fd_graphics_area_t area = canvas->change.area;
+        if (!fd_graphics_area_is_empty(area)) {
+            fd_ux_set_idle(false);
+        }
+    }
     fd_canvas_render(canvas);
 }
 
@@ -37,24 +44,37 @@ void fd_ux_set_update_enabled(bool update_enabled) {
 }
 
 bool fd_ux_get_idle(void) {
-    return (fd_ux.configuration->idle_ticks != 0) && (fd_ux.idle_ticks > fd_ux.configuration->idle_ticks);
+    return fd_ux.is_idle;
+}
+
+bool fd_ux_should_idle(void) {
+    return !fd_ux.is_idle && (fd_ux.configuration->idle_ticks != 0) && (fd_ux.idle_ticks > fd_ux.configuration->idle_ticks);
 }
 
 void fd_ux_set_idle(bool idle) {
     if (idle) {
-        fd_ux.idle_ticks = fd_ux.configuration->idle_ticks + 1;
+        if (!fd_ux.is_idle) {
+            fd_ux.idle_ticks = 0;
+            fd_ux.is_idle = true;
+            if (fd_ux.configuration->idle) {
+                fd_ux.configuration->idle(true);
+            }
+        }
     } else {
-        fd_ux.idle_ticks = 0;
+        if (fd_ux.is_idle) {
+            fd_ux.idle_ticks = 0;
+            fd_ux.is_idle = false;
+            if (fd_ux.configuration->idle) {
+                fd_ux.configuration->idle(false);
+            }
+        }
     }
 }
 
 void fd_ux_button_event(const fd_ux_button_event_t *event) {
-    bool idle = fd_ux_get_idle();
-    fd_ux.idle_ticks = 0;
-    if (idle) {
-        if (fd_ux.configuration->idle) {
-            fd_ux.configuration->idle(false);
-        }
+    if (fd_ux.is_idle) {
+        fd_ux_set_idle(false);
+        return;
     }
 
     fd_ux.screen->button(event);
@@ -62,12 +82,10 @@ void fd_ux_button_event(const fd_ux_button_event_t *event) {
 
 void fd_ux_tick(void) {
     if (fd_ux.configuration->idle_ticks != 0) {
-        if (!fd_ux_get_idle()) {
+        if (!fd_ux.is_idle) {
             ++fd_ux.idle_ticks;
-            if (fd_ux.idle_ticks > fd_ux.configuration->idle_ticks) {
-                if (fd_ux.configuration->idle) {
-                    fd_ux.configuration->idle(true);
-                }
+            if (fd_ux_should_idle()) {
+                fd_ux_set_idle(true);
             }
         }
     }
