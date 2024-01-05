@@ -61,8 +61,8 @@ void fd_ux_set_idle(bool idle) {
             }
         }
     } else {
+        fd_ux.idle_ticks = 0;
         if (fd_ux.is_idle) {
-            fd_ux.idle_ticks = 0;
             fd_ux.is_idle = false;
             if (fd_ux.configuration->idle) {
                 fd_ux.configuration->idle(false);
@@ -77,6 +77,7 @@ void fd_ux_button_event(const fd_ux_button_event_t *event) {
         return;
     }
 
+    fd_ux_set_idle(false);
     fd_ux.screen->button(event);
 }
 
