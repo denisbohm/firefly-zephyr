@@ -12,6 +12,7 @@ typedef struct {
     NRF_RTC_Type *nrf_rtc;
     bool is_set;
     volatile int64_t utc_base;
+    fd_rtc_configuration_t configuration;
 } fd_rtc_t;
 
 fd_rtc_t fd_rtc;
@@ -82,4 +83,12 @@ double fd_rtc_get_utc_precise(void) {
     fd_rtc_count_t count = fd_rtc_get_count();
     double utc = ((double)count.base) + ((double)count.offset) / 32768.0;
     return utc;
+}
+
+void fd_rtc_get_configuration(fd_rtc_configuration_t *configuration) {
+    memcpy(configuration, &fd_rtc.configuration, sizeof(*configuration));
+}
+
+void fd_rtc_set_configuration(const fd_rtc_configuration_t *configuration) {
+    memcpy(&fd_rtc.configuration, configuration, sizeof(*configuration));
 }

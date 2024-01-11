@@ -1,3 +1,5 @@
+#define _GNU_SOURCE
+
 #include "fd_watch_screen_powering_off.h"
 
 #include "fd_watch.h"
@@ -79,7 +81,7 @@ void fd_watch_screen_powering_off_initialize(fd_ux_screen_t *screen) {
     
     fd_watch_screen_powering_off.text.view = (fd_view_text_t) {
         .visible = true,
-        .location = { .x = 64, .y = 64 },
+        .location = { .x = 48, .y = 32 },
         .alignments = { .x = fd_view_alignment_center, .y = fd_view_alignment_center },
         .string = { .string = "Powering Off", .length = 12 },
         .font.font = &fd_font_b612_regular_6,
@@ -90,7 +92,7 @@ void fd_watch_screen_powering_off_initialize(fd_ux_screen_t *screen) {
     strlcpy(fd_watch_screen_powering_off.countdown_buffer, "5", sizeof(fd_watch_screen_powering_off.countdown_buffer));
     fd_watch_screen_powering_off.countdown.view = (fd_view_text_t) {
         .visible = true,
-        .location = { .x = 64, .y = 96 },
+        .location = { .x = 48, .y = 48 },
         .alignments = { .x = fd_view_alignment_center, .y = fd_view_alignment_center },
         .string = { .string = fd_watch_screen_powering_off.countdown_buffer, .length = 1 },
         .font.font = &fd_font_b612_regular_6,

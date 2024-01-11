@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+import "google/protobuf/descriptor.proto";
+
+package firefly.options.v1;
+
+extend google.protobuf.FileOptions {
+    optional string c_prefix = 60000;
+    optional string python_prefix = 60001;
+    optional uint32 package_id = 60002;
+}
+
+extend google.protobuf.ServiceOptions {
+    optional uint32 service_id = 60003;
+}
+
+extend google.protobuf.MethodOptions {
+    optional uint32 method_id = 60004;
+    optional uint32 access = 60005;
+}

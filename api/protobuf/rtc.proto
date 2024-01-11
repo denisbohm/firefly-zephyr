@@ -1,0 +1,72 @@
+syntax = "proto3";
+
+//import "nanopb.proto";
+
+import "options.proto";
+
+package firefly.rtc.v1;
+
+option (firefly.options.v1.package_id) = 10;
+option (firefly.options.v1.c_prefix) = "fd";
+
+service RTC {
+    option (firefly.options.v1.service_id) = 1;
+
+    rpc getTime(GetTimeRequest) returns (GetTimeResponse) {
+        option (firefly.options.v1.method_id) = 1;
+    }
+    
+    rpc setTime(SetTimeRequest) returns (SetTimeResponse) {
+        option (firefly.options.v1.method_id) = 2;
+    }
+
+    rpc getConfiguration(GetConfigurationRequest) returns (GetConfigurationResponse) {
+        option (firefly.options.v1.method_id) = 3;
+    }
+    
+    rpc setConfiguration(SetConfigurationRequest) returns (SetConfigurationResponse) {
+        option (firefly.options.v1.method_id) = 4;
+    }
+    
+}
+
+message GetTimeRequest {
+}
+
+message GetTimeResponse {
+    bool is_set = 1;
+    sint64 utc = 2;
+    sint32 us = 3;
+}
+
+message SetTimeRequest {
+    sint64 utc = 2;
+    sint32 us = 3;
+}
+
+message SetTimeResponse {
+}
+
+enum DisplayFormat {
+    Use12HourClock = 0;
+    Use24HourClock = 1;
+}
+
+message Configuration {
+    sint32 time_zone_offset = 1;
+    DisplayFormat display_format = 2;
+}
+
+message GetConfigurationRequest {
+}
+
+message GetConfigurationResponse {
+    Configuration configuration = 1;
+}
+
+message SetConfigurationRequest {
+    Configuration configuration = 1;
+}
+
+message SetConfigurationResponse {
+}

@@ -1,0 +1,50 @@
+menuconfig FIREFLY_SUBSYS_RPC
+	bool "RPC"
+	help
+	  Include protobuf services remote procedure call firmware in the system configuration.
+
+if FIREFLY_SUBSYS_RPC
+
+config FIREFLY_SUBSYS_RPC_BUFFER_COUNT
+	int "RPC BUFFER COUNT"
+    default 4
+	help
+	  Number of buffers to use for RPC message transfers.
+
+config FIREFLY_SUBSYS_RPC_BUFFER_SIZE
+	int "RPC BUFFER SIZE"
+    default 1024
+	help
+	  Buffer size to use for RPC message transfers.
+
+config FIREFLY_SUBSYS_RPC_USB_TX_BUFFER_SIZE
+	int "RPC USB TX BUFFER SIZE"
+    default 2048
+	help
+	  Buffer size to use for RPC USB TX buffer.
+
+config FIREFLY_SUBSYS_RPC_USB_RX_BUFFER_SIZE
+	int "RPC USB RX BUFFER SIZE"
+    default 2048
+	help
+	  Buffer size to use for RPC USB RX buffer.
+
+config FIREFLY_SUBSYS_RPC_CLIENT_CONTEXT_LIMIT
+	int "RPC CLIENT CONTEXT LIMIT"
+    default 4
+	help
+	  Limit on the number of client contents.
+
+config FIREFLY_SUBSYS_RPC_SERVER_CONTEXT_LIMIT
+	int "RPC CLIENT SERVER LIMIT"
+    default 4
+	help
+	  Limit on the number of server contents.
+
+config FIREFLY_SUBSYS_RPC_SERVER_METHOD_LIMIT
+	int "RPC SERVER METHOD LIMIT"
+    default 4
+	help
+	  Limit on the number of server methods.
+
+endif

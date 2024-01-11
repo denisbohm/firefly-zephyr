@@ -51,9 +51,11 @@ void fd_ssd1327_bus_initialize(void) {
     } else
     if (strcmp(name, "NRF_SPIM2") == 0) {
         spim = NRF_SPIM2;
+#ifdef NRF_SPIM3
     } else
     if (strcmp(name, "NRF_SPIM3") == 0) {
         spim = NRF_SPIM3;
+#endif
     }
 #endif
 #ifdef NRF53_SERIES

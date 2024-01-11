@@ -35,12 +35,13 @@ void fd_watch_screen_time_add_drawing(void *object, fd_drawing_class_t *class) {
 #define UTC_2001 978307200
 
 void fd_watch_screen_time_update(void) {
-    // preferences
-    int32_t utc_offset = -5 * 60 * 60;
-    bool is_12_hour = true;
+    fd_rtc_configuration_t configuration;
+    fd_rtc_get_configuration(&configuration);
+    int32_t utc_offset = configuration.time_zone_offset;
+    bool is_12_hour = configuration.display_format == fd_rtc_display_format_use_12_hour_clock;
 
     int64_t utc = fd_rtc_get_utc();
-    fd_calendar_t calendar = fd_calendar_from_time((utc < UTC_2001) ? utc : (utc + utc_offset));
+    fd_calendar_t calendar = fd_calendar_from_time((utc < UTC_2001) ? utc : (utc - utc_offset));
     fd_calendar_12_hour_t clock_12_hour = fd_calendar_get_12_hour(&calendar);
     char buffer[16];
     if (is_12_hour) {
@@ -87,7 +88,7 @@ void fd_watch_screen_time_initialize(fd_ux_screen_t *screen) {
     
     fd_watch_screen_time.text.view = (fd_view_text_t) {
         .visible = true,
-        .location = { .x = 64, .y = 64 },
+        .location = { .x = 48, .y = 32 },
         .alignments = { .x = fd_view_alignment_center, .y = fd_view_alignment_center },
         .string = { .string = fd_watch_screen_time.time_string, .size = sizeof(fd_watch_screen_time.time_string) },
         .font.font = &fd_font_b612_regular_6,

@@ -1,0 +1,47 @@
+/ {
+	chosen {
+        firefly,spi_display_res=&spi_display_res;
+        firefly,spi_display_cs=&spi_display_cs;
+        firefly,spi_display_dcn=&spi_display_dcn;
+        firefly,spi_display_sck=&spi_display_sck;
+        firefly,spi_display_mosi=&spi_display_mosi;
+    };
+
+    outputs {
+        compatible = "gpio-leds";
+
+        spi_display_res: spi_display_res {
+            gpios = <&gpio1 8 GPIO_ACTIVE_LOW>;
+        };
+        spi_display_cs: spi_display_cs {
+            gpios = <&gpio1 4 GPIO_ACTIVE_LOW>;
+        };
+        spi_display_dcn: spi_display_dcn {
+            gpios = <&gpio1 5 GPIO_ACTIVE_HIGH>;
+        };
+        spi_display_sck: spi_display_sck {
+            gpios = <&gpio1 6 GPIO_ACTIVE_HIGH>;
+        };
+        spi_display_mosi: spi_display_mosi {
+            gpios = <&gpio1 7 GPIO_ACTIVE_HIGH>;
+        };
+    };
+
+};
+
+&gpio0 {
+	status = "okay";
+	label = "GPIO_0";
+};
+
+&gpio1 {
+	status = "okay";
+	label = "GPIO_1";
+};
+
+&zephyr_udc0 {
+	cdc_acm_uart0 {
+		compatible = "zephyr,cdc-acm-uart";
+		label = "CDC_ACM_0";
+	};
+};

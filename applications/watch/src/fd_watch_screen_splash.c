@@ -71,7 +71,7 @@ void fd_watch_screen_splash_initialize(fd_ux_screen_t *screen) {
     
     fd_watch_screen_splash.text.view = (fd_view_text_t) {
         .visible = true,
-        .location = { .x = 64, .y = 64 },
+        .location = { .x = 48, .y = 32 },
         .alignments = { .x = fd_view_alignment_center, .y = fd_view_alignment_center },
         .string = { .string = "Hello", .length = 5 },
         .font.font = &fd_font_b612_regular_6,
