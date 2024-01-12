@@ -21,6 +21,12 @@ class StringBuilder:
         self.string = ""
 
 
+class Parameters:
+
+    def __init__(self, parameter):
+        self.split = parameter == "split"
+
+
 def protobuf_type_to_nanopb(type):
     return type[1:].replace('.', '_')
 
@@ -31,7 +37,7 @@ def protobuf_name_to_c(name):
 
 
 def process_file(
-    proto_file: FileDescriptorProto, response: plugin.CodeGeneratorResponse
+    proto_file: FileDescriptorProto, parameters: Parameters, response: plugin.CodeGeneratorResponse
 ) -> None:
     if proto_file.options and proto_file.options.HasExtension(options_pb2.c_prefix):
         prefix = proto_file.options.Extensions[options_pb2.c_prefix]
@@ -90,27 +96,34 @@ const {prefix}_rpc_method_t {variable_name} = {{
 #endif
 """
         h_file = response.file.add()
-        h_file.name = f"include/{c_base}.pb.h"
+        if parameters.split:
+            h_file.name = f"include/{c_base}.pb.h"
+        else:
+            h_file.name = f"{c_base}.pb.h"
         h_file.content = h_content.string
 
         c_file = response.file.add()
-        c_file.name = f"src/{c_base}.pb.c"
+        if parameters.split:
+            c_file.name = f"src/{c_base}.pb.c"
+        else:
+            c_file.name = f"{c_base}.pb.c"
         c_file.content = c_content.string
 
 
 def process(
-    request: plugin.CodeGeneratorRequest, response: plugin.CodeGeneratorResponse
+    request: plugin.CodeGeneratorRequest, parameters: Parameters, response: plugin.CodeGeneratorResponse
 ) -> None:
     for proto_file in request.proto_file:
         if proto_file.name in request.file_to_generate:
-            process_file(proto_file, response)
+            process_file(proto_file, parameters, response)
 
 
 def main_plugin():
     data = sys.stdin.buffer.read()
     request = plugin.CodeGeneratorRequest.FromString(data)
+    parameters = Parameters(request.parameter)
     response = plugin.CodeGeneratorResponse()
-    process(request, response)
+    process(request, parameters, response)
     sys.stdout.buffer.write(response.SerializeToString())
 
 
