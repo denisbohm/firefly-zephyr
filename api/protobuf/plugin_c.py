@@ -52,7 +52,7 @@ def process_file(
 #ifndef {c_base}_pb_h
 #define {c_base}_pb_h
 
-#include "{prefix}_rpc.h"
+#include "fd_rpc.h"
 '''
 
         c_content = StringBuilder()
@@ -73,12 +73,12 @@ def process_file(
                 access = 0
             variable_name = prefix + '_rpc_service_' + protobuf_name_to_c(service.name) + '_' + protobuf_name_to_c(method.name)
             h_content.string += f"""
-extern const {prefix}_rpc_method_t {variable_name};
+extern const fd_rpc_method_t {variable_name};
 """
             nanopb_request = protobuf_type_to_nanopb(method.input_type)
             nanopb_response = protobuf_type_to_nanopb(method.output_type)
             c_content.string += f"""
-const {prefix}_rpc_method_t {variable_name} = {{
+const fd_rpc_method_t {variable_name} = {{
     .package_id = {package_id},
     .service_id = {service_id},
     .method_id = {method_id},
