@@ -11,7 +11,6 @@
 #include <zephyr/kernel.h>
 #include <zephyr/sys/ring_buffer.h>
 #include <zephyr/usb/usb_device.h>
-#include <zephyr/usb/usbd.h>
 
 #include <stdio.h>
 #include <string.h>
