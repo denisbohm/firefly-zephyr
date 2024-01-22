@@ -23,6 +23,7 @@ typedef struct {
     uint32_t initial_screen;
     uint32_t idle_ticks;
     void (*idle)(bool idle);
+    fd_drawing_plane_t *plane;
 } fd_ux_configuration_t;
 
 void fd_ux_initialize(fd_ux_configuration_t *configuration);

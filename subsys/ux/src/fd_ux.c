@@ -26,12 +26,6 @@ fd_ux_t fd_ux;
 void fd_ux_update(void) {
     fd_canvas_t *canvas = &fd_ux.canvas;
     fd_canvas_update(canvas);
-    if (!fd_ux.is_idle) {
-        fd_graphics_area_t area = canvas->change.area;
-        if (!fd_graphics_area_is_empty(area)) {
-            fd_ux_set_idle(false);
-        }
-    }
     fd_canvas_render(canvas);
 }
 
@@ -64,6 +58,10 @@ void fd_ux_set_idle(bool idle) {
         fd_ux.idle_ticks = 0;
         if (fd_ux.is_idle) {
             fd_ux.is_idle = false;
+            if (fd_ux.screen->animate) {
+                fd_ux.screen->animate();
+            }
+            fd_ux_update();
             if (fd_ux.configuration->idle) {
                 fd_ux.configuration->idle(false);
             }
@@ -95,7 +93,9 @@ void fd_ux_tick(void) {
         if (fd_ux.screen->animate) {
             fd_ux.screen->animate();
         }
-        fd_ux_update();
+        if (!fd_ux.is_idle) {
+            fd_ux_update();
+        }
     }
 }
 
@@ -132,11 +132,15 @@ static void fd_ux_set_screen_to(uint32_t screen_id, bool preview) {
     fd_ux.screen = screen;
     
     fd_canvas_t *canvas = &fd_ux.canvas;
-    uint32_t plane_count = screen->plane_count;
-    for (uint32_t i = 0; i < plane_count; ++i) {
-        canvas->planes[i] = screen->planes[i];
+    canvas->plane_count = 0;
+    for (uint32_t i = 0; i < screen->plane_count; ++i) {
+        canvas->planes[canvas->plane_count] = screen->planes[i];
+        ++canvas->plane_count;
     }
-    canvas->plane_count = plane_count;
+    if (fd_ux.configuration->plane != NULL) {
+        canvas->planes[canvas->plane_count] = fd_ux.configuration->plane;
+        ++canvas->plane_count;
+    }
     
     if (preview) {
         screen->preview();
@@ -150,6 +154,7 @@ static void fd_ux_set_screen_to(uint32_t screen_id, bool preview) {
     canvas->change.area = (fd_graphics_area_t) { .x = 0, .y = 0, .width = width, .height = height };
     canvas->change.opaque = false;
     fd_canvas_render(canvas);
+    fd_ux_set_idle(false);
 }
 
 uint32_t fd_ux_get_screen(void) {
