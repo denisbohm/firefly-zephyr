@@ -16,7 +16,8 @@ typedef struct {
     bool update_enabled;
     uint32_t tick_event;
     uint32_t idle_ticks;
-    bool is_idle;
+    bool consume_release;
+    fd_ux_state_t state;
     
     bool animation;
 } fd_ux_t;
@@ -37,54 +38,77 @@ void fd_ux_set_update_enabled(bool update_enabled) {
     fd_ux.update_enabled = update_enabled;
 }
 
-bool fd_ux_get_idle(void) {
-    return fd_ux.is_idle;
-}
-
-bool fd_ux_should_idle(void) {
-    return !fd_ux.is_idle && (fd_ux.configuration->idle_ticks != 0) && (fd_ux.idle_ticks > fd_ux.configuration->idle_ticks);
-}
-
-void fd_ux_set_idle(bool idle) {
-    if (idle) {
-        if (!fd_ux.is_idle) {
+void fd_ux_active(void) {
+    switch (fd_ux.state) {
+        case fd_ux_state_on:
             fd_ux.idle_ticks = 0;
-            fd_ux.is_idle = true;
-            if (fd_ux.configuration->idle) {
-                fd_ux.configuration->idle(true);
-            }
-        }
-    } else {
-        fd_ux.idle_ticks = 0;
-        if (fd_ux.is_idle) {
-            fd_ux.is_idle = false;
-            if (fd_ux.screen->animate) {
-                fd_ux.screen->animate();
-            }
-            fd_ux_update();
-            if (fd_ux.configuration->idle) {
-                fd_ux.configuration->idle(false);
-            }
-        }
+        break;
+        case fd_ux_state_idle:
+            fd_ux_set_state(fd_ux_state_on);
+        break;
+        case fd_ux_state_off:
+        break;
     }
 }
 
-void fd_ux_button_event(const fd_ux_button_event_t *event) {
-    if (fd_ux.is_idle) {
-        fd_ux_set_idle(false);
+fd_ux_state_t fd_ux_get_state(void) {
+    return fd_ux.state;
+}
+
+void fd_ux_set_state(fd_ux_state_t state) {
+    if (state == fd_ux.state) {
         return;
     }
 
-    fd_ux_set_idle(false);
+    fd_ux_state_t old_state = fd_ux.state;
+    fd_ux.idle_ticks = 0;
+    fd_ux.consume_release = fd_ux_button_is_any_pressed();
+    fd_ux.state = state;
+
+    if (state == fd_ux_state_on) {
+        if (fd_ux.screen->animate != NULL) {
+            fd_ux.screen->animate();
+        }
+        fd_ux_update();
+    }
+
+    if (fd_ux.configuration->state_changed != NULL) {
+        fd_ux.configuration->state_changed(old_state, state);
+    }
+}
+
+bool fd_ux_should_idle(void) {
+    return (fd_ux.state == fd_ux_state_on) && (fd_ux.configuration->idle_ticks != 0) && (fd_ux.idle_ticks > fd_ux.configuration->idle_ticks);
+}
+
+void fd_ux_button_event(const fd_ux_button_event_t *event) {
+    if (fd_ux.consume_release) {
+        if (event->type == fd_ux_button_type_released) {
+            fd_ux.consume_release = false;
+        }
+        return;
+    }
+
+    if (fd_ux.state != fd_ux_state_on) {
+        fd_ux_set_state(fd_ux_state_on);
+        return;
+    }
+
+    fd_ux_active();
     fd_ux.screen->button(event);
 }
 
 void fd_ux_tick(void) {
     if (fd_ux.configuration->idle_ticks != 0) {
-        if (!fd_ux.is_idle) {
-            ++fd_ux.idle_ticks;
+        if (fd_ux.state == fd_ux_state_on) {
+            if (fd_ux_button_is_any_pressed()) {
+                fd_ux.idle_ticks = 0;
+            } else {
+                ++fd_ux.idle_ticks;
+            }
             if (fd_ux_should_idle()) {
-                fd_ux_set_idle(true);
+                fd_ux_set_state(fd_ux_state_idle);
+                return;
             }
         }
     }
@@ -93,7 +117,7 @@ void fd_ux_tick(void) {
         if (fd_ux.screen->animate) {
             fd_ux.screen->animate();
         }
-        if (!fd_ux.is_idle) {
+        if (fd_ux.state == fd_ux_state_on) {
             fd_ux_update();
         }
     }
@@ -154,7 +178,6 @@ static void fd_ux_set_screen_to(uint32_t screen_id, bool preview) {
     canvas->change.area = (fd_graphics_area_t) { .x = 0, .y = 0, .width = width, .height = height };
     canvas->change.opaque = false;
     fd_canvas_render(canvas);
-    fd_ux_set_idle(false);
 }
 
 uint32_t fd_ux_get_screen(void) {

@@ -5,6 +5,12 @@
 #include "fd_graphics.h"
 #include "fd_ux_button.h"
 
+typedef enum {
+    fd_ux_state_on,
+    fd_ux_state_idle,
+    fd_ux_state_off,
+} fd_ux_state_t;
+
 typedef struct {
     uint32_t id;
     fd_drawing_plane_t *planes[10];
@@ -22,7 +28,7 @@ typedef struct {
     uint32_t screen_count;
     uint32_t initial_screen;
     uint32_t idle_ticks;
-    void (*idle)(bool idle);
+    void (*state_changed)(fd_ux_state_t old_state, fd_ux_state_t new_state);
     fd_drawing_plane_t *plane;
 } fd_ux_configuration_t;
 
@@ -35,8 +41,9 @@ bool fd_ux_get_update_enabled(void);
 void fd_ux_set_update_enabled(bool enable);
 void fd_ux_update(void);
 
-bool fd_ux_get_idle(void);
-void fd_ux_set_idle(bool idle);
+void fd_ux_active(void);
+fd_ux_state_t fd_ux_get_state(void);
+void fd_ux_set_state(fd_ux_state_t state);
 
 void fd_ux_set_animation(bool animation);
 

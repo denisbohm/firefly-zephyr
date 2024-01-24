@@ -6,12 +6,16 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+typedef enum {
+    fd_ux_button_type_pressed,
+    fd_ux_button_type_released,
+} fd_ux_button_type_t;
+
 typedef struct {
+    fd_ux_button_type_t type;
+    uint32_t buttons;
     float timestamp;
-    uint32_t buttons_0;
-    uint32_t buttons_1;
-    uint32_t buttons_n;
-    uint32_t changes;
+    float duration;
 } fd_ux_button_event_t;
 
 typedef void (*fd_ux_button_callback_t)(const fd_ux_button_event_t *event);
@@ -24,11 +28,9 @@ typedef struct {
 
 void fd_ux_button_initialize(const fd_ux_button_configuration_t *configuration);
 
-bool fd_ux_button_is_activated(const fd_ux_button_event_t *event, uint32_t mask);
-bool fd_ux_button_is_one_activated(const fd_ux_button_event_t *event, uint32_t mask);
-bool fd_ux_button_is_any_activated(const fd_ux_button_event_t *event, uint32_t mask);
-bool fd_ux_button_is_all_activated(const fd_ux_button_event_t *event, uint32_t mask);
+bool fd_ux_button_was_pressed(const fd_ux_button_event_t *event, uint32_t mask);
+bool fd_ux_button_was_released(const fd_ux_button_event_t *event, uint32_t mask);
 
-bool fd_ux_button_is_deactivated(const fd_ux_button_event_t *event, uint32_t mask);
+bool fd_ux_button_is_any_pressed(void);
 
 #endif
