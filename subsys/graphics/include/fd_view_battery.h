@@ -15,6 +15,7 @@ typedef struct {
     fd_view_alignments_t alignments;
     float state_of_charge;
     fd_view_battery_status_t status;
+    fd_graphics_color_t color;
 } fd_view_battery_t;
 
 #endif

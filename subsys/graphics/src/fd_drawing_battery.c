@@ -63,6 +63,7 @@ void fd_drawing_battery_render(fd_drawing_render_parameters_t *parameters) {
     }
     fd_drawing_context_t *context = parameters->context;
     fd_graphics_t *graphics = context->graphics;
+    fd_graphics_set_foreground(graphics, view->color);
     fd_graphics_write_bitmap(
         graphics,
         drawing->area.x + fd_bitmap_charging.width + fd_drawing_battery_spacing,
