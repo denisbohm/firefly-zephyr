@@ -170,7 +170,7 @@ bool fd_rpc_channel_usb_packet_write(const uint8_t *data, size_t size) {
     fd_assert(length == size);
     ++fd_rpc_channel_usb.tx_ring_count;
     fd_rpc_channel_usb.tx_ring_bytes += length;
-//    uart_irq_tx_enable(fd_rpc_channel_usb.device);
+    uart_irq_tx_enable(fd_rpc_channel_usb.device);
     return true;
 }
 

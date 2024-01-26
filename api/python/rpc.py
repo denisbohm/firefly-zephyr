@@ -153,7 +153,7 @@ class SerialChannel(Transport.StreamChannel):
     def run_loop(self):
         try:
             while True:
-                data = self.serial_port.read(1024)
+                data = self.serial_port.read(1)
                 if len(data) > 0:
                     self.read(data)
                 if not self.run:
