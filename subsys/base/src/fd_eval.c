@@ -829,7 +829,8 @@ fd_eval_value_t fd_eval_evaluate_leaf(fd_eval_t *eval, fd_eval_node_t *node) {
 
     char c = token.string[0];
     if (fd_eval_is_digit(c)) {
-        if (memchr(token.string, token.length, '.') == NULL) {
+        void *decimal_point = memchr(token.string, '.', token.length);
+        if (decimal_point == NULL) {
             return fd_eval_parse_integer(eval, token);
         } else {
             return fd_eval_parse_real(eval, token);
