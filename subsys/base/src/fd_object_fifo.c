@@ -4,6 +4,9 @@
 
 void fd_object_fifo_initialize(fd_object_fifo_t *fifo, uint8_t *buffer, size_t size, size_t object_size) {
     memset(fifo, 0, sizeof(*fifo));
+    if (size == 0) {
+        return;
+    }
     fifo->buffer = buffer;
     fifo->object_size = object_size;
     fifo->size = (uint32_t)(size / object_size);
