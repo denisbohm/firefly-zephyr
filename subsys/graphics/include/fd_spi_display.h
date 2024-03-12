@@ -16,4 +16,6 @@ void fd_spi_display_write_commands(const uint8_t *commands, size_t size);
 
 void fd_spi_display_write_data(const uint8_t *data, size_t size);
 
+void fd_spi_display_read(uint8_t command, uint8_t *data, size_t size);
+
 #endif

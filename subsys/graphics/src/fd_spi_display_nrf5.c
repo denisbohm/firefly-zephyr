@@ -91,26 +91,12 @@ void fd_spi_display_initialize(void) {
 
     spim->PSEL.SCK = INPUT_PIN(firefly_spi_display_sck);
     spim->PSEL.MOSI = INPUT_PIN(firefly_spi_display_mosi);
+#if DT_NODE_EXISTS(DT_CHOSEN(firefly_spi_display_miso))
+    spim->PSEL.MISO = INPUT_PIN(firefly_spi_display_miso);
+#endif
+
     spim->TXD.LIST = SPIM_RXD_LIST_LIST_ArrayList << SPIM_RXD_LIST_LIST_Pos;
     spim->ENABLE = SPIM_ENABLE_ENABLE_Enabled << SPIM_ENABLE_ENABLE_Pos;
-}
-
-void fd_spi_display_write(const uint8_t *tx_bytes, uint32_t tx_byte_count) {
-    uint32_t address = (uint32_t)tx_bytes;
-    fd_assert((0x20000000 <= address) && (address <= 0x21000000));
-    
-	NRF_SPIM_Type *spim = fd_spi_display.spim;
-    spim->TXD.PTR = (uint32_t)tx_bytes;
-    size_t tx_remaining = tx_byte_count;
-    while (tx_remaining > 0) {
-        uint32_t tx_amount = tx_remaining > 0xffff ? 0xffff : tx_remaining;
-        spim->TXD.MAXCNT = tx_amount;
-        spim->EVENTS_END = 0;
-        spim->TASKS_START = 1;
-        while (!spim->EVENTS_END) {
-        }
-        tx_remaining -= tx_amount;
-    }
 }
 
 void fd_spi_display_reset(void) {
@@ -133,20 +119,93 @@ void fd_spi_display_cs_disable(void) {
     fd_assert(result == 0);
 }
 
-void fd_spi_display_write_commands(const uint8_t *bytes, size_t size) {
+void fd_spi_display_write_command(const uint8_t *tx_bytes, uint32_t tx_byte_count) {
+    uint32_t address = (uint32_t)tx_bytes;
+    fd_assert((0x20000000 <= address) && (address <= 0x21000000));
+    
     int result = gpio_pin_set_dt(&fd_spi_display.dcn, 0);
     fd_assert(result == 0);
+
+	NRF_SPIM_Type *spim = fd_spi_display.spim;
+    spim->TXD.PTR = (uint32_t)tx_bytes;
+    spim->TXD.MAXCNT = 1;
+    spim->RXD.MAXCNT = 0;
+    spim->EVENTS_END = 0;
+    spim->TASKS_START = 1;
+    while (!spim->EVENTS_END) {
+    }
+
+    result = gpio_pin_set_dt(&fd_spi_display.dcn, 1);
+    fd_assert(result == 0);
+
+    size_t tx_remaining = tx_byte_count - 1;
+    while (tx_remaining > 0) {
+        uint32_t tx_amount = tx_remaining > 0xffff ? 0xffff : tx_remaining;
+        spim->TXD.MAXCNT = tx_amount;
+        spim->EVENTS_END = 0;
+        spim->TASKS_START = 1;
+        while (!spim->EVENTS_END) {
+        }
+        tx_remaining -= tx_amount;
+    }
+}
+
+void fd_spi_display_write_commands(const uint8_t *bytes, size_t size) {
     uint32_t index = 0;
     while (index < size) {
         uint8_t length = bytes[index];
         fd_assert(length >= 1);
-        fd_spi_display_write(&bytes[index + 1], length);
+        fd_spi_display_write_command(&bytes[index + 1], length);
         index += 1 + length;
     }
-    result = gpio_pin_set_dt(&fd_spi_display.dcn, 1);
-    fd_assert(result == 0);
 }
 
 void fd_spi_display_write_data(const uint8_t *data, size_t size) {
-    fd_spi_display_write(data, size);
+    uint32_t address = (uint32_t)data;
+    fd_assert((0x20000000 <= address) && (address <= 0x21000000));
+    
+	NRF_SPIM_Type *spim = fd_spi_display.spim;
+    spim->TXD.PTR = (uint32_t)data;
+    spim->RXD.MAXCNT = 0;
+    size_t tx_remaining = size;
+    while (tx_remaining > 0) {
+        uint32_t tx_amount = tx_remaining > 0xffff ? 0xffff : tx_remaining;
+        spim->TXD.MAXCNT = tx_amount;
+        spim->EVENTS_END = 0;
+        spim->TASKS_START = 1;
+        while (!spim->EVENTS_END) {
+        }
+        tx_remaining -= tx_amount;
+    }
+}
+
+void fd_spi_display_read(uint8_t command, uint8_t *data, size_t size) {
+#if DT_NODE_EXISTS(DT_CHOSEN(firefly_spi_display_miso))
+    int result = gpio_pin_set_dt(&fd_spi_display.dcn, 0);
+    fd_assert(result == 0);
+
+    fd_spi_display_cs_enable();
+
+	NRF_SPIM_Type *spim = fd_spi_display.spim;
+    spim->TXD.PTR = (uint32_t)&command;
+    spim->TXD.MAXCNT = 1;
+    spim->RXD.MAXCNT = 0;
+    spim->EVENTS_END = 0;
+    spim->TASKS_START = 1;
+    while (!spim->EVENTS_END) {
+    }
+
+    result = gpio_pin_set_dt(&fd_spi_display.dcn, 1);
+    fd_assert(result == 0);
+
+    spim->RXD.PTR = (uint32_t)data;
+    spim->TXD.MAXCNT = 0;
+    spim->RXD.MAXCNT = size;
+    spim->EVENTS_END = 0;
+    spim->TASKS_START = 1;
+    while (!spim->EVENTS_END) {
+    }
+
+    fd_spi_display_cs_disable();
+#endif
 }
