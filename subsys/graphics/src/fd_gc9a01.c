@@ -7,8 +7,6 @@
 
 #define fd_gc9a01_width 240
 #define fd_gc9a01_height 240
-#define fd_gc9a01_x_shift 0
-#define fd_gc9a01_y_shift 0
 
 #define GC9A01A_SWRESET 0x01   ///< Software Reset (maybe, not documented)
 #define GC9A01A_RDDID 0x04     ///< Read display identification information
@@ -112,7 +110,7 @@ void fd_gc9a01_initialize(void) {
         fd_spi_display_command(0x8E, 0xFF),
         fd_spi_display_command(0x8F, 0xFF),
         fd_spi_display_command(0xB6, 0x00, 0x20),
-        fd_spi_display_command(GC9A01A_MADCTL, MADCTL_MX | MADCTL_BGR),
+        fd_spi_display_command(GC9A01A_MADCTL, MADCTL_BGR),
         fd_spi_display_command(GC9A01A_COLMOD, 0x06),
         fd_spi_display_command(0x90, 0x08, 0x08, 0x08, 0x08),
         fd_spi_display_command(0xBD, 0x06),
@@ -178,8 +176,6 @@ void fd_gc9a01_write_image_start(int x, int y, int width, int height) {
     fd_assert((x + width) <= fd_gc9a01_width);
     fd_assert(y >= 0);
     fd_assert((y + height) <= fd_gc9a01_height);
-    x += fd_gc9a01_x_shift;
-    y += fd_gc9a01_y_shift;
     const int x1 = x + width - 1;
     const int y1 = y + height - 1;
     uint8_t commands[] = {
