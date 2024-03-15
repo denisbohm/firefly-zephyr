@@ -4,9 +4,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-typedef void (*fd_timer_callback_t)(void);
+typedef void (*fd_timer_callback_t)(void *context);
 
 typedef struct {
+    void *context;
     fd_timer_callback_t callback;
     float countdown;
     bool active;

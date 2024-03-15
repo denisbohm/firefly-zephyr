@@ -43,3 +43,11 @@ fd_graphics_point_t fd_drawing_align(fd_graphics_area_t area, fd_graphics_point_
     }
     return origin;
 }
+
+bool fd_drawing_touched(fd_drawing_t *drawing, const fd_touch_event_t *event) {
+    fd_drawing_get_area_parameters_t get_area_parameters = {
+        .drawing = drawing,
+    };
+    drawing->class->get_area(&get_area_parameters);
+    return fd_graphics_area_contains_point(get_area_parameters.area, event->x, event->y);
+}

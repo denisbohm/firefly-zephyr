@@ -2,6 +2,7 @@
 #define fd_drawing_h
 
 #include "fd_graphics.h"
+#include "fd_touch.h"
 #include "fd_view.h"
 
 typedef struct {
@@ -47,5 +48,7 @@ typedef struct {
 void fd_drawing_plane_add(fd_drawing_plane_t *plane, size_t size, void *object, fd_drawing_class_t *class);
 
 fd_graphics_point_t fd_drawing_align(fd_graphics_area_t area, fd_graphics_point_t location, fd_view_alignments_t alignments);
+
+bool fd_drawing_touched(fd_drawing_t *drawing, const fd_touch_event_t *event);
 
 #endif

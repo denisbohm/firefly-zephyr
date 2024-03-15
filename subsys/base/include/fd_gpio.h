@@ -21,6 +21,11 @@ void fd_gpio_configure_input_pull_down(fd_gpio_t gpio);
 
 typedef void (*fd_gpio_callback_t)(void);
 
+typedef struct {
+    void *context;
+    void (*change)(void *context);
+} fd_gpio_listener_t;
+
 typedef enum {
     fd_gpio_edge_rising,
     fd_gpio_edge_falling,
@@ -28,6 +33,7 @@ typedef enum {
 } fd_gpio_edge_t;
 
 void fd_gpio_set_callback(fd_gpio_t gpio, fd_gpio_edge_t edge, fd_gpio_callback_t callback);
+void fd_gpio_set_listener(fd_gpio_t gpio, fd_gpio_edge_t edge, fd_gpio_listener_t listener);
 
 void fd_gpio_set(fd_gpio_t gpio, bool value);
 bool fd_gpio_get(fd_gpio_t gpio);

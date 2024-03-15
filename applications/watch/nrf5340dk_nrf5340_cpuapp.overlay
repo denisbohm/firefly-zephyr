@@ -45,3 +45,37 @@
 		label = "CDC_ACM_0";
 	};
 };
+
+/delete-node/ &slot0_partition;
+
+&flash0 {
+
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+        // 1 MB Available
+        //
+        // 256 KB for boot loader
+		boot_partition: partition@0 {
+			label = "mcuboot";
+			reg = <0x00000000 0x00040000>;
+		};
+        // 752 KB for application
+        slot0_partition: partition@40000 {
+            label = "image-0";
+            reg = <0x040000 0x00bc000>;
+        };
+        // 4 KB for manufacturing configuration (one 4 KB pages)
+        configuration_partition: partition@fc000 {
+            label = "configuration";
+            reg = <0x000fc000 0x00001000>;
+        };
+        // 12 KB for application key / value dictionary (three 4 KB pages)
+        persist_partition: partition@fd000 {
+            label = "persist";
+            reg = <0x000fd000 0x00003000>;
+        };
+	};
+};

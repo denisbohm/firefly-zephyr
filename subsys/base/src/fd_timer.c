@@ -71,7 +71,7 @@ void fd_timer_callback(void) {
         fd_timer_t *timer = fd_timer.timers[i];
         if (timer->triggered) {
             timer->triggered = false;
-            (*timer->callback)();
+            (*timer->callback)(timer->context);
         }
     }
 }

@@ -12,6 +12,7 @@
 #include "fd_rpc.h"
 #include "fd_rpc_channel_usb.h"
 #include "fd_rpc_server_rtc.h"
+#include "fd_rpc_server_ux.h"
 #include "fd_rtc.h"
 #include "fd_ssd1331.h"
 #include "fd_timer.h"
@@ -29,6 +30,9 @@ typedef struct {
 
     struct k_work tick_work;
     struct k_timer tick_timer;
+
+    fd_ux_t ux;
+    fd_ux_button_t ux_button;
 } fd_watch_t;
 
 fd_watch_t fd_watch;
@@ -94,6 +98,11 @@ void fd_watch_rpc_initialize(void) {
         .work_queue = &k_sys_work_q,
     };
     fd_rpc_channel_usb_initialize(&usb_configuration);
+
+    const fd_rpc_server_ux_configuration_t ux_configuration = {
+        .work_queue = &k_sys_work_q,
+    };
+    fd_rpc_server_ux_initialize(&ux_configuration);
 }
 
 void fd_watch_power_on(void) {
@@ -102,13 +111,9 @@ void fd_watch_power_on(void) {
 void fd_watch_power_off(void) {
 }
 
-void fd_watch_button_event(const fd_ux_button_event_t *event) {
-    fd_ux_button_event(event);
-}
-
 void fd_watch_tick_work(struct k_work *work fd_unused) {
     fd_timer_update(0.020f);
-    fd_ux_tick();
+    fd_ux_tick(&fd_watch.ux);
 }
 
 void fd_watch_tick_timer_irq(struct k_timer *timer fd_unused) {
@@ -134,18 +139,18 @@ void fd_watch_initialize(void) {
         .screens = screens,
         .screen_count = sizeof(screens) / sizeof(screens[0]),
     };
-    fd_ux_initialize(&ux_configuration);
+    fd_ux_initialize(&fd_watch.ux, &ux_configuration);
 
     static fd_gpio_t button_gpios[] = {
         { .port = 0, .pin = 9 },
         { .port = 1, .pin = 10 },
     };
     static fd_ux_button_configuration_t button_configuration = {
+        .ux = &fd_watch.ux,
         .gpios = button_gpios,
         .count = sizeof(button_gpios) / sizeof(button_gpios[0]),
-        .callback = fd_watch_button_event,
     };
-    fd_ux_button_initialize(&button_configuration);
+    fd_ux_button_initialize(&fd_watch.ux_button, &button_configuration);
 
     fd_watch_rpc_initialize();
 

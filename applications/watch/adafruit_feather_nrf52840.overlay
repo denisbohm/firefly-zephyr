@@ -1,0 +1,182 @@
+/ {
+	chosen {
+        firefly,spi_display_bl=&gc9a01_bl;
+        firefly,spi_display_res=&gc9a01_res;
+        firefly,spi_display_cs=&gc9a01_cs;
+        firefly,spi_display_dcn=&gc9a01_dcn;
+        firefly,spi_display_sck=&gc9a01_sck;
+        firefly,spi_display_mosi=&gc9a01_mosi;
+        firefly,spi_display_miso=&gc9a01_miso;
+
+        firefly_cst816s_i2c=&i2c1;
+        firefly,cst816s_sda=&cst816s_sda;
+        firefly,cst816s_scl=&cst816s_scl;
+        firefly,cst816s_int=&cst816s_int;
+        firefly,cst816s_rst=&cst816s_rst;
+    };
+
+    outputs {
+        compatible = "gpio-leds";
+
+        gc9a01_bl: gc9a01_bl {
+            gpios = <&gpio0 5 GPIO_ACTIVE_HIGH>;
+        };
+        gc9a01_res: gc9a01_res {
+            gpios = <&gpio0 28 GPIO_ACTIVE_LOW>;
+        };
+        gc9a01_dcn: gc9a01_dcn {
+            gpios = <&gpio0 4 GPIO_ACTIVE_HIGH>;
+        };
+        gc9a01_cs: gc9a01_cs {
+            gpios = <&gpio0 30 GPIO_ACTIVE_LOW>;
+        };
+        
+        gc9a01_sck: gc9a01_sck {
+            gpios = <&gpio0 14 GPIO_ACTIVE_HIGH>;
+        };
+        gc9a01_mosi: gc9a01_mosi {
+            gpios = <&gpio0 13 GPIO_ACTIVE_HIGH>;
+        };
+        gc9a01_miso: gc9a01_miso {
+            gpios = <&gpio0 15 GPIO_ACTIVE_HIGH>;
+        };
+        
+
+        
+        cst816s_sda: cst816s_sda {
+            gpios = <&gpio0 24 GPIO_ACTIVE_HIGH>;
+        };
+        cst816s_scl: cst816s_scl {
+            gpios = <&gpio0 25 GPIO_ACTIVE_HIGH>;
+        };
+        
+        cst816s_int: cst816s_int {
+            gpios = <&gpio0 2 GPIO_ACTIVE_HIGH>;
+        };
+        cst816s_rst: cst816s_rst {
+            gpios = <&gpio0 3 GPIO_ACTIVE_LOW>;
+        };
+    };
+
+};
+
+&gpio0 {
+	status = "okay";
+	label = "GPIO_0";
+};
+
+&gpio1 {
+	status = "okay";
+	label = "GPIO_1";
+};
+
+&uart0 {
+	status = "disabled";
+};
+
+&spi1 {
+	status = "disabled";
+};
+
+&spi2 {
+	compatible = "nordic,nrf-spim";
+	status = "okay";
+	pinctrl-0 = <&spi2_default>;
+	pinctrl-1 = <&spi2_sleep>;
+	pinctrl-names = "default", "sleep";
+};
+
+&i2c1 {
+	compatible = "nordic,nrf-twim";
+	status = "okay";
+	pinctrl-0 = <&i2c1_default>;
+	pinctrl-1 = <&i2c1_sleep>;
+	pinctrl-names = "default", "sleep";
+	clock-frequency = <I2C_BITRATE_STANDARD>;
+};
+
+&pinctrl {
+    spi2_default: spi2_default {
+		group1 {
+			psels = <NRF_PSEL(SPIM_SCK, 0, 14)>,
+				<NRF_PSEL(SPIM_MISO, 0, 15)>,
+				<NRF_PSEL(SPIM_MOSI, 0, 13)>;
+		};
+	};
+
+	spi2_sleep: spi2_sleep {
+		group1 {
+			psels = <NRF_PSEL(SPIM_SCK, 0, 14)>,
+				<NRF_PSEL(SPIM_MISO, 0, 15)>,
+				<NRF_PSEL(SPIM_MOSI, 0, 13)>;
+			low-power-enable;
+		};
+	};
+
+	i2c1_default: i2c1_default {
+		group1 {
+			psels = <NRF_PSEL(TWIM_SDA, 0, 24)>,
+				<NRF_PSEL(TWIM_SCL, 0, 25)>;
+            bias-pull-up;
+		};
+	};
+
+	i2c1_sleep: i2c1_sleep {
+		group1 {
+			psels = <NRF_PSEL(TWIM_SDA, 0, 24)>,
+				<NRF_PSEL(TWIM_SCL, 0, 25)>;
+            bias-pull-up;
+			low-power-enable;
+		};
+	};
+};
+
+&cryptocell {
+    status = "disabled";
+};
+
+&zephyr_udc0 {
+	cdc_acm_uart0 {
+		compatible = "zephyr,cdc-acm-uart";
+		label = "CDC_ACM_0";
+	};
+};
+
+/delete-node/ &storage_partition;
+
+&flash0 {
+
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		boot_partition: partition@0 {
+			label = "mcuboot";
+			reg = <0x00000000 0x0000C000>;
+		};
+		slot0_partition: partition@c000 {
+			label = "image-0";
+			reg = <0x0000C000 0x00067000>;
+		};
+		slot1_partition: partition@73000 {
+			label = "image-1";
+			reg = <0x00073000 0x00067000>;
+		};
+		scratch_partition: partition@da000 {
+			label = "image-scratch";
+			reg = <0x000da000 0x0001e000>;
+		};
+
+		/*
+		 * The flash starting at 0x000f8000 and ending at
+		 * 0x000fffff is reserved for use by the application.
+		 */
+
+		/* Storage partition will be used by FCB/NFFS/NVS if enabled. */
+		persist_partition: partition@f8000 {
+			label = "persist";
+			reg = <0x000f8000 0x00008000>;
+		};
+	};
+};

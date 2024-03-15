@@ -30,4 +30,15 @@ config FIREFLY_SUBSYS_STORAGE_SDCARD
 	help
 	  Build SDCARD functions.
 
+config FIREFLY_SUBSYS_STORAGE_KEY_VALUE_STORE
+    bool "enable key value store"
+    help
+      Enable key value store
+
+config FIREFLY_SUBSYS_STORAGE_KEY_VALUE_STORE_LISTENER_LIMIT
+	int "key value store listener limit"
+	default 10
+	help
+		Set the maximum number of key value store listeners.
+
 endif

@@ -1,0 +1,259 @@
+syntax = "proto3";
+
+import "nanopb.proto";
+
+import "options.proto";
+
+package firefly.ux.v1;
+
+option (firefly.options.v1.package_id) = 9;
+option (firefly.options.v1.c_prefix) = "fd";
+
+service ux {
+    option (firefly.options.v1.service_id) = 1;
+
+    rpc getDisplayMetadata(GetDisplayMetadataRequest) returns (GetDisplayMetadataResponse) {
+        option (firefly.options.v1.method_id) = 1;
+    }
+    
+    rpc frameBufferRead(FrameBufferReadRequest) returns (stream FrameBufferReadResponse) {
+        option (firefly.options.v1.method_id) = 2;
+    }
+
+    rpc getScreen(GetScreenRequest) returns (GetScreenResponse) {
+        option (firefly.options.v1.method_id) = 3;
+    }
+
+    rpc setScreen(SetScreenRequest) returns (SetScreenResponse) {
+        option (firefly.options.v1.method_id) = 4;
+    }
+
+    rpc sendInputEvents(SendInputEventsRequest) returns (SendInputEventsResponse) {
+        option (firefly.options.v1.method_id) = 5;
+    }
+
+    rpc update(UpdateRequest) returns (UpdateResponse) {
+        option (firefly.options.v1.method_id) = 6;
+    }
+
+    rpc setUpdateEnabled(SetUpdateEnabledRequest) returns (SetUpdateEnabledResponse) {
+        option (firefly.options.v1.method_id) = 7;
+    }
+
+    rpc getUpdateEnabled(GetUpdateEnabledRequest) returns (GetUpdateEnabledResponse) {
+        option (firefly.options.v1.method_id) = 8;
+    }
+
+    rpc setDisplayConfiguration(SetDisplayConfigurationRequest) returns (SetDisplayConfigurationResponse) {
+        option (firefly.options.v1.method_id) = 9;
+    }
+
+    rpc getDisplayConfiguration(GetDisplayConfigurationRequest) returns (GetDisplayConfigurationResponse) {
+        option (firefly.options.v1.method_id) = 10;
+    }
+
+    rpc getInteractionConfiguration(GetInteractionConfigurationRequest) returns (GetInteractionConfigurationResponse) {
+        option (firefly.options.v1.method_id) = 11;
+    }
+
+    rpc setInteractionConfiguration(SetInteractionConfigurationRequest) returns (SetInteractionConfigurationResponse) {
+        option (firefly.options.v1.method_id) = 12;
+    }
+
+}
+
+message Completed {
+}
+
+message Point {
+    sint32 x = 1;
+    sint32 y = 2;
+}
+
+message Area {
+    sint32 x = 1;
+    sint32 y = 2;
+    sint32 width = 3;
+    sint32 height = 4;
+}
+
+message ColorFrameBuffer {
+    uint32 r = 1;
+    uint32 g = 2;
+    uint32 b = 3;
+}
+
+message GrayFrameBuffer {
+    uint32 depth = 1;
+}
+
+message GetDisplayMetadataRequest {
+    uint32 user_interface_identifier = 1;
+}
+
+message GetDisplayMetadataResponse {
+    uint32 width = 1;
+    uint32 height = 2;
+    oneof frame_buffer {
+        ColorFrameBuffer color = 3;
+        GrayFrameBuffer gray = 4;
+    }
+}
+
+message FrameBufferReadRequest {
+    uint32 user_interface_identifier = 1;
+    Area area = 2;
+}
+
+message FrameBufferRead {
+    bytes data = 1 [(nanopb).max_size = 256];
+}
+
+message FrameBufferReadResponse {
+    oneof message {
+        FrameBufferRead read = 1;
+        Completed completed = 2;
+    }
+}
+
+message GetScreenRequest {
+    uint32 user_interface_identifier = 1;
+}
+
+message GetScreenResponse {
+    uint32 screen_identifier = 1;
+}
+
+message SetScreenRequest {
+    uint32 user_interface_identifier = 1;
+    uint32 screen_identifier = 2;
+}
+
+message SetScreenResponse {
+}
+
+message ButtonEvent {
+    uint32 gesture = 1; // none: 0, click: 5
+    uint32 action = 2; // release: 0, pressed: 1
+    uint32 button = 3;
+}
+
+message TouchEvent {
+    uint32 gesture = 1; // none: 0, slide up: 1, slide down: 2, slide left: 3, slide right: 4, click: 5, double click: 11, press: 12
+    uint32 action = 2; // release: 0, pressed: 1
+    int32 x = 3;
+    int32 y = 4;
+}
+
+message InputEvent {
+    float delay = 1;
+    oneof event {
+        ButtonEvent button_event = 2;
+        TouchEvent touch_event = 3;
+    }
+}
+
+message SendInputEventsRequest {
+    uint32 user_interface_identifier = 1;
+    repeated InputEvent input_events = 2 [(nanopb).max_count = 8];
+}
+
+message SendInputEventsResponse {
+}
+
+message UpdateRequest {
+    uint32 user_interface_identifier = 1;
+}
+
+message UpdateResponse {
+}
+
+message SetUpdateEnabledRequest {
+    uint32 user_interface_identifier = 1;
+    bool enabled = 2;
+}
+
+message SetUpdateEnabledResponse {
+}
+
+message GetUpdateEnabledRequest {
+    uint32 user_interface_identifier = 1;
+}
+
+message GetUpdateEnabledResponse {
+    bool enabled = 1;
+}
+
+message DisplayConfiguration {
+    uint32 timeout = 1;
+}
+
+message SetDisplayConfigurationRequest {
+    uint32 user_interface_identifier = 1;
+    DisplayConfiguration configuration = 2;
+}
+
+message SetDisplayConfigurationResponse {
+}
+
+message GetDisplayConfigurationRequest {
+    uint32 user_interface_identifier = 1;
+}
+
+message GetDisplayConfigurationResponse {
+    DisplayConfiguration configuration = 1;
+}
+
+message NavigateOperation {
+    uint32 screen_identifier = 1;
+}
+
+message FunctionOperation {
+    uint32 function_identifier = 1;
+}
+
+message ButtonCondition {
+    uint32 gesture = 1;
+    uint32 button = 2;
+}
+
+message TouchCondition {
+    uint32 gesture = 1;
+    Area area = 2;
+}
+
+message EventInteractionConfiguration {
+    oneof condition {
+        ButtonCondition button_condition = 1;
+        TouchCondition touch_condition = 2;
+    }
+    oneof operation {
+        NavigateOperation navigate_operation = 3;
+        FunctionOperation function_operation = 4;
+    }
+}
+
+message ScreenInteractionConfiguration {
+    uint32 screen_identifier = 1;
+    repeated EventInteractionConfiguration event_interaction_configurations = 2 [(nanopb).max_count = 4];
+}
+
+message InteractionConfiguration {
+    repeated ScreenInteractionConfiguration screen_interaction_configurations = 1 [(nanopb).max_count = 32];
+}
+
+message GetInteractionConfigurationRequest {
+    uint32 user_interface_identifier = 1;
+}
+
+message GetInteractionConfigurationResponse {
+    InteractionConfiguration configuration = 1;
+}
+
+message SetInteractionConfigurationRequest {
+    uint32 user_interface_identifier = 1;
+    InteractionConfiguration configuration = 2;
+}
+
+message SetInteractionConfigurationResponse {
+}

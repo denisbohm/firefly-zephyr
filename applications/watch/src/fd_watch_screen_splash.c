@@ -34,7 +34,8 @@ void fd_watch_screen_splash_add_drawing(void *object, fd_drawing_class_t *class)
 
 bool fd_watch_screen_splash_animate(void) {
     if (fd_watch_screen_splash.ticks++ > 2 * 50) {
-        fd_ux_set_screen(fd_watch_screen_id_time);
+        fd_ux_t *ux = fd_ux_get(0);
+        fd_ux_set_screen(ux, fd_watch_screen_id_time);
     }
     return false;
 }
@@ -49,9 +50,10 @@ void fd_watch_screen_splash_activate(void) {
 void fd_watch_screen_splash_deactivate(void) {
 }
 
-bool fd_watch_screen_splash_button(const fd_ux_button_event_t *event) {
-    if (fd_ux_button_is_any_activated(event, fd_watch_button_both)) {
-        fd_ux_set_screen(fd_watch_screen_id_time);
+bool fd_watch_screen_splash_button(const fd_button_event_t *event) {
+    if (fd_button_was_pressed(event, fd_watch_button_both)) {
+        fd_ux_t *ux = fd_ux_get(0);
+        fd_ux_set_screen(ux, fd_watch_screen_id_time);
     }
     return false;
 }

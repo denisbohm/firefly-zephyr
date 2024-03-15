@@ -12,6 +12,7 @@
 typedef struct {
     const struct device *device;
     fd_gpio_callback_t callbacks[32];
+    fd_gpio_listener_t listeners[32];
     struct gpio_callback gpio_callbacks[32];
 } fd_gpio_port_metadata_t;
 
@@ -56,12 +57,18 @@ void fd_gpio_callback_handler(const struct device *device, struct gpio_callback 
     for (int i = 0; i < 32; ++i) {
         if (pins & (1 << i)) {
             fd_gpio_callback_t callback = metadata->callbacks[i];
-            callback();
+            if (callback != NULL) {
+                callback();
+            }
+            fd_gpio_listener_t *listener = &metadata->listeners[i];
+            if (listener->change != NULL) {
+                listener->change(listener->context);
+            }
         }
     }
 }
 
-void fd_gpio_set_callback(fd_gpio_t gpio, fd_gpio_edge_t edge, fd_gpio_callback_t callback) {
+void fd_gpio_set_callback_common(fd_gpio_t gpio, fd_gpio_edge_t edge) {
     fd_gpio_port_metadata_t *metadata = fd_gpio_get_metadata(gpio.port);
     int flags;
     switch (edge) {
@@ -79,11 +86,22 @@ void fd_gpio_set_callback(fd_gpio_t gpio, fd_gpio_edge_t edge, fd_gpio_callback_
     int result = gpio_pin_interrupt_configure(metadata->device, gpio.pin, flags);
     fd_assert(result == 0);
     
-    metadata->callbacks[gpio.pin] = callback;
     struct gpio_callback *gpio_callback = &metadata->gpio_callbacks[gpio.pin];
     gpio_init_callback(gpio_callback, fd_gpio_callback_handler, 1 << gpio.pin);
     result = gpio_add_callback(metadata->device, gpio_callback);
     fd_assert(result == 0);
+}
+
+void fd_gpio_set_callback(fd_gpio_t gpio, fd_gpio_edge_t edge, fd_gpio_callback_t callback) {
+    fd_gpio_port_metadata_t *metadata = fd_gpio_get_metadata(gpio.port);
+    metadata->callbacks[gpio.pin] = callback;
+    fd_gpio_set_callback_common(gpio, edge);
+}
+
+void fd_gpio_set_listener(fd_gpio_t gpio, fd_gpio_edge_t edge, fd_gpio_listener_t listener) {
+    fd_gpio_port_metadata_t *metadata = fd_gpio_get_metadata(gpio.port);
+    metadata->listeners[gpio.pin] = listener;
+    fd_gpio_set_callback_common(gpio, edge);
 }
 
 void fd_gpio_configure_default(fd_gpio_t gpio) {

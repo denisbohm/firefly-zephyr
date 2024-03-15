@@ -66,9 +66,10 @@ void fd_watch_screen_time_activate(void) {
 void fd_watch_screen_time_deactivate(void) {
 }
 
-bool fd_watch_screen_time_button(const fd_ux_button_event_t *event) {
-    if (fd_ux_button_is_one_activated(event, fd_watch_button_left)) {
-        fd_ux_set_screen(fd_watch_screen_id_splash);
+bool fd_watch_screen_time_button(const fd_button_event_t *event) {
+    if (fd_button_was_pressed(event, fd_watch_button_left)) {
+        fd_ux_t *ux = fd_ux_get(0);
+        fd_ux_set_screen(ux, fd_watch_screen_id_splash);
     }
     return false;
 }

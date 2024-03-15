@@ -1,0 +1,31 @@
+
+#ifndef fd_rpc_service_ux_pb_h
+#define fd_rpc_service_ux_pb_h
+
+#include "fd_rpc.h"
+
+extern const fd_rpc_method_t fd_rpc_service_ux_get_display_metadata;
+
+extern const fd_rpc_method_t fd_rpc_service_ux_frame_buffer_read;
+
+extern const fd_rpc_method_t fd_rpc_service_ux_get_screen;
+
+extern const fd_rpc_method_t fd_rpc_service_ux_set_screen;
+
+extern const fd_rpc_method_t fd_rpc_service_ux_send_input_events;
+
+extern const fd_rpc_method_t fd_rpc_service_ux_update;
+
+extern const fd_rpc_method_t fd_rpc_service_ux_set_update_enabled;
+
+extern const fd_rpc_method_t fd_rpc_service_ux_get_update_enabled;
+
+extern const fd_rpc_method_t fd_rpc_service_ux_set_display_configuration;
+
+extern const fd_rpc_method_t fd_rpc_service_ux_get_display_configuration;
+
+extern const fd_rpc_method_t fd_rpc_service_ux_get_interaction_configuration;
+
+extern const fd_rpc_method_t fd_rpc_service_ux_set_interaction_configuration;
+
+#endif

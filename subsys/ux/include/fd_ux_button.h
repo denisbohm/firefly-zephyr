@@ -1,36 +1,33 @@
 #ifndef fd_ux_button_h
 #define fd_ux_button_h
 
+#include "fd_button.h"
 #include "fd_gpio.h"
+#include "fd_timer.h"
+#include "fd_ux.h"
 
 #include <stdbool.h>
 #include <stdint.h>
 
-typedef enum {
-    fd_ux_button_type_pressed,
-    fd_ux_button_type_released,
-} fd_ux_button_type_t;
-
 typedef struct {
-    fd_ux_button_type_t type;
-    uint32_t buttons;
-    float timestamp;
-    float duration;
-} fd_ux_button_event_t;
-
-typedef void (*fd_ux_button_callback_t)(const fd_ux_button_event_t *event);
-
-typedef struct {
+    fd_ux_t *ux;
     const fd_gpio_t *gpios;
     uint32_t count;
-    fd_ux_button_callback_t callback;
 } fd_ux_button_configuration_t;
 
-void fd_ux_button_initialize(const fd_ux_button_configuration_t *configuration);
+typedef struct {
+    uint32_t timestamp;
+    uint32_t buttons;
+} fd_ux_button_change_t;
 
-bool fd_ux_button_was_pressed(const fd_ux_button_event_t *event, uint32_t mask);
-bool fd_ux_button_was_released(const fd_ux_button_event_t *event, uint32_t mask);
+typedef struct {
+    fd_ux_button_configuration_t configuration;
+    fd_timer_t timer;
+    fd_ux_button_change_t pressed;
+    fd_ux_button_change_t released;
+    bool consume_release;
+} fd_ux_button_t;
 
-bool fd_ux_button_is_any_pressed(void);
+void fd_ux_button_initialize(fd_ux_button_t *ux_button, const fd_ux_button_configuration_t *configuration);
 
 #endif
