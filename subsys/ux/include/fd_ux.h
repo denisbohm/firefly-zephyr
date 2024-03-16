@@ -62,10 +62,9 @@ typedef struct {
 fd_ux_t *fd_ux_get(uint32_t identifier);
 
 void fd_ux_initialize(fd_ux_t *ux, const fd_ux_configuration_t *configuration);
+void fd_ux_tick(void);
 
 void fd_ux_add_listener(fd_ux_t *ux, const fd_ux_listener_t *listener);
-
-void fd_ux_tick(fd_ux_t *ux);
 
 bool fd_ux_get_update_enabled(fd_ux_t *ux);
 void fd_ux_set_update_enabled(fd_ux_t *ux, bool enable);

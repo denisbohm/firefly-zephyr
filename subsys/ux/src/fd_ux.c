@@ -146,23 +146,26 @@ bool fd_ux_should_idle(fd_ux_t *ux) {
     return (ux->state == fd_ux_state_on) && (ux->configuration.idle_ticks != 0) && (ux->idle_ticks > ux->configuration.idle_ticks);
 }
 
-void fd_ux_tick(fd_ux_t *ux) {
-    if (ux->configuration.idle_ticks != 0) {
-        if (ux->state == fd_ux_state_on) {
-            ++ux->idle_ticks;
-            if (fd_ux_should_idle(ux)) {
-                fd_ux_set_state(ux, fd_ux_state_idle);
-                return;
+void fd_ux_tick(void) {
+    for (uint32_t i = 0; i < fd_ux_manager.ux_count; ++i) {
+        fd_ux_t *ux = fd_ux_manager.uxs[i];
+        if (ux->configuration.idle_ticks != 0) {
+            if (ux->state == fd_ux_state_on) {
+                ++ux->idle_ticks;
+                if (fd_ux_should_idle(ux)) {
+                    fd_ux_set_state(ux, fd_ux_state_idle);
+                    return;
+                }
             }
         }
-    }
 
-    if (ux->update_enabled) {
-        if (ux->screen->animate) {
-            ux->screen->animate();
-        }
-        if (ux->state == fd_ux_state_on) {
-            fd_ux_update(ux);
+        if (ux->update_enabled) {
+            if (ux->screen->animate) {
+                ux->screen->animate();
+            }
+            if (ux->state == fd_ux_state_on) {
+                fd_ux_update(ux);
+            }
         }
     }
 }
