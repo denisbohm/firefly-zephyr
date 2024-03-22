@@ -11,6 +11,8 @@
 #include <fd_unused.h>
 #include <fd_ux.h>
 
+fd_source_push()
+
 #define fd_rpc_server_ux_frame_buffer_read_min_free_space (firefly_ux_v1_FrameBufferReadResponse_size + 32 /* rpc overhead */)
 
 typedef struct {
@@ -284,3 +286,5 @@ void fd_rpc_server_ux_initialize(const fd_rpc_server_ux_configuration_t *configu
     };
     fd_rpc_set_method_server_association(&fd_rpc_service_ux_set_interaction_configuration, &set_interaction_configuration_server);
 }
+
+fd_source_pop()

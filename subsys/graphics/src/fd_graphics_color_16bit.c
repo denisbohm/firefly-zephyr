@@ -2,6 +2,8 @@
 
 #include <string.h>
 
+fd_source_push_speed()
+
 typedef union {
     uint16_t word;
     struct {
@@ -153,3 +155,5 @@ void fd_graphics_color_16bit_initialize(
     color_16bit->frame_buffer_size = frame_buffer_size;
     fd_graphics_initialize(graphics, width, height, color_16bit->backend, color_16bit->frame_buffer);
 }
+
+fd_source_pop()

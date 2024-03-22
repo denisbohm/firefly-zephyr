@@ -1,7 +1,11 @@
 #ifndef fd_rpc_channel_usb_h
 #define fd_rpc_channel_usb_h
 
+#include "fd_source.h"
+
 #include <zephyr/kernel.h>
+
+fd_source_push()
 
 // unfortunately, the USB serial number is accessed before usb_enable is called, so need to set it up before main -denis
 void fd_rpc_channel_usb_set_serial_number(const char *serial_number);
@@ -22,5 +26,7 @@ typedef struct {
 } fd_rpc_channel_usb_consumer_t;
 
 void fd_rpc_channel_usb_set_consumer(const fd_rpc_channel_usb_consumer_t *consumer);
+
+fd_source_pop()
 
 #endif

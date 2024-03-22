@@ -1,5 +1,10 @@
 menu "subsys"
 
+config FIREFLY_DEBUG
+	bool "Firefly Debug"
+	help
+	  Enable Firefly debugging.
+
 rsource "base/Kconfig"
 rsource "ble/Kconfig"
 rsource "boot/Kconfig"

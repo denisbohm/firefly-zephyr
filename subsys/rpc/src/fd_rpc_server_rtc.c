@@ -8,6 +8,8 @@
 
 #include "rtc.pb.h"
 
+fd_source_push()
+
 bool fd_rpc_server_rtc_get_time_request(fd_rpc_server_context_t *context, const void *a_request fd_unused) {
     firefly_rtc_v1_GetTimeResponse response = {
         .is_set = fd_rtc_is_set(),
@@ -69,3 +71,5 @@ void fd_rpc_server_rtc_initialize(void) {
     };
     fd_rpc_set_method_server_association(&fd_rpc_service_rtc_set_configuration, &set_configuration_server);
 }
+
+fd_source_pop()

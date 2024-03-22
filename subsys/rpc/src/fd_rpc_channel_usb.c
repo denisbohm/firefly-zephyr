@@ -15,6 +15,8 @@
 #include <stdio.h>
 #include <string.h>
 
+fd_source_push()
+
 typedef struct {
     fd_rpc_channel_usb_configuration_t configuration;
     fd_rpc_channel_usb_consumer_t consumer;
@@ -231,3 +233,5 @@ void fd_rpc_channel_usb_initialize(const fd_rpc_channel_usb_configuration_t *con
 
     k_timer_start(&fd_rpc_channel_usb.timer, K_MSEC(250), K_MSEC(250));
 }
+
+fd_source_pop()

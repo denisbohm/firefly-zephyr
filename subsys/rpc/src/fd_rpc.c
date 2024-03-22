@@ -11,6 +11,8 @@
 
 #include <zephyr/net/buf.h>
 
+fd_source_push()
+
 typedef struct {
     uint32_t package_id;
     uint32_t service_id;
@@ -599,3 +601,5 @@ bool fd_rpc_client_send_server_request(fd_rpc_client_context_t *context, const v
 bool fd_rpc_client_send_server_finalize(fd_rpc_client_context_t *context) {
     return fd_rpc_send(&context->common, fd_rpc_channel_packet_type_rpc_server_finalize, NULL, NULL);
 }
+
+fd_source_pop()

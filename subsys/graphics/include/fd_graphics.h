@@ -1,9 +1,13 @@
 #ifndef fd_graphics_h
 #define fd_graphics_h
 
+#include "fd_source.h"
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
+
+fd_source_push()
 
 typedef struct {
     int x;
@@ -145,5 +149,7 @@ void fd_graphics_update(fd_graphics_t *graphics, fd_graphics_area_t area);
 
 void fd_graphics_display_on(fd_graphics_t *graphics);
 void fd_graphics_display_off(fd_graphics_t *graphics);
+
+fd_source_pop()
 
 #endif

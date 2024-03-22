@@ -2,6 +2,8 @@
 
 #include <string.h>
 
+fd_source_push_speed()
+
 static uint32_t fd_graphics_gray_4bit_rgb_to_4bit_gray(uint32_t r, uint32_t g, uint32_t b) {
     uint32_t gray = ((r + g + b) / 3) >> 4;
     return gray;
@@ -126,3 +128,5 @@ void fd_graphics_gray_4bit_initialize(
     gray_4bit->frame_buffer_size = frame_buffer_size;
     fd_graphics_initialize(graphics, width, height, gray_4bit->backend, gray_4bit->frame_buffer);
 }
+
+fd_source_pop()

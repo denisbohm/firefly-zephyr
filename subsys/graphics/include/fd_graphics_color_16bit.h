@@ -5,6 +5,8 @@
 
 #include <stddef.h>
 
+fd_source_push()
+
 typedef struct {
     fd_graphics_backend_t backend;
     uint8_t *frame_buffer;
@@ -21,5 +23,7 @@ void fd_graphics_color_16bit_initialize(
     int width,
     int height
 );
+
+fd_source_pop()
 
 #endif

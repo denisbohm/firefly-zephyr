@@ -2,7 +2,9 @@
 
 #include <string.h>
 
-#pragma GCC optimize("O3")
+//#pragma GCC optimize("O3")
+
+fd_source_push_speed()
 
 static fd_graphics_color_8bit_t *fd_graphics_color_8bit_impl(fd_graphics_t *graphics) {
     return (fd_graphics_color_8bit_t *)graphics->impl;
@@ -131,3 +133,5 @@ void fd_graphics_color_8bit_initialize(
     color_8bit->frame_buffer_size = frame_buffer_size;
     fd_graphics_initialize(graphics, width, height, color_8bit->backend, color_8bit->frame_buffer);
 }
+
+fd_source_pop()

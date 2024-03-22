@@ -2,11 +2,14 @@
 #define fd_rpc_h
 
 #include "fd_binary.h"
+#include "fd_source.h"
 
 #include <pb.h>
 
 #include <stdbool.h>
 #include <stdint.h>
+
+fd_source_push()
 
 typedef enum {
     fd_rpc_channel_packet_type_rpc_server_initialize,
@@ -85,5 +88,7 @@ bool fd_rpc_client_send_server_finalize(fd_rpc_client_context_t *context);
 
 bool fd_rpc_channel_send_packet(fd_rpc_channel_t *channel, fd_rpc_channel_packet_type_t type, fd_binary_t *packet);
 bool fd_rpc_channel_received_data(fd_rpc_channel_t *channel, fd_binary_t *packet, const uint8_t *data, size_t length);
+
+fd_source_pop()
 
 #endif
