@@ -1,4 +1,5 @@
 menuconfig FIREFLY_SUBSYS_UX
 	bool "ux"
+    depends on NANOPB
 	help
 	  Include ux firmware in the system configuration.

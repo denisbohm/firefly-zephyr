@@ -62,7 +62,7 @@ static void fd_ble_l2cap_chan_ops_connected(struct bt_l2cap_chan *chan) {
 static void fd_ble_l2cap_chan_ops_disconnected(struct bt_l2cap_chan *chan) {
 }
 
-static int l2cap_accept(struct bt_conn *conn, struct bt_l2cap_chan **chan) {
+static int l2cap_accept(struct bt_conn *conn, struct bt_l2cap_server *server, struct bt_l2cap_chan **chan) {
 	if (fd_ble_l2cap.le_chan.chan.conn) {
 		return -ENOMEM;
 	}

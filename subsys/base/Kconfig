@@ -1,3 +1,9 @@
+config FIREFLY_SUBSYS_BASE_GPIO_PORT_COUNT
+	int "GPIO port count"
+	default 2
+	help
+	  Number of GPIO ports.
+
 menuconfig FIREFLY_SUBSYS_BASE
 	bool "base"
     select HWINFO

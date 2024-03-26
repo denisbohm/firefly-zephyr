@@ -16,13 +16,11 @@ typedef struct {
     struct gpio_callback gpio_callbacks[32];
 } fd_gpio_port_metadata_t;
 
-#define fd_gpio_port_metadata_count 10
-
-fd_gpio_port_metadata_t fd_gpio_port_metadatas[fd_gpio_port_metadata_count];
+fd_gpio_port_metadata_t fd_gpio_port_metadatas[CONFIG_FIREFLY_SUBSYS_BASE_GPIO_PORT_COUNT];
 
 void fd_gpio_initialize(void) {
     char name[16];
-    for (int i = 0; i < fd_gpio_port_metadata_count; ++i) {
+    for (int i = 0; i < CONFIG_FIREFLY_SUBSYS_BASE_GPIO_PORT_COUNT; ++i) {
         fd_gpio_port_metadata_t *metadata = &fd_gpio_port_metadatas[i];
         snprintf(name, sizeof(name), "GPIO_%d", i);
         metadata->device = device_get_binding(name);
@@ -33,7 +31,7 @@ void fd_gpio_initialize(void) {
 }
 
 static fd_gpio_port_metadata_t *fd_gpio_get_metadata_for_device(const struct device *device) {
-    for (int i = 0; i < fd_gpio_port_metadata_count; ++i) {
+    for (int i = 0; i < CONFIG_FIREFLY_SUBSYS_BASE_GPIO_PORT_COUNT; ++i) {
         fd_gpio_port_metadata_t *metadata = &fd_gpio_port_metadatas[i];
         if (metadata->device == device) {
             return metadata;
@@ -43,12 +41,12 @@ static fd_gpio_port_metadata_t *fd_gpio_get_metadata_for_device(const struct dev
 }
 
 static fd_gpio_port_metadata_t *fd_gpio_get_metadata(int port) {
-    fd_assert(port < fd_gpio_port_metadata_count);
+    fd_assert(port < CONFIG_FIREFLY_SUBSYS_BASE_GPIO_PORT_COUNT);
     return &fd_gpio_port_metadatas[port];
 }
 
 static const struct device *fd_gpio_get_device(int port) {
-    fd_assert(port < fd_gpio_port_metadata_count);
+    fd_assert(port < CONFIG_FIREFLY_SUBSYS_BASE_GPIO_PORT_COUNT);
     return fd_gpio_port_metadatas[port].device;
 }
 

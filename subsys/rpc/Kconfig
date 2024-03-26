@@ -1,5 +1,11 @@
+config FIREFLY_SUBSYS_RPC_PROTOBUF
+    bool "RPC Protobuf"
+    help
+       Build RPC Protobuf
+       
 menuconfig FIREFLY_SUBSYS_RPC
 	bool "RPC"
+    select FIREFLY_SUBSYS_RPC_PROTOBUF
 	help
 	  Include protobuf services remote procedure call firmware in the system configuration.
 

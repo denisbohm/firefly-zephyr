@@ -52,7 +52,12 @@ void fd_ux_button_pressed(fd_ux_button_t *ux_button) {
         .buttons = ux_button->pressed.buttons,
         .timestamp = ux_button->pressed.timestamp,
     };
-    fd_ux_button_event(ux_button, &event);
+    
+    if (ux_button->configuration.callback != NULL) {
+        ux_button->configuration.callback(ux_button, &event);
+    } else {
+        fd_ux_button_event(ux_button, &event);
+    }
 }
 
 void fd_ux_button_released(fd_ux_button_t *ux_button) {
@@ -64,7 +69,12 @@ void fd_ux_button_released(fd_ux_button_t *ux_button) {
     };
     memset(&ux_button->pressed, 0, sizeof(ux_button->pressed));
     memset(&ux_button->released, 0, sizeof(ux_button->released));
-    fd_ux_button_event(ux_button, &event);
+
+    if (ux_button->configuration.callback != NULL) {
+        ux_button->configuration.callback(ux_button, &event);
+    } else {
+        fd_ux_button_event(ux_button, &event);
+    }
 }
 
 void fd_ux_button_timeout(void *context) {

@@ -10,6 +10,10 @@ zephyr_sources(src/fd_rpc_channel_usb.c)
 zephyr_sources(src/fd_rpc_server_rtc.c)
 zephyr_sources(src/fd_rpc_server_ux.c)
 
+endif()
+
+if(CONFIG_FIREFLY_SUBSYS_RPC_PROTOBUF)
+
 zephyr_sources(protobuf/fd_rpc_service_rtc.pb.c)
 zephyr_sources(protobuf/fd_rpc_service_ux.pb.c)
 
