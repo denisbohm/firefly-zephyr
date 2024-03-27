@@ -71,6 +71,8 @@ void fd_ux_set_update_enabled(fd_ux_t *ux, bool enable);
 void fd_ux_update(fd_ux_t *ux);
 
 void fd_ux_active(fd_ux_t *ux);
+void fd_ux_set_idle_ticks(fd_ux_t *ux, uint32_t ticks);
+
 fd_ux_state_t fd_ux_get_state(fd_ux_t *ux);
 void fd_ux_set_state(fd_ux_t *ux, fd_ux_state_t state);
 

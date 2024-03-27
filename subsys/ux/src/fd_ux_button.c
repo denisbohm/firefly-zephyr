@@ -143,8 +143,9 @@ void fd_ux_button_initialize(fd_ux_button_t *ux_button, const fd_ux_button_confi
         fd_gpio_set_listener(gpio, fd_gpio_edge_both, listener);
     }
 
-    const static fd_ux_listener_t listener = {
+    ux_button->listener = (fd_ux_listener_t) {
+        .context = ux_button,
         .state_changed = fd_ux_button_ux_state_changed,
     };
-    fd_ux_add_listener(ux_button->configuration.ux, &listener);
+    fd_ux_add_listener(ux_button->configuration.ux, &ux_button->listener);
 }

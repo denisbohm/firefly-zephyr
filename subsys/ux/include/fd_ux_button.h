@@ -26,6 +26,7 @@ typedef struct {
 typedef struct fd_ux_button_s {
     fd_ux_button_configuration_t configuration;
     fd_timer_t timer;
+    fd_ux_listener_t listener;
     fd_ux_button_change_t pressed;
     fd_ux_button_change_t released;
     bool consume_release;

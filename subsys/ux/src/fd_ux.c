@@ -117,6 +117,11 @@ void fd_ux_active(fd_ux_t *ux) {
     }
 }
 
+void fd_ux_set_idle_ticks(fd_ux_t *ux, uint32_t ticks) {
+    ux->configuration.idle_ticks = ticks;
+    ux->idle_ticks = 0;
+}
+
 fd_ux_state_t fd_ux_get_state(fd_ux_t *ux) {
     return ux->state;
 }
