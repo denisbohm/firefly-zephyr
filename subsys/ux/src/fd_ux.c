@@ -2,7 +2,9 @@
 
 #include "fd_assert.h"
 #include "fd_canvas.h"
+#if CONFIG_FIREFLY_SUBSYS_STORAGE_KEY_VALUE_STORE
 #include "fd_key_value_store.h"
+#endif
 
 #include <stdio.h>
 #include <string.h>
@@ -33,6 +35,8 @@ void fd_ux_display_configuration_default(fd_ux_t *ux) {
 void fd_ux_interaction_configuration_default(fd_ux_t *ux) {
     memset(&ux->interaction_configuration, 0, sizeof(ux->interaction_configuration));
 }
+
+#if CONFIG_FIREFLY_SUBSYS_STORAGE_KEY_VALUE_STORE
 
 void fd_ux_persist_get_display_configuration(fd_ux_t *ux) {
     bool result = fd_key_value_store_get(ux->display_configuration_key, &firefly_ux_v1_DisplayConfiguration_msg, &ux->display_configuration);
@@ -83,6 +87,8 @@ void fd_ux_set_interaction_configuration(fd_ux_t *ux, const firefly_ux_v1_Intera
     bool result = fd_key_value_store_set(ux->interaction_configuration_key, &firefly_ux_v1_InteractionConfiguration_msg, interaction_configuration);
     fd_assert(result);
 }
+
+#endif
 
 void fd_ux_update(fd_ux_t *ux) {
     fd_canvas_t *canvas = &ux->canvas;
@@ -204,6 +210,7 @@ void fd_ux_initialize(fd_ux_t *ux, const fd_ux_configuration_t *configuration) {
     ux->update_enabled = true;
     fd_ux_set_screen(ux, ux->configuration.initial_screen);
 
+#if CONFIG_FIREFLY_SUBSYS_STORAGE_KEY_VALUE_STORE
     fd_key_value_store_listener_t listener = {
         .was_set = fd_ux_persist_was_changed,
         .was_removed = fd_ux_persist_was_changed,
@@ -211,6 +218,7 @@ void fd_ux_initialize(fd_ux_t *ux, const fd_ux_configuration_t *configuration) {
     };
     fd_key_value_store_add_listener(&listener);
     fd_ux_persist_get(ux);
+#endif
 }
 
 static void fd_ux_set_screen_to(fd_ux_t *ux, uint32_t screen_id, bool preview) {
