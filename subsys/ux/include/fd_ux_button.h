@@ -19,16 +19,22 @@ typedef struct {
 } fd_ux_button_configuration_t;
 
 typedef struct {
-    uint32_t timestamp;
-    uint32_t buttons;
-} fd_ux_button_change_t;
+    uint32_t press_timestamp;
+    uint32_t release_timestamp;
+    uint32_t chords;
+    bool press_sent;
+} fd_ux_button_state_t;
+
+#ifndef CONFIG_FIREFLY_SUBSYS_UX_BUTTON_LIMIT
+#define CONFIG_FIREFLY_SUBSYS_UX_BUTTON_LIMIT 2
+#endif
 
 typedef struct fd_ux_button_s {
     fd_ux_button_configuration_t configuration;
     fd_timer_t timer;
     fd_ux_listener_t listener;
-    fd_ux_button_change_t pressed;
-    fd_ux_button_change_t released;
+    uint32_t buttons;
+    fd_ux_button_state_t states[CONFIG_FIREFLY_SUBSYS_UX_BUTTON_LIMIT];
     bool consume_release;
 } fd_ux_button_t;
 

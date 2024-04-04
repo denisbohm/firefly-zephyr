@@ -3,3 +3,9 @@ menuconfig FIREFLY_SUBSYS_UX
     depends on NANOPB
 	help
 	  Include ux firmware in the system configuration.
+
+config FIREFLY_SUBSYS_UX_BUTTON_LIMIT
+	int "UX BUTTON LIMIT"
+	default 2
+	help
+	  Firefly UX Button Limit.

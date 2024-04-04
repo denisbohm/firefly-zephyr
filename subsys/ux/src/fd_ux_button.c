@@ -1,5 +1,6 @@
 #include "fd_ux_button.h"
 
+#include "fd_assert.h"
 #include "fd_timer.h"
 #include "fd_ux.h"
 
@@ -17,7 +18,7 @@ uint32_t fd_ux_read_buttons(fd_ux_button_t *ux_button) {
 }
 
 bool fd_ux_button_is_any_pressed(fd_ux_button_t *ux_button) {
-    return ux_button->pressed.timestamp != 0;
+    return ux_button->buttons != 0;
 }
 
 void fd_ux_button_ux_state_changed(void *context, fd_ux_state_t old, fd_ux_state_t new) {
@@ -27,7 +28,7 @@ void fd_ux_button_ux_state_changed(void *context, fd_ux_state_t old, fd_ux_state
 
 void fd_ux_button_event(fd_ux_button_t *ux_button, const fd_button_event_t *event) {
     if (ux_button->consume_release) {
-        if (event->type == fd_button_type_released) {
+        if (ux_button->buttons == 0) {
             ux_button->consume_release = false;
         }
         return;
@@ -46,13 +47,16 @@ void fd_ux_button_event(fd_ux_button_t *ux_button, const fd_button_event_t *even
     }
 }
 
-void fd_ux_button_pressed(fd_ux_button_t *ux_button) {
+void fd_ux_button_send(fd_ux_button_t *ux_button, fd_button_type_t type, uint32_t buttons, uint32_t holds, uint32_t chords, float timestamp, float duration) {
     fd_button_event_t event = {
-        .type = fd_button_type_pressed,
-        .buttons = ux_button->pressed.buttons,
-        .timestamp = ux_button->pressed.timestamp,
+        .type = type,
+        .buttons = buttons,
+        .holds = holds,
+        .chords = chords,
+        .timestamp = timestamp,
+        .duration = duration,
     };
-    
+
     if (ux_button->configuration.callback != NULL) {
         ux_button->configuration.callback(ux_button, &event);
     } else {
@@ -60,47 +64,54 @@ void fd_ux_button_pressed(fd_ux_button_t *ux_button) {
     }
 }
 
-void fd_ux_button_released(fd_ux_button_t *ux_button) {
-    fd_button_event_t event = {
-        .type = fd_button_type_released,
-        .buttons = ux_button->released.buttons,
-        .timestamp = ux_button->released.timestamp,
-        .duration = ux_button->released.timestamp - ux_button->pressed.timestamp,
-    };
-    memset(&ux_button->pressed, 0, sizeof(ux_button->pressed));
-    memset(&ux_button->released, 0, sizeof(ux_button->released));
+void fd_ux_button_check(fd_ux_button_t *ux_button, uint32_t buttons) {
+    uint32_t pressed = buttons & ~ux_button->buttons;
+    uint32_t released = ~buttons & ux_button->buttons;
 
-    if (ux_button->configuration.callback != NULL) {
-        ux_button->configuration.callback(ux_button, &event);
-    } else {
-        fd_ux_button_event(ux_button, &event);
+    for (uint32_t i = 0; i < CONFIG_FIREFLY_SUBSYS_UX_BUTTON_LIMIT; ++i) {
+        fd_ux_button_state_t *state = &ux_button->states[i];
+        uint32_t button = 1 << i;
+        if ((button & pressed) != 0) {
+            state->press_timestamp = fd_timer_get_timestamp();
+        }
+        if ((button & released) != 0) {
+            state->release_timestamp = fd_timer_get_timestamp();
+        }
+    }
+
+    for (uint32_t i = 0; i < CONFIG_FIREFLY_SUBSYS_UX_BUTTON_LIMIT; ++i) {
+        fd_ux_button_state_t *state = &ux_button->states[i];
+        if (state->press_timestamp != 0) {
+            state->chords |= buttons;
+        }
     }
 }
 
 void fd_ux_button_timeout(void *context) {
     fd_ux_button_t *ux_button = context;
 
-    if (ux_button->released.timestamp == 0) {
-        // press debounce timer done
-        fd_ux_button_pressed(ux_button);
+    // check to see if buttons where pressed or released after debouncing
+    uint32_t buttons = fd_ux_read_buttons(ux_button);
+    fd_ux_button_check(ux_button, buttons);
+    uint32_t holds = buttons | ux_button->buttons;
+    ux_button->buttons = buttons;
 
-        uint32_t buttons = fd_ux_read_buttons(ux_button);
-        if (buttons == 0) {
-            // released during debounce time
-            ux_button->released.timestamp = fd_timer_get_timestamp();
-            ux_button->released.buttons = ux_button->pressed.buttons;
-            fd_ux_button_released(ux_button);
+    for (uint32_t i = 0; i < CONFIG_FIREFLY_SUBSYS_UX_BUTTON_LIMIT; ++i) {
+        fd_ux_button_state_t *state = &ux_button->states[i];
+        uint32_t button = 1 << i;
+        uint32_t chords = state->chords & ~button;
+        if ((state->press_timestamp != 0) && !state->press_sent) {
+            state->press_sent = true;
+            fd_ux_button_send(ux_button, fd_button_type_pressed, button, holds & ~button, chords, state->press_timestamp, 0.0f);
         }
-    } else {
-        // release debounce timer done
-        fd_ux_button_released(ux_button);
-
-        uint32_t buttons = fd_ux_read_buttons(ux_button);
-        if (buttons != 0) {
-            // pressed during debounce time
-            ux_button->pressed.timestamp = fd_timer_get_timestamp();
-            ux_button->pressed.buttons = buttons;
-            fd_ux_button_pressed(ux_button);
+        if (state->release_timestamp != 0) {
+            float timestamp = state->release_timestamp;
+            float duration = timestamp - state->press_timestamp;
+            state->press_timestamp = 0;
+            state->press_sent = false;
+            state->release_timestamp = 0;
+            state->chords = 0;
+            fd_ux_button_send(ux_button, fd_button_type_released, button, holds & ~button, chords, timestamp, duration);
         }
     }
 }
@@ -113,21 +124,17 @@ void fd_ux_button_change(void *context) {
         return;
     }
 
+    uint32_t buttons = fd_ux_read_buttons(ux_button);
+    fd_ux_button_check(ux_button, buttons);
+    ux_button->buttons = buttons;
+
     // start debounce timer
     fd_timer_start(&ux_button->timer, 0.05);
-
-    if (ux_button->pressed.timestamp == 0) {
-        // press
-        ux_button->pressed.timestamp = fd_timer_get_timestamp();
-        ux_button->pressed.buttons = fd_ux_read_buttons(ux_button);
-    } else {
-        // release
-        ux_button->released.timestamp = fd_timer_get_timestamp();
-        ux_button->released.buttons = ux_button->pressed.buttons;
-    }
 }
 
 void fd_ux_button_initialize(fd_ux_button_t *ux_button, const fd_ux_button_configuration_t *configuration) {
+    fd_assert(configuration->count <= CONFIG_FIREFLY_SUBSYS_UX_BUTTON_LIMIT);
+
     memset(ux_button, 0, sizeof(*ux_button));
     ux_button->configuration = *configuration;
     
