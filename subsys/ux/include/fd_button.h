@@ -5,12 +5,12 @@
 #include <stdint.h>
 
 typedef enum {
-    fd_button_type_pressed,
-    fd_button_type_released,
-} fd_button_type_t;
+    fd_button_action_released = 0,
+    fd_button_action_pressed = 1,
+} fd_button_action_t;
 
 typedef struct {
-    fd_button_type_t type;
+    fd_button_action_t action;
     uint32_t buttons;
     uint32_t holds;
     uint32_t chords;

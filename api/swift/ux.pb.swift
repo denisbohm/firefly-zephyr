@@ -298,13 +298,18 @@ struct Firefly_Ux_V1_ButtonEvent {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  /// none: 0, click: 5
-  var gesture: UInt32 = 0
-
-  /// release: 0, pressed: 1
+  /// released: 0, pressed: 1
   var action: UInt32 = 0
 
-  var button: UInt32 = 0
+  var buttons: UInt32 = 0
+
+  var holds: UInt32 = 0
+
+  var chords: UInt32 = 0
+
+  var timestamp: Float = 0
+
+  var duration: Float = 0
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -316,11 +321,11 @@ struct Firefly_Ux_V1_TouchEvent {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
+  /// released: 0, pressed: 1
+  var action: UInt32 = 0
+
   /// none: 0, slide up: 1, slide down: 2, slide left: 3, slide right: 4, click: 5, double click: 11, press: 12
   var gesture: UInt32 = 0
-
-  /// release: 0, pressed: 1
-  var action: UInt32 = 0
 
   var x: Int32 = 0
 
@@ -336,31 +341,31 @@ struct Firefly_Ux_V1_InputEvent {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  var delay: Float = 0
+  var userInterfaceIdentifier: UInt32 = 0
 
   var event: Firefly_Ux_V1_InputEvent.OneOf_Event? = nil
 
-  var buttonEvent: Firefly_Ux_V1_ButtonEvent {
+  var button: Firefly_Ux_V1_ButtonEvent {
     get {
-      if case .buttonEvent(let v)? = event {return v}
+      if case .button(let v)? = event {return v}
       return Firefly_Ux_V1_ButtonEvent()
     }
-    set {event = .buttonEvent(newValue)}
+    set {event = .button(newValue)}
   }
 
-  var touchEvent: Firefly_Ux_V1_TouchEvent {
+  var touch: Firefly_Ux_V1_TouchEvent {
     get {
-      if case .touchEvent(let v)? = event {return v}
+      if case .touch(let v)? = event {return v}
       return Firefly_Ux_V1_TouchEvent()
     }
-    set {event = .touchEvent(newValue)}
+    set {event = .touch(newValue)}
   }
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   enum OneOf_Event: Equatable {
-    case buttonEvent(Firefly_Ux_V1_ButtonEvent)
-    case touchEvent(Firefly_Ux_V1_TouchEvent)
+    case button(Firefly_Ux_V1_ButtonEvent)
+    case touch(Firefly_Ux_V1_TouchEvent)
 
   #if !swift(>=4.1)
     static func ==(lhs: Firefly_Ux_V1_InputEvent.OneOf_Event, rhs: Firefly_Ux_V1_InputEvent.OneOf_Event) -> Bool {
@@ -368,12 +373,12 @@ struct Firefly_Ux_V1_InputEvent {
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch (lhs, rhs) {
-      case (.buttonEvent, .buttonEvent): return {
-        guard case .buttonEvent(let l) = lhs, case .buttonEvent(let r) = rhs else { preconditionFailure() }
+      case (.button, .button): return {
+        guard case .button(let l) = lhs, case .button(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
-      case (.touchEvent, .touchEvent): return {
-        guard case .touchEvent(let l) = lhs, case .touchEvent(let r) = rhs else { preconditionFailure() }
+      case (.touch, .touch): return {
+        guard case .touch(let l) = lhs, case .touch(let r) = rhs else { preconditionFailure() }
         return l == r
       }()
       default: return false
@@ -389,8 +394,6 @@ struct Firefly_Ux_V1_SendInputEventsRequest {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
-
-  var userInterfaceIdentifier: UInt32 = 0
 
   var inputEvents: [Firefly_Ux_V1_InputEvent] = []
 
@@ -1422,9 +1425,12 @@ extension Firefly_Ux_V1_SetScreenResponse: SwiftProtobuf.Message, SwiftProtobuf.
 extension Firefly_Ux_V1_ButtonEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".ButtonEvent"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "gesture"),
-    2: .same(proto: "action"),
-    3: .same(proto: "button"),
+    1: .same(proto: "action"),
+    2: .same(proto: "buttons"),
+    3: .same(proto: "holds"),
+    4: .same(proto: "chords"),
+    5: .same(proto: "timestamp"),
+    6: .same(proto: "duration"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -1433,31 +1439,46 @@ extension Firefly_Ux_V1_ButtonEvent: SwiftProtobuf.Message, SwiftProtobuf._Messa
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try { try decoder.decodeSingularUInt32Field(value: &self.gesture) }()
-      case 2: try { try decoder.decodeSingularUInt32Field(value: &self.action) }()
-      case 3: try { try decoder.decodeSingularUInt32Field(value: &self.button) }()
+      case 1: try { try decoder.decodeSingularUInt32Field(value: &self.action) }()
+      case 2: try { try decoder.decodeSingularUInt32Field(value: &self.buttons) }()
+      case 3: try { try decoder.decodeSingularUInt32Field(value: &self.holds) }()
+      case 4: try { try decoder.decodeSingularUInt32Field(value: &self.chords) }()
+      case 5: try { try decoder.decodeSingularFloatField(value: &self.timestamp) }()
+      case 6: try { try decoder.decodeSingularFloatField(value: &self.duration) }()
       default: break
       }
     }
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if self.gesture != 0 {
-      try visitor.visitSingularUInt32Field(value: self.gesture, fieldNumber: 1)
-    }
     if self.action != 0 {
-      try visitor.visitSingularUInt32Field(value: self.action, fieldNumber: 2)
+      try visitor.visitSingularUInt32Field(value: self.action, fieldNumber: 1)
     }
-    if self.button != 0 {
-      try visitor.visitSingularUInt32Field(value: self.button, fieldNumber: 3)
+    if self.buttons != 0 {
+      try visitor.visitSingularUInt32Field(value: self.buttons, fieldNumber: 2)
+    }
+    if self.holds != 0 {
+      try visitor.visitSingularUInt32Field(value: self.holds, fieldNumber: 3)
+    }
+    if self.chords != 0 {
+      try visitor.visitSingularUInt32Field(value: self.chords, fieldNumber: 4)
+    }
+    if self.timestamp != 0 {
+      try visitor.visitSingularFloatField(value: self.timestamp, fieldNumber: 5)
+    }
+    if self.duration != 0 {
+      try visitor.visitSingularFloatField(value: self.duration, fieldNumber: 6)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   static func ==(lhs: Firefly_Ux_V1_ButtonEvent, rhs: Firefly_Ux_V1_ButtonEvent) -> Bool {
-    if lhs.gesture != rhs.gesture {return false}
     if lhs.action != rhs.action {return false}
-    if lhs.button != rhs.button {return false}
+    if lhs.buttons != rhs.buttons {return false}
+    if lhs.holds != rhs.holds {return false}
+    if lhs.chords != rhs.chords {return false}
+    if lhs.timestamp != rhs.timestamp {return false}
+    if lhs.duration != rhs.duration {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -1466,8 +1487,8 @@ extension Firefly_Ux_V1_ButtonEvent: SwiftProtobuf.Message, SwiftProtobuf._Messa
 extension Firefly_Ux_V1_TouchEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".TouchEvent"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "gesture"),
-    2: .same(proto: "action"),
+    1: .same(proto: "action"),
+    2: .same(proto: "gesture"),
     3: .same(proto: "x"),
     4: .same(proto: "y"),
   ]
@@ -1478,8 +1499,8 @@ extension Firefly_Ux_V1_TouchEvent: SwiftProtobuf.Message, SwiftProtobuf._Messag
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try { try decoder.decodeSingularUInt32Field(value: &self.gesture) }()
-      case 2: try { try decoder.decodeSingularUInt32Field(value: &self.action) }()
+      case 1: try { try decoder.decodeSingularUInt32Field(value: &self.action) }()
+      case 2: try { try decoder.decodeSingularUInt32Field(value: &self.gesture) }()
       case 3: try { try decoder.decodeSingularInt32Field(value: &self.x) }()
       case 4: try { try decoder.decodeSingularInt32Field(value: &self.y) }()
       default: break
@@ -1488,11 +1509,11 @@ extension Firefly_Ux_V1_TouchEvent: SwiftProtobuf.Message, SwiftProtobuf._Messag
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if self.gesture != 0 {
-      try visitor.visitSingularUInt32Field(value: self.gesture, fieldNumber: 1)
-    }
     if self.action != 0 {
-      try visitor.visitSingularUInt32Field(value: self.action, fieldNumber: 2)
+      try visitor.visitSingularUInt32Field(value: self.action, fieldNumber: 1)
+    }
+    if self.gesture != 0 {
+      try visitor.visitSingularUInt32Field(value: self.gesture, fieldNumber: 2)
     }
     if self.x != 0 {
       try visitor.visitSingularInt32Field(value: self.x, fieldNumber: 3)
@@ -1504,8 +1525,8 @@ extension Firefly_Ux_V1_TouchEvent: SwiftProtobuf.Message, SwiftProtobuf._Messag
   }
 
   static func ==(lhs: Firefly_Ux_V1_TouchEvent, rhs: Firefly_Ux_V1_TouchEvent) -> Bool {
-    if lhs.gesture != rhs.gesture {return false}
     if lhs.action != rhs.action {return false}
+    if lhs.gesture != rhs.gesture {return false}
     if lhs.x != rhs.x {return false}
     if lhs.y != rhs.y {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
@@ -1516,9 +1537,9 @@ extension Firefly_Ux_V1_TouchEvent: SwiftProtobuf.Message, SwiftProtobuf._Messag
 extension Firefly_Ux_V1_InputEvent: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".InputEvent"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "delay"),
-    2: .standard(proto: "button_event"),
-    3: .standard(proto: "touch_event"),
+    1: .standard(proto: "user_interface_identifier"),
+    2: .same(proto: "button"),
+    3: .same(proto: "touch"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -1527,18 +1548,18 @@ extension Firefly_Ux_V1_InputEvent: SwiftProtobuf.Message, SwiftProtobuf._Messag
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try { try decoder.decodeSingularFloatField(value: &self.delay) }()
+      case 1: try { try decoder.decodeSingularUInt32Field(value: &self.userInterfaceIdentifier) }()
       case 2: try {
         var v: Firefly_Ux_V1_ButtonEvent?
         var hadOneofValue = false
         if let current = self.event {
           hadOneofValue = true
-          if case .buttonEvent(let m) = current {v = m}
+          if case .button(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {
           if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.event = .buttonEvent(v)
+          self.event = .button(v)
         }
       }()
       case 3: try {
@@ -1546,12 +1567,12 @@ extension Firefly_Ux_V1_InputEvent: SwiftProtobuf.Message, SwiftProtobuf._Messag
         var hadOneofValue = false
         if let current = self.event {
           hadOneofValue = true
-          if case .touchEvent(let m) = current {v = m}
+          if case .touch(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {
           if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.event = .touchEvent(v)
+          self.event = .touch(v)
         }
       }()
       default: break
@@ -1564,16 +1585,16 @@ extension Firefly_Ux_V1_InputEvent: SwiftProtobuf.Message, SwiftProtobuf._Messag
     // allocates stack space for every if/case branch local when no optimizations
     // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
     // https://github.com/apple/swift-protobuf/issues/1182
-    if self.delay != 0 {
-      try visitor.visitSingularFloatField(value: self.delay, fieldNumber: 1)
+    if self.userInterfaceIdentifier != 0 {
+      try visitor.visitSingularUInt32Field(value: self.userInterfaceIdentifier, fieldNumber: 1)
     }
     switch self.event {
-    case .buttonEvent?: try {
-      guard case .buttonEvent(let v)? = self.event else { preconditionFailure() }
+    case .button?: try {
+      guard case .button(let v)? = self.event else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
     }()
-    case .touchEvent?: try {
-      guard case .touchEvent(let v)? = self.event else { preconditionFailure() }
+    case .touch?: try {
+      guard case .touch(let v)? = self.event else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
     }()
     case nil: break
@@ -1582,7 +1603,7 @@ extension Firefly_Ux_V1_InputEvent: SwiftProtobuf.Message, SwiftProtobuf._Messag
   }
 
   static func ==(lhs: Firefly_Ux_V1_InputEvent, rhs: Firefly_Ux_V1_InputEvent) -> Bool {
-    if lhs.delay != rhs.delay {return false}
+    if lhs.userInterfaceIdentifier != rhs.userInterfaceIdentifier {return false}
     if lhs.event != rhs.event {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
@@ -1592,8 +1613,7 @@ extension Firefly_Ux_V1_InputEvent: SwiftProtobuf.Message, SwiftProtobuf._Messag
 extension Firefly_Ux_V1_SendInputEventsRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".SendInputEventsRequest"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .standard(proto: "user_interface_identifier"),
-    2: .standard(proto: "input_events"),
+    1: .standard(proto: "input_events"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -1602,25 +1622,20 @@ extension Firefly_Ux_V1_SendInputEventsRequest: SwiftProtobuf.Message, SwiftProt
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try { try decoder.decodeSingularUInt32Field(value: &self.userInterfaceIdentifier) }()
-      case 2: try { try decoder.decodeRepeatedMessageField(value: &self.inputEvents) }()
+      case 1: try { try decoder.decodeRepeatedMessageField(value: &self.inputEvents) }()
       default: break
       }
     }
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if self.userInterfaceIdentifier != 0 {
-      try visitor.visitSingularUInt32Field(value: self.userInterfaceIdentifier, fieldNumber: 1)
-    }
     if !self.inputEvents.isEmpty {
-      try visitor.visitRepeatedMessageField(value: self.inputEvents, fieldNumber: 2)
+      try visitor.visitRepeatedMessageField(value: self.inputEvents, fieldNumber: 1)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   static func ==(lhs: Firefly_Ux_V1_SendInputEventsRequest, rhs: Firefly_Ux_V1_SendInputEventsRequest) -> Bool {
-    if lhs.userInterfaceIdentifier != rhs.userInterfaceIdentifier {return false}
     if lhs.inputEvents != rhs.inputEvents {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true

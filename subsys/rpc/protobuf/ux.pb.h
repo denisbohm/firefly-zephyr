@@ -52,9 +52,12 @@ typedef struct _firefly_ux_v1_ButtonCondition {
 } firefly_ux_v1_ButtonCondition;
 
 typedef struct _firefly_ux_v1_ButtonEvent { 
-    uint32_t gesture; /* none: 0, click: 5 */
-    uint32_t action; /* release: 0, pressed: 1 */
-    uint32_t button;
+    uint32_t action; /* released: 0, pressed: 1 */
+    uint32_t buttons;
+    uint32_t holds;
+    uint32_t chords;
+    float timestamp;
+    float duration;
 } firefly_ux_v1_ButtonEvent;
 
 typedef struct _firefly_ux_v1_ColorFrameBuffer { 
@@ -128,8 +131,8 @@ typedef struct _firefly_ux_v1_SetUpdateEnabledRequest {
 } firefly_ux_v1_SetUpdateEnabledRequest;
 
 typedef struct _firefly_ux_v1_TouchEvent { 
+    uint32_t action; /* released: 0, pressed: 1 */
     uint32_t gesture; /* none: 0, slide up: 1, slide down: 2, slide left: 3, slide right: 4, click: 5, double click: 11, press: 12 */
-    uint32_t action; /* release: 0, pressed: 1 */
     int32_t x;
     int32_t y;
 } firefly_ux_v1_TouchEvent;
@@ -168,11 +171,11 @@ typedef struct _firefly_ux_v1_GetDisplayMetadataResponse {
 } firefly_ux_v1_GetDisplayMetadataResponse;
 
 typedef struct _firefly_ux_v1_InputEvent { 
-    float delay;
+    uint32_t user_interface_identifier;
     pb_size_t which_event;
     union {
-        firefly_ux_v1_ButtonEvent button_event;
-        firefly_ux_v1_TouchEvent touch_event;
+        firefly_ux_v1_ButtonEvent button;
+        firefly_ux_v1_TouchEvent touch;
     } event;
 } firefly_ux_v1_InputEvent;
 
@@ -202,7 +205,6 @@ typedef struct _firefly_ux_v1_EventInteractionConfiguration {
 } firefly_ux_v1_EventInteractionConfiguration;
 
 typedef struct _firefly_ux_v1_SendInputEventsRequest { 
-    uint32_t user_interface_identifier;
     pb_size_t input_events_count;
     firefly_ux_v1_InputEvent input_events[8];
 } firefly_ux_v1_SendInputEventsRequest;
@@ -249,10 +251,10 @@ extern "C" {
 #define firefly_ux_v1_GetScreenResponse_init_default {0}
 #define firefly_ux_v1_SetScreenRequest_init_default {0, 0}
 #define firefly_ux_v1_SetScreenResponse_init_default {0}
-#define firefly_ux_v1_ButtonEvent_init_default   {0, 0, 0}
+#define firefly_ux_v1_ButtonEvent_init_default   {0, 0, 0, 0, 0, 0}
 #define firefly_ux_v1_TouchEvent_init_default    {0, 0, 0, 0}
 #define firefly_ux_v1_InputEvent_init_default    {0, 0, {firefly_ux_v1_ButtonEvent_init_default}}
-#define firefly_ux_v1_SendInputEventsRequest_init_default {0, 0, {firefly_ux_v1_InputEvent_init_default, firefly_ux_v1_InputEvent_init_default, firefly_ux_v1_InputEvent_init_default, firefly_ux_v1_InputEvent_init_default, firefly_ux_v1_InputEvent_init_default, firefly_ux_v1_InputEvent_init_default, firefly_ux_v1_InputEvent_init_default, firefly_ux_v1_InputEvent_init_default}}
+#define firefly_ux_v1_SendInputEventsRequest_init_default {0, {firefly_ux_v1_InputEvent_init_default, firefly_ux_v1_InputEvent_init_default, firefly_ux_v1_InputEvent_init_default, firefly_ux_v1_InputEvent_init_default, firefly_ux_v1_InputEvent_init_default, firefly_ux_v1_InputEvent_init_default, firefly_ux_v1_InputEvent_init_default, firefly_ux_v1_InputEvent_init_default}}
 #define firefly_ux_v1_SendInputEventsResponse_init_default {0}
 #define firefly_ux_v1_UpdateRequest_init_default {0}
 #define firefly_ux_v1_UpdateResponse_init_default {0}
@@ -290,10 +292,10 @@ extern "C" {
 #define firefly_ux_v1_GetScreenResponse_init_zero {0}
 #define firefly_ux_v1_SetScreenRequest_init_zero {0, 0}
 #define firefly_ux_v1_SetScreenResponse_init_zero {0}
-#define firefly_ux_v1_ButtonEvent_init_zero      {0, 0, 0}
+#define firefly_ux_v1_ButtonEvent_init_zero      {0, 0, 0, 0, 0, 0}
 #define firefly_ux_v1_TouchEvent_init_zero       {0, 0, 0, 0}
 #define firefly_ux_v1_InputEvent_init_zero       {0, 0, {firefly_ux_v1_ButtonEvent_init_zero}}
-#define firefly_ux_v1_SendInputEventsRequest_init_zero {0, 0, {firefly_ux_v1_InputEvent_init_zero, firefly_ux_v1_InputEvent_init_zero, firefly_ux_v1_InputEvent_init_zero, firefly_ux_v1_InputEvent_init_zero, firefly_ux_v1_InputEvent_init_zero, firefly_ux_v1_InputEvent_init_zero, firefly_ux_v1_InputEvent_init_zero, firefly_ux_v1_InputEvent_init_zero}}
+#define firefly_ux_v1_SendInputEventsRequest_init_zero {0, {firefly_ux_v1_InputEvent_init_zero, firefly_ux_v1_InputEvent_init_zero, firefly_ux_v1_InputEvent_init_zero, firefly_ux_v1_InputEvent_init_zero, firefly_ux_v1_InputEvent_init_zero, firefly_ux_v1_InputEvent_init_zero, firefly_ux_v1_InputEvent_init_zero, firefly_ux_v1_InputEvent_init_zero}}
 #define firefly_ux_v1_SendInputEventsResponse_init_zero {0}
 #define firefly_ux_v1_UpdateRequest_init_zero    {0}
 #define firefly_ux_v1_UpdateResponse_init_zero   {0}
@@ -325,9 +327,12 @@ extern "C" {
 #define firefly_ux_v1_Area_height_tag            4
 #define firefly_ux_v1_ButtonCondition_gesture_tag 1
 #define firefly_ux_v1_ButtonCondition_button_tag 2
-#define firefly_ux_v1_ButtonEvent_gesture_tag    1
-#define firefly_ux_v1_ButtonEvent_action_tag     2
-#define firefly_ux_v1_ButtonEvent_button_tag     3
+#define firefly_ux_v1_ButtonEvent_action_tag     1
+#define firefly_ux_v1_ButtonEvent_buttons_tag    2
+#define firefly_ux_v1_ButtonEvent_holds_tag      3
+#define firefly_ux_v1_ButtonEvent_chords_tag     4
+#define firefly_ux_v1_ButtonEvent_timestamp_tag  5
+#define firefly_ux_v1_ButtonEvent_duration_tag   6
 #define firefly_ux_v1_ColorFrameBuffer_r_tag     1
 #define firefly_ux_v1_ColorFrameBuffer_g_tag     2
 #define firefly_ux_v1_ColorFrameBuffer_b_tag     3
@@ -349,8 +354,8 @@ extern "C" {
 #define firefly_ux_v1_SetScreenRequest_screen_identifier_tag 2
 #define firefly_ux_v1_SetUpdateEnabledRequest_user_interface_identifier_tag 1
 #define firefly_ux_v1_SetUpdateEnabledRequest_enabled_tag 2
-#define firefly_ux_v1_TouchEvent_gesture_tag     1
-#define firefly_ux_v1_TouchEvent_action_tag      2
+#define firefly_ux_v1_TouchEvent_action_tag      1
+#define firefly_ux_v1_TouchEvent_gesture_tag     2
 #define firefly_ux_v1_TouchEvent_x_tag           3
 #define firefly_ux_v1_TouchEvent_y_tag           4
 #define firefly_ux_v1_UpdateRequest_user_interface_identifier_tag 1
@@ -363,9 +368,9 @@ extern "C" {
 #define firefly_ux_v1_GetDisplayMetadataResponse_height_tag 2
 #define firefly_ux_v1_GetDisplayMetadataResponse_color_tag 3
 #define firefly_ux_v1_GetDisplayMetadataResponse_gray_tag 4
-#define firefly_ux_v1_InputEvent_delay_tag       1
-#define firefly_ux_v1_InputEvent_button_event_tag 2
-#define firefly_ux_v1_InputEvent_touch_event_tag 3
+#define firefly_ux_v1_InputEvent_user_interface_identifier_tag 1
+#define firefly_ux_v1_InputEvent_button_tag      2
+#define firefly_ux_v1_InputEvent_touch_tag       3
 #define firefly_ux_v1_SetDisplayConfigurationRequest_user_interface_identifier_tag 1
 #define firefly_ux_v1_SetDisplayConfigurationRequest_configuration_tag 2
 #define firefly_ux_v1_TouchCondition_gesture_tag 1
@@ -374,8 +379,7 @@ extern "C" {
 #define firefly_ux_v1_EventInteractionConfiguration_touch_condition_tag 2
 #define firefly_ux_v1_EventInteractionConfiguration_navigate_operation_tag 3
 #define firefly_ux_v1_EventInteractionConfiguration_function_operation_tag 4
-#define firefly_ux_v1_SendInputEventsRequest_user_interface_identifier_tag 1
-#define firefly_ux_v1_SendInputEventsRequest_input_events_tag 2
+#define firefly_ux_v1_SendInputEventsRequest_input_events_tag 1
 #define firefly_ux_v1_ScreenInteractionConfiguration_screen_identifier_tag 1
 #define firefly_ux_v1_ScreenInteractionConfiguration_event_interaction_configurations_tag 2
 #define firefly_ux_v1_InteractionConfiguration_screen_interaction_configurations_tag 1
@@ -472,32 +476,34 @@ X(a, STATIC,   SINGULAR, UINT32,   screen_identifier,   2)
 #define firefly_ux_v1_SetScreenResponse_DEFAULT NULL
 
 #define firefly_ux_v1_ButtonEvent_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, UINT32,   gesture,           1) \
-X(a, STATIC,   SINGULAR, UINT32,   action,            2) \
-X(a, STATIC,   SINGULAR, UINT32,   button,            3)
+X(a, STATIC,   SINGULAR, UINT32,   action,            1) \
+X(a, STATIC,   SINGULAR, UINT32,   buttons,           2) \
+X(a, STATIC,   SINGULAR, UINT32,   holds,             3) \
+X(a, STATIC,   SINGULAR, UINT32,   chords,            4) \
+X(a, STATIC,   SINGULAR, FLOAT,    timestamp,         5) \
+X(a, STATIC,   SINGULAR, FLOAT,    duration,          6)
 #define firefly_ux_v1_ButtonEvent_CALLBACK NULL
 #define firefly_ux_v1_ButtonEvent_DEFAULT NULL
 
 #define firefly_ux_v1_TouchEvent_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, UINT32,   gesture,           1) \
-X(a, STATIC,   SINGULAR, UINT32,   action,            2) \
+X(a, STATIC,   SINGULAR, UINT32,   action,            1) \
+X(a, STATIC,   SINGULAR, UINT32,   gesture,           2) \
 X(a, STATIC,   SINGULAR, INT32,    x,                 3) \
 X(a, STATIC,   SINGULAR, INT32,    y,                 4)
 #define firefly_ux_v1_TouchEvent_CALLBACK NULL
 #define firefly_ux_v1_TouchEvent_DEFAULT NULL
 
 #define firefly_ux_v1_InputEvent_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, FLOAT,    delay,             1) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (event,button_event,event.button_event),   2) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (event,touch_event,event.touch_event),   3)
+X(a, STATIC,   SINGULAR, UINT32,   user_interface_identifier,   1) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (event,button,event.button),   2) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (event,touch,event.touch),   3)
 #define firefly_ux_v1_InputEvent_CALLBACK NULL
 #define firefly_ux_v1_InputEvent_DEFAULT NULL
-#define firefly_ux_v1_InputEvent_event_button_event_MSGTYPE firefly_ux_v1_ButtonEvent
-#define firefly_ux_v1_InputEvent_event_touch_event_MSGTYPE firefly_ux_v1_TouchEvent
+#define firefly_ux_v1_InputEvent_event_button_MSGTYPE firefly_ux_v1_ButtonEvent
+#define firefly_ux_v1_InputEvent_event_touch_MSGTYPE firefly_ux_v1_TouchEvent
 
 #define firefly_ux_v1_SendInputEventsRequest_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, UINT32,   user_interface_identifier,   1) \
-X(a, STATIC,   REPEATED, MESSAGE,  input_events,      2)
+X(a, STATIC,   REPEATED, MESSAGE,  input_events,      1)
 #define firefly_ux_v1_SendInputEventsRequest_CALLBACK NULL
 #define firefly_ux_v1_SendInputEventsRequest_DEFAULT NULL
 #define firefly_ux_v1_SendInputEventsRequest_input_events_MSGTYPE firefly_ux_v1_InputEvent
@@ -725,7 +731,7 @@ extern const pb_msgdesc_t firefly_ux_v1_SetInteractionConfigurationResponse_msg;
 /* Maximum encoded size of messages (where known) */
 #define firefly_ux_v1_Area_size                  24
 #define firefly_ux_v1_ButtonCondition_size       12
-#define firefly_ux_v1_ButtonEvent_size           18
+#define firefly_ux_v1_ButtonEvent_size           34
 #define firefly_ux_v1_ColorFrameBuffer_size      18
 #define firefly_ux_v1_Completed_size             0
 #define firefly_ux_v1_DisplayConfiguration_size  6
@@ -745,12 +751,12 @@ extern const pb_msgdesc_t firefly_ux_v1_SetInteractionConfigurationResponse_msg;
 #define firefly_ux_v1_GetUpdateEnabledRequest_size 6
 #define firefly_ux_v1_GetUpdateEnabledResponse_size 2
 #define firefly_ux_v1_GrayFrameBuffer_size       6
-#define firefly_ux_v1_InputEvent_size            41
+#define firefly_ux_v1_InputEvent_size            42
 #define firefly_ux_v1_InteractionConfiguration_size 5920
 #define firefly_ux_v1_NavigateOperation_size     6
 #define firefly_ux_v1_Point_size                 12
 #define firefly_ux_v1_ScreenInteractionConfiguration_size 182
-#define firefly_ux_v1_SendInputEventsRequest_size 350
+#define firefly_ux_v1_SendInputEventsRequest_size 352
 #define firefly_ux_v1_SendInputEventsResponse_size 0
 #define firefly_ux_v1_SetDisplayConfigurationRequest_size 14
 #define firefly_ux_v1_SetDisplayConfigurationResponse_size 0

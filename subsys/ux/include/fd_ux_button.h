@@ -12,6 +12,7 @@
 struct fd_ux_button_s;
 
 typedef struct {
+    uint32_t identifier;
     fd_ux_t *ux;
     const fd_gpio_t *gpios;
     uint32_t count;
@@ -37,6 +38,8 @@ typedef struct fd_ux_button_s {
     fd_ux_button_state_t states[CONFIG_FIREFLY_SUBSYS_UX_BUTTON_LIMIT];
     bool consume_release;
 } fd_ux_button_t;
+
+fd_ux_button_t *fd_ux_button_get(uint32_t identifier);
 
 void fd_ux_button_initialize(fd_ux_button_t *ux_button, const fd_ux_button_configuration_t *configuration);
 

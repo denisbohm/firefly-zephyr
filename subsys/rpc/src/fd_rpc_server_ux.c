@@ -7,9 +7,10 @@
 #include "ux.pb.h"
 
 #include <fd_assert.h>
-#include <fd_ux_button.h>
 #include <fd_unused.h>
 #include <fd_ux.h>
+#include <fd_ux_button.h>
+#include <fd_ux_touch.h>
 
 fd_source_push()
 
@@ -139,16 +140,29 @@ bool fd_rpc_server_ux_set_screen_request(fd_rpc_server_context_t *context, const
 bool fd_rpc_server_ux_send_input_events_request(fd_rpc_server_context_t *context, const void *a_request) {
     const firefly_ux_v1_SendInputEventsRequest *request = a_request;
     for (pb_size_t i = 0; i < request->input_events_count; ++i) {
-        const firefly_ux_v1_InputEvent *event = &request->input_events[i];
-#if 0
-        fd_button_event_t button_event = {
-            .type = event->type,
-            .buttons = event->buttons,
-            .timestamp = event->timestamp,
-            .duration = event->duration,
-        };
-        fd_ux_button_event(&button_event);
-#endif
+        const firefly_ux_v1_InputEvent *input_event = &request->input_events[i];
+        if (input_event->which_event == firefly_ux_v1_InputEvent_button_tag) {
+            fd_ux_button_t *ux_button = fd_ux_button_get(input_event->user_interface_identifier);
+            fd_button_event_t button_event = {
+                .action = input_event->event.button.action,
+                .buttons = input_event->event.button.buttons,
+                .holds = input_event->event.button.holds,
+                .chords = input_event->event.button.chords,
+                .timestamp = input_event->event.button.timestamp,
+                .duration = input_event->event.button.duration,
+            };
+            fd_ux_button_event(ux_button, &button_event);
+        } else
+        if (input_event->which_event == firefly_ux_v1_InputEvent_touch_tag) {
+            fd_ux_touch_t *ux_touch = fd_ux_touch_get(input_event->user_interface_identifier);
+            fd_touch_event_t touch_event = {
+                .action = input_event->event.touch.action,
+                .gesture = input_event->event.touch.gesture,
+                .x = input_event->event.touch.x,
+                .y = input_event->event.touch.y,
+            };
+            fd_ux_touch_event(ux_touch, &touch_event);
+        }
     }
     firefly_ux_v1_SendInputEventsResponse response = {
     };

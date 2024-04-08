@@ -57,7 +57,7 @@ PB_BIND(firefly_ux_v1_TouchEvent, firefly_ux_v1_TouchEvent, AUTO)
 PB_BIND(firefly_ux_v1_InputEvent, firefly_ux_v1_InputEvent, AUTO)
 
 
-PB_BIND(firefly_ux_v1_SendInputEventsRequest, firefly_ux_v1_SendInputEventsRequest, AUTO)
+PB_BIND(firefly_ux_v1_SendInputEventsRequest, firefly_ux_v1_SendInputEventsRequest, 2)
 
 
 PB_BIND(firefly_ux_v1_SendInputEventsResponse, firefly_ux_v1_SendInputEventsResponse, AUTO)

@@ -6,6 +6,23 @@
 
 #include <string.h>
 
+typedef struct {
+    fd_ux_button_t *ux_buttons[4];
+    uint32_t ux_button_count;
+} fd_ux_button_manager_t;
+
+fd_ux_button_manager_t fd_ux_button_manager;
+
+fd_ux_button_t *fd_ux_button_get(uint32_t identifier) {
+    for (uint32_t i = 0; i < fd_ux_button_manager.ux_button_count; ++i) {
+        fd_ux_button_t *ux_button = fd_ux_button_manager.ux_buttons[i];
+        if (ux_button->configuration.identifier == identifier) {
+            return ux_button;
+        }
+    }
+    return NULL;
+}
+
 uint32_t fd_ux_read_buttons(fd_ux_button_t *ux_button) {
     uint32_t buttons = 0;
     for (uint32_t i = 0; i < ux_button->configuration.count; ++i) {
@@ -47,9 +64,9 @@ void fd_ux_button_event(fd_ux_button_t *ux_button, const fd_button_event_t *even
     }
 }
 
-void fd_ux_button_send(fd_ux_button_t *ux_button, fd_button_type_t type, uint32_t buttons, uint32_t holds, uint32_t chords, float timestamp, float duration) {
+void fd_ux_button_send(fd_ux_button_t *ux_button, fd_button_action_t action, uint32_t buttons, uint32_t holds, uint32_t chords, float timestamp, float duration) {
     fd_button_event_t event = {
-        .type = type,
+        .action = action,
         .buttons = buttons,
         .holds = holds,
         .chords = chords,
@@ -102,7 +119,7 @@ void fd_ux_button_timeout(void *context) {
         uint32_t chords = state->chords & ~button;
         if ((state->press_timestamp != 0) && !state->press_sent) {
             state->press_sent = true;
-            fd_ux_button_send(ux_button, fd_button_type_pressed, button, holds & ~button, chords, state->press_timestamp, 0.0f);
+            fd_ux_button_send(ux_button, fd_button_action_pressed, button, holds & ~button, chords, state->press_timestamp, 0.0f);
         }
         if (state->release_timestamp != 0) {
             float timestamp = state->release_timestamp;
@@ -111,7 +128,7 @@ void fd_ux_button_timeout(void *context) {
             state->press_sent = false;
             state->release_timestamp = 0;
             state->chords = 0;
-            fd_ux_button_send(ux_button, fd_button_type_released, button, holds & ~button, chords, timestamp, duration);
+            fd_ux_button_send(ux_button, fd_button_action_released, button, holds & ~button, chords, timestamp, duration);
         }
     }
 }
@@ -133,6 +150,9 @@ void fd_ux_button_change(void *context) {
 }
 
 void fd_ux_button_initialize(fd_ux_button_t *ux_button, const fd_ux_button_configuration_t *configuration) {
+    fd_assert(fd_ux_button_manager.ux_button_count < (sizeof(fd_ux_button_manager.ux_buttons) / sizeof(fd_ux_button_manager.ux_buttons[0])));
+    fd_ux_button_manager.ux_buttons[fd_ux_button_manager.ux_button_count++] = ux_button;
+
     fd_assert(configuration->count <= CONFIG_FIREFLY_SUBSYS_UX_BUTTON_LIMIT);
 
     memset(ux_button, 0, sizeof(*ux_button));
