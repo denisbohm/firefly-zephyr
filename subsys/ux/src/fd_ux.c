@@ -164,7 +164,11 @@ void fd_ux_tick(void) {
             if (ux->state == fd_ux_state_on) {
                 ++ux->idle_ticks;
                 if (fd_ux_should_idle(ux)) {
-                    fd_ux_set_state(ux, fd_ux_state_idle);
+                    fd_ux_state_t state = fd_ux_state_idle;
+                    if (ux->configuration.get_idle_transition_state != NULL) {
+                        state = ux->configuration.get_idle_transition_state();
+                    }
+                    fd_ux_set_state(ux, state);
                     return;
                 }
             }

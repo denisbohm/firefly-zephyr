@@ -40,6 +40,7 @@ typedef struct {
     uint32_t initial_screen;
     uint32_t idle_ticks;
     void (*state_changed)(fd_ux_state_t old_state, fd_ux_state_t new_state);
+    fd_ux_state_t (*get_idle_transition_state)(void);
     fd_drawing_plane_t *plane;
 } fd_ux_configuration_t;
 
