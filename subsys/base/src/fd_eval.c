@@ -9,6 +9,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+fd_source_push()
+
 #define ARRAY_SIZE(a) (sizeof(a)/sizeof(a[0]))
 
 typedef struct {
@@ -22,9 +24,9 @@ fd_eval_value_t fd_eval_unary_minus_evaluate(fd_eval_value_t value);
 fd_eval_value_t fd_eval_unary_not_evaluate(fd_eval_value_t value);
 
 static const fd_eval_unary_operator_t fd_eval_unary_operators[] = {
-    { .string = "+", .precedence = 2, .evaluate = fd_eval_unary_plus_evaluate },
-    { .string = "-", .precedence = 2, .evaluate = fd_eval_unary_minus_evaluate },
-    { .string = "!", .precedence = 2, .evaluate = fd_eval_unary_not_evaluate },
+    { .string = "+", .precedence = 7, .evaluate = fd_eval_unary_plus_evaluate },
+    { .string = "-", .precedence = 7, .evaluate = fd_eval_unary_minus_evaluate },
+    { .string = "!", .precedence = 7, .evaluate = fd_eval_unary_not_evaluate },
 };
 
 typedef enum {
@@ -53,18 +55,18 @@ fd_eval_value_t fd_eval_binary_and_evaluate(fd_eval_value_t a, fd_eval_value_t b
 fd_eval_value_t fd_eval_binary_or_evaluate(fd_eval_value_t a, fd_eval_value_t b);
 
 static const fd_eval_binary_operator_t fd_eval_binary_operators[] = {
-    { .string = "*", .precedence = 3, .associativity = fd_eval_associativity_left, .evaluate = fd_eval_binary_multiply_evaluate },
-    { .string = "/", .precedence = 3, .associativity = fd_eval_associativity_left, .evaluate = fd_eval_binary_divide_evaluate },
-    { .string = "+", .precedence = 4, .associativity = fd_eval_associativity_left, .evaluate = fd_eval_binary_add_evaluate },
-    { .string = "-", .precedence = 4, .associativity = fd_eval_associativity_left, .evaluate = fd_eval_binary_subtract_evaluate },
-    { .string = "<=", .precedence = 6, .associativity = fd_eval_associativity_left, .evaluate = fd_eval_binary_less_than_or_equal_to_evaluate },
-    { .string = "<", .precedence = 6, .associativity = fd_eval_associativity_left, .evaluate = fd_eval_binary_less_than_evaluate },
-    { .string = ">=", .precedence = 6, .associativity = fd_eval_associativity_left, .evaluate = fd_eval_binary_greater_than_or_equal_to_evaluate },
-    { .string = ">", .precedence = 6, .associativity = fd_eval_associativity_left, .evaluate = fd_eval_binary_greater_than_evaluate },
-    { .string = "==", .precedence = 7, .associativity = fd_eval_associativity_left, .evaluate = fd_eval_binary_equal_to_evaluate },
-    { .string = "!=", .precedence = 7, .associativity = fd_eval_associativity_left, .evaluate = fd_eval_binary_not_equal_to_evaluate },
-    { .string = "&&", .precedence = 11, .associativity = fd_eval_associativity_left, .evaluate = fd_eval_binary_and_evaluate },
-    { .string = "||", .precedence = 11, .associativity = fd_eval_associativity_left, .evaluate = fd_eval_binary_or_evaluate },
+    { .string = "*", .precedence = 6, .associativity = fd_eval_associativity_left, .evaluate = fd_eval_binary_multiply_evaluate },
+    { .string = "/", .precedence = 6, .associativity = fd_eval_associativity_left, .evaluate = fd_eval_binary_divide_evaluate },
+    { .string = "+", .precedence = 5, .associativity = fd_eval_associativity_left, .evaluate = fd_eval_binary_add_evaluate },
+    { .string = "-", .precedence = 5, .associativity = fd_eval_associativity_left, .evaluate = fd_eval_binary_subtract_evaluate },
+    { .string = "<=", .precedence = 4, .associativity = fd_eval_associativity_left, .evaluate = fd_eval_binary_less_than_or_equal_to_evaluate },
+    { .string = "<", .precedence = 4, .associativity = fd_eval_associativity_left, .evaluate = fd_eval_binary_less_than_evaluate },
+    { .string = ">=", .precedence = 4, .associativity = fd_eval_associativity_left, .evaluate = fd_eval_binary_greater_than_or_equal_to_evaluate },
+    { .string = ">", .precedence = 4, .associativity = fd_eval_associativity_left, .evaluate = fd_eval_binary_greater_than_evaluate },
+    { .string = "==", .precedence = 3, .associativity = fd_eval_associativity_left, .evaluate = fd_eval_binary_equal_to_evaluate },
+    { .string = "!=", .precedence = 3, .associativity = fd_eval_associativity_left, .evaluate = fd_eval_binary_not_equal_to_evaluate },
+    { .string = "&&", .precedence = 2, .associativity = fd_eval_associativity_left, .evaluate = fd_eval_binary_and_evaluate },
+    { .string = "||", .precedence = 1, .associativity = fd_eval_associativity_left, .evaluate = fd_eval_binary_or_evaluate },
 };
 
 typedef enum {
@@ -876,3 +878,30 @@ fd_eval_result_t fd_eval_calculate(fd_eval_string_t expression, void *heap, size
     result.success = !eval.error;
     return result;
 }
+
+bool fd_eval_test_get_symbol_value(fd_eval_string_t symbol, fd_eval_value_t *value) {
+    return false;
+}
+
+void fd_eval_test_calculate(const char *input, float expected_value) {
+    fd_eval_string_t expression = {
+        .string = input,
+        .length = strlen(input),
+    };
+    uint8_t heap[256] fd_eval_heap_align;
+    fd_eval_result_t result = fd_eval_calculate(expression, heap, sizeof(heap), fd_eval_test_get_symbol_value);
+    fd_assert(result.success);
+    if (!result.success) {
+        return;
+    }
+    fd_eval_value_t value = fd_eval_as_real(result.value);
+    const float epsilon = 0.0001;
+    fd_assert(fabs(value.real - expected_value) < epsilon);
+}
+
+void fd_eval_test(void) {
+    fd_eval_test_calculate("0.3 + 0.1 * 2.0", 0.5f);
+    fd_eval_test_calculate("0.1 * 2.0 + 0.3", 0.5f);
+}
+
+fd_source_pop()

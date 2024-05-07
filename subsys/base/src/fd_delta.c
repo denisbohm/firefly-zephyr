@@ -3,6 +3,8 @@
 #include "fd_assert.h"
 #include "fd_bit.h"
 
+fd_source_push()
+
 uint32_t fd_delta_get_resolution(uint32_t value) {
     if (value == 0) {
         return 0;
@@ -11,11 +13,11 @@ uint32_t fd_delta_get_resolution(uint32_t value) {
 }
 
 uint32_t fd_delta_zigzag_encode(int32_t value) {
-    return (uint32_t)(value >= 0 ? (value << 1) : ((-value << 1) | 1));
+    return (2 * value) ^ (value >> (sizeof(int32_t) * 8 - 1));
 }
 
 int32_t fd_delta_zigzag_decode(uint32_t value) {
-    return value & 1 ? -((int32_t)value >> 1) : ((int32_t)value >> 1);
+    return (value >> 1) ^ (-(value & 1));
 }
 
 int32_t fd_delta_get_value(const void *objects, uint32_t index, size_t size, size_t offset) {
@@ -79,3 +81,29 @@ bool fd_delta_decode(fd_bit_decoder_t *decoder, void *objects, uint32_t count, s
     }
     return true;
 }
+
+#if 0
+void fd_delta_test_zigzag(void) {
+    // 10 = -2 zz 11
+    // 11 = -1 zz 01
+    // 00 = 0 zz 00
+    // 01 = 1 zz 10
+    int value_resolution = 2;
+    for (int32_t value = -2; value < 2; ++value) {
+        uint8_t data[2];
+        fd_bit_encoder_t bit_encoder;
+        fd_bit_encoder_initialize(&bit_encoder, data, sizeof(data));
+        uint32_t zigzag = fd_delta_zigzag_encode(value);
+        fd_assert(fd_delta_get_resolution(zigzag) <= value_resolution);
+        fd_bit_encoder_write(&bit_encoder, zigzag, value_resolution);
+        fd_bit_encoder_finalize(&bit_encoder);
+        fd_assert(bit_encoder.bit_count <= value_resolution);
+        fd_bit_decoder_t bit_decoder;
+        fd_bit_decoder_initialize(&bit_decoder, data, sizeof(data), bit_encoder.bit_count);
+        int32_t result = fd_delta_zigzag_decode(fd_bit_decoder_read(&bit_decoder, value_resolution));
+        fd_assert(result == value);
+    }
+}
+#endif
+
+fd_source_pop()

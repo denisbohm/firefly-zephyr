@@ -1,9 +1,13 @@
 #ifndef fd_eval_h
 #define fd_eval_h
 
+#include "fd_source.h"
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+
+fd_source_push()
 
 typedef struct {
     const char *string;
@@ -55,5 +59,7 @@ fd_eval_value_t fd_eval_value_initialize_real(double real);
 fd_eval_value_t fd_eval_as_boolean(fd_eval_value_t value);
 fd_eval_value_t fd_eval_as_integer(fd_eval_value_t value);
 fd_eval_value_t fd_eval_as_real(fd_eval_value_t value);
+
+fd_source_pop()
 
 #endif
