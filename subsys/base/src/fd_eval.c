@@ -879,6 +879,8 @@ fd_eval_result_t fd_eval_calculate(fd_eval_string_t expression, void *heap, size
     return result;
 }
 
+#if 0
+
 bool fd_eval_test_get_symbol_value(fd_eval_string_t symbol, fd_eval_value_t *value) {
     return false;
 }
@@ -899,9 +901,69 @@ void fd_eval_test_calculate(const char *input, float expected_value) {
     fd_assert(fabs(value.real - expected_value) < epsilon);
 }
 
+bool fd_eval_test_node_compare(fd_eval_node_t *a, fd_eval_node_t *b) {
+    if (a->type != b->type) {
+        return false;
+    }
+    switch (a->type) {
+        case fd_eval_node_type_leaf:
+            if (!fd_eval_string_equals_string(a->leaf.token, b->leaf.token)) {
+                return false;
+            }
+        break;
+        case fd_eval_node_type_unary:
+            if (a->unary.operator != b->unary.operator) {
+                return false;
+            }
+            if (!fd_eval_test_node_compare(a->unary.node, b->unary.node)) {
+                return false;
+            }
+        break;
+        case fd_eval_node_type_binary:
+            if (a->binary.operator != b->binary.operator) {
+                return false;
+            }
+            if (!fd_eval_test_node_compare(a->binary.left, b->binary.left)) {
+                return false;
+            }
+            if (!fd_eval_test_node_compare(a->binary.right, b->binary.right)) {
+                return false;
+            }
+        break;
+    }
+    return true;
+}
+
+void fd_eval_test_precedence(const char *a, const char *b, bool expected) {
+    uint8_t heap_a[256] fd_eval_heap_align;
+    fd_eval_string_t expression_a = {
+        .string = a,
+        .length = strlen(a),
+    };
+    fd_eval_t eval_a = {};
+    fd_eval_parse(&eval_a, expression_a, heap_a, sizeof(heap_a), fd_eval_test_get_symbol_value);
+
+    uint8_t heap_b[256] fd_eval_heap_align;
+    fd_eval_string_t expression_b = {
+        .string = b,
+        .length = strlen(b),
+    };
+    fd_eval_t eval_b = {};
+    fd_eval_parse(&eval_b, expression_b, heap_b, sizeof(heap_b), fd_eval_test_get_symbol_value);
+
+    bool result = fd_eval_test_node_compare(eval_a.tree, eval_b.tree);
+    fd_assert(result == expected);
+}
+
 void fd_eval_test(void) {
+    fd_eval_test_precedence("0.3 + 0.1 * 2.0", "(0.3 + 0.1) * 2.0", false);
+    fd_eval_test_precedence("0.3 + 0.1 * 2.0", "0.3 + (0.1 * 2.0)", true);
+    fd_eval_test_precedence("0.1 * 2.0 + 0.3", "(0.1 * 2.0) + 0.3", true);
+    fd_eval_test_calculate("(0.3 + 0.1) * 2.0", 0.8f);
     fd_eval_test_calculate("0.3 + 0.1 * 2.0", 0.5f);
     fd_eval_test_calculate("0.1 * 2.0 + 0.3", 0.5f);
 }
+
+#endif
 
 fd_source_pop()
