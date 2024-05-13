@@ -3,11 +3,14 @@
 
 #include "fd_button.h"
 #include "fd_gpio.h"
+#include "fd_source.h"
 #include "fd_timer.h"
 #include "fd_ux.h"
 
 #include <stdbool.h>
 #include <stdint.h>
+
+fd_source_push()
 
 struct fd_ux_button_s;
 
@@ -20,8 +23,8 @@ typedef struct {
 } fd_ux_button_configuration_t;
 
 typedef struct {
-    uint32_t press_timestamp;
-    uint32_t release_timestamp;
+    float press_timestamp;
+    float release_timestamp;
     uint32_t chords;
     bool press_sent;
 } fd_ux_button_state_t;
@@ -44,5 +47,7 @@ fd_ux_button_t *fd_ux_button_get(uint32_t identifier);
 void fd_ux_button_initialize(fd_ux_button_t *ux_button, const fd_ux_button_configuration_t *configuration);
 
 void fd_ux_button_event(fd_ux_button_t *ux_button, const fd_button_event_t *event);
+
+fd_source_pop()
 
 #endif
