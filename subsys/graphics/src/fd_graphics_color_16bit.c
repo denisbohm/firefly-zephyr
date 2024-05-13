@@ -8,7 +8,8 @@ typedef union {
     uint16_t word;
     struct {
         uint16_t b:5;
-        uint16_t g:6;
+        uint16_t zero:1; // always set this bit to zero, so all color components are 5-bits (otherwise the extra green bit of resolution can cause unintended green tints) -denis
+        uint16_t g:5;
         uint16_t r:5;
     };
 } fd_graphics_color_16bit_rgb_t;
@@ -23,7 +24,7 @@ static void fd_graphics_color_16bit_set_pixel(fd_graphics_t *graphics, int x, in
     uint8_t *frame_buffer = fd_graphics_color_16bit_impl(graphics)->frame_buffer;
     fd_graphics_color_16bit_rgb_t rgb = {
         .r = color.r >> 3,
-        .g = color.g >> 2,
+        .g = color.g >> 3,
         .b = color.b >> 3,
     };
     frame_buffer[index++] = rgb.word >> 8;
@@ -40,8 +41,8 @@ static void fd_graphics_color_16bit_get_pixel(fd_graphics_t *graphics, int x, in
         .word = (b1 << 8) | b0,
     };
     color->r = rgb.r << 3;
-    color->g = rgb.g << 2;
-    color->b = rgb.b >> 3;
+    color->g = rgb.g << 3;
+    color->b = rgb.b << 3;
 }
 
 static void fd_graphics_color_16bit_blit(fd_graphics_t *graphics, fd_graphics_area_t area) {
@@ -52,7 +53,7 @@ static void fd_graphics_color_16bit_write_background(fd_graphics_t *graphics) {
     fd_graphics_color_t color = graphics->background;
     fd_graphics_color_16bit_rgb_t rgb = {
         .r = color.r >> 3,
-        .g = color.g >> 2,
+        .g = color.g >> 3,
         .b = color.b >> 3,
     };
     uint8_t b0 = rgb.word;
