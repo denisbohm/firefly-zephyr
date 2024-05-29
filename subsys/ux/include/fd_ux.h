@@ -5,9 +5,12 @@
 #include "fd_canvas.h"
 #include "fd_drawing.h"
 #include "fd_graphics.h"
+#include "fd_source.h"
 #include "fd_touch.h"
 
 #include "ux.pb.h"
+
+fd_source_push()
 
 typedef enum {
     fd_ux_state_on,
@@ -123,5 +126,7 @@ typedef struct {
 } fd_ux_frame_buffer_t;
 
 fd_ux_frame_buffer_t fd_ux_get_frame_buffer(fd_ux_t *ux);
+
+fd_source_pop()
 
 #endif

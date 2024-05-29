@@ -9,6 +9,8 @@
 #include <stdio.h>
 #include <string.h>
 
+fd_source_push()
+
 typedef struct {
     fd_ux_t *uxs[4];
     uint32_t ux_count;
@@ -306,3 +308,5 @@ fd_ux_frame_buffer_metadata_t fd_ux_get_frame_buffer_metadata(fd_ux_t *ux) {
         }
     };
 }
+
+fd_source_pop()

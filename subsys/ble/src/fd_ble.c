@@ -4,10 +4,14 @@
 
 #include <zephyr/bluetooth/bluetooth.h>
 #include <zephyr/bluetooth/hci.h>
+#include <zephyr/bluetooth/hci_vs.h>
 #include <zephyr/bluetooth/conn.h>
 #include <zephyr/bluetooth/uuid.h>
 #include <zephyr/bluetooth/gatt.h>
 #include <zephyr/settings/settings.h>
+#include <zephyr/sys/byteorder.h>
+
+fd_source_push()
 
 typedef struct {
     const fd_ble_configuration_t *configuration;
@@ -25,6 +29,80 @@ typedef struct {
 } fd_ble_t;
 
 fd_ble_t fd_ble;
+
+void fd_ble_set_tx_power(uint8_t handle_type, uint16_t handle, int8_t tx_pwr_lvl) {
+	struct bt_hci_cp_vs_write_tx_power_level *cp;
+	struct net_buf *buf = bt_hci_cmd_create(BT_HCI_OP_VS_WRITE_TX_POWER_LEVEL, sizeof(*cp));
+    fd_assert(buf != NULL);
+	if (!buf) {
+		return;
+	}
+
+	cp = net_buf_add(buf, sizeof(*cp));
+	cp->handle = sys_cpu_to_le16(handle);
+	cp->handle_type = handle_type;
+	cp->tx_power_level = tx_pwr_lvl;
+
+	struct net_buf *rsp = NULL;
+	int err = bt_hci_cmd_send_sync(BT_HCI_OP_VS_WRITE_TX_POWER_LEVEL, buf, &rsp);
+    fd_assert(err == 0);
+	if (err) {
+		uint8_t reason = rsp ? ((struct bt_hci_rp_vs_write_tx_power_level *)rsp->data)->status : 0;
+		return;
+	}
+
+	// struct bt_hci_rp_vs_write_tx_power_level *rp;
+	// rp = (void *)rsp->data;
+	// printk("Actual Tx Power: %d\n", rp->selected_tx_power);
+
+	net_buf_unref(rsp);
+}
+
+void fd_ble_get_tx_power(uint8_t handle_type, uint16_t handle, int8_t *tx_pwr_lvl) {
+	*tx_pwr_lvl = 0xFF;
+	struct bt_hci_cp_vs_read_tx_power_level *cp;
+	struct net_buf *buf = bt_hci_cmd_create(BT_HCI_OP_VS_READ_TX_POWER_LEVEL, sizeof(*cp));
+    fd_assert(buf != NULL);
+	if (!buf) {
+		return;
+	}
+
+	cp = net_buf_add(buf, sizeof(*cp));
+	cp->handle = sys_cpu_to_le16(handle);
+	cp->handle_type = handle_type;
+
+	struct net_buf *rsp = NULL;
+	int err = bt_hci_cmd_send_sync(BT_HCI_OP_VS_READ_TX_POWER_LEVEL, buf, &rsp);
+    fd_assert(err == 0);
+	if (err) {
+		// uint8_t reason = rsp ? ((struct bt_hci_rp_vs_read_tx_power_level *) rsp->data)->status : 0;
+ 		return;
+	}
+
+	struct bt_hci_rp_vs_read_tx_power_level *rp = (void *)rsp->data;
+	*tx_pwr_lvl = rp->tx_power_level;
+
+	net_buf_unref(rsp);
+}
+
+void fd_ble_set_advertising_tx_power(uint32_t id, int8_t tx_power) {
+    uint16_t handle = (uint16_t)id;
+    fd_ble_set_tx_power(BT_HCI_VS_LL_HANDLE_TYPE_ADV, handle, tx_power);
+    int8_t actual_tx_power = 0;
+    fd_ble_get_tx_power(BT_HCI_VS_LL_HANDLE_TYPE_ADV, handle, &actual_tx_power);
+    fd_assert(actual_tx_power == tx_power);
+}
+
+void fd_ble_set_connection_tx_power(void *connection, int8_t tx_power) {
+    uint16_t handle = 0;
+    int result = bt_hci_get_conn_handle((struct bt_conn *)connection, &handle);
+	fd_assert(result == 0);
+
+    fd_ble_set_tx_power(BT_HCI_VS_LL_HANDLE_TYPE_CONN, handle, tx_power);
+    int8_t actual_tx_power = 0;
+    fd_ble_get_tx_power(BT_HCI_VS_LL_HANDLE_TYPE_CONN, handle, &actual_tx_power);
+    fd_assert(actual_tx_power == tx_power);
+}
 
 void fd_ble_le_param_updated(struct bt_conn *conn, uint16_t interval, uint16_t latency, uint16_t timeout) {
     int result = bt_conn_get_info(conn, &fd_ble.conn_info);
@@ -199,3 +277,5 @@ void fd_ble_stop_advertising(void) {
     int result = bt_le_adv_stop();
     fd_assert(result == 0);
 }
+
+fd_source_pop()

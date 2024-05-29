@@ -1,9 +1,13 @@
 #ifndef fd_ble_h
 #define fd_ble_h
 
+#include "fd_source.h"
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+
+fd_source_push()
 
 typedef struct {
     const uint8_t *custom_service_uuid;
@@ -27,5 +31,10 @@ bool fd_ble_is_connected(void);
 void *fd_ble_get_connection(void);
 uint8_t fd_ble_get_disconnect_reason(void);
 void fd_ble_disconnect(void);
+
+void fd_ble_set_advertising_tx_power(uint32_t id, int8_t tx_power);
+void fd_ble_set_connection_tx_power(void *connection, int8_t tx_power);
+
+fd_source_pop()
 
 #endif
