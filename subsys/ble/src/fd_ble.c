@@ -85,12 +85,30 @@ void fd_ble_get_tx_power(uint8_t handle_type, uint16_t handle, int8_t *tx_pwr_lv
 	net_buf_unref(rsp);
 }
 
+int8_t fd_ble_get_advertising_tx_power(uint32_t id) {
+    uint16_t handle = (uint16_t)id;
+    int8_t tx_power = 0;
+    fd_ble_get_tx_power(BT_HCI_VS_LL_HANDLE_TYPE_ADV, handle, &tx_power);
+    return tx_power;
+}
+
 void fd_ble_set_advertising_tx_power(uint32_t id, int8_t tx_power) {
     uint16_t handle = (uint16_t)id;
     fd_ble_set_tx_power(BT_HCI_VS_LL_HANDLE_TYPE_ADV, handle, tx_power);
+
     int8_t actual_tx_power = 0;
     fd_ble_get_tx_power(BT_HCI_VS_LL_HANDLE_TYPE_ADV, handle, &actual_tx_power);
     fd_assert(actual_tx_power == tx_power);
+}
+
+int8_t fd_ble_get_connection_tx_power(void *connection) {
+    uint16_t handle = 0;
+    int result = bt_hci_get_conn_handle((struct bt_conn *)connection, &handle);
+	fd_assert(result == 0);
+
+    int8_t tx_power = 0;
+    fd_ble_get_tx_power(BT_HCI_VS_LL_HANDLE_TYPE_CONN, handle, &tx_power);
+    return tx_power;
 }
 
 void fd_ble_set_connection_tx_power(void *connection, int8_t tx_power) {
