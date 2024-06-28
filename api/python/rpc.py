@@ -189,10 +189,11 @@ class SerialChannel(Transport.StreamChannel):
 
 class SocketChannel(Transport.StreamChannel):
 
-    def __init__(self, transport, host="127.0.0.1", port=65432):
+    def __init__(self, transport, host, port, family=socket.AF_INET):
         super().__init__(transport)
         self.host = host
         self.port = port
+        self.family = family
         self.server_socket = None
         self.socket = None
         self.thread = None
@@ -219,16 +220,18 @@ class SocketChannel(Transport.StreamChannel):
         self.thread.start()
 
     def run_server(self):
-        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server_socket.bind((self.host, self.port))
+        self.server_socket = socket.socket(self.family, socket.SOCK_STREAM)
+        bind_args = (self.host, self.port) if self.family == socket.AF_INET else (self.host, self.port, 0, 0)
+        self.server_socket.bind(bind_args)
         self.server_socket.listen()
         self.socket, address = self.server_socket.accept()
         print(f"server accept from {address}")
         self.run_loop_in_thread()
 
     def run_client(self):
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.connect((self.host, self.port))
+        self.socket = socket.socket(self.family, socket.SOCK_STREAM)
+        connect_args = (self.host, self.port) if self.family == socket.AF_INET else (self.host, self.port, 0, 0)
+        self.socket.connect(connect_args)
         print(f"client connect to {self.host}:{self.port}")
         self.run_loop_in_thread()
 

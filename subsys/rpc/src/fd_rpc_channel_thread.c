@@ -197,6 +197,27 @@ void fd_rpc_channel_thread_set_consumer(const fd_rpc_channel_thread_consumer_t *
     fd_rpc_channel_thread.consumer = *consumer;
 }
 
+void fd_rpc_channel_thread_ot_SrpClientCallback(
+    otError aError,
+    const otSrpClientHostInfo *aHostInfo,
+    const otSrpClientService *aServices,
+    const otSrpClientService *aRemovedServices,
+    void *aContext
+) {
+    fd_assert(aError == OT_ERROR_NONE);
+    for (const otSrpClientService *service = aServices; service != NULL; service = service->mNext) {
+        if (service == &fd_rpc_channel_thread.ot.service) {
+            static int count = 0;
+            ++count;
+            break;
+        }
+    }
+}
+
+void fd_rpc_channel_thread_ot_SrpClientAutoStartCallback(const otSockAddr *aServerSockAddr, void *aContext) {
+    fd_assert(aServerSockAddr != NULL);
+}
+
 otTcpIncomingConnectionAction fd_rpc_channel_thread_ot_TcpAcceptReady(otTcpListener *aListener, const otSockAddr *aPeer, otTcpEndpoint **aAcceptInto) {
     *aAcceptInto = &fd_rpc_channel_thread.ot.endpoint;
     return OT_TCP_INCOMING_CONNECTION_ACTION_ACCEPT;
@@ -235,6 +256,25 @@ void fd_rpc_channel_thread_ot_TcpDisconnected(otTcpEndpoint *aEndpoint, otTcpDis
 }       
 
 void fd_rpc_channel_thread_up(void) {
+    uint8_t id[8];
+    ssize_t length = hwinfo_get_device_id(id, sizeof(id));
+    fd_assert(length == sizeof(id));
+    snprintf(
+        fd_rpc_channel_thread.ot.host_name,
+        sizeof(fd_rpc_channel_thread.ot.host_name),
+        "%s-%02x%02x%02x%02x%02x%02x%02x%02x",
+        fd_rpc_channel_thread.configuration.name,
+        id[0], id[1], id[2], id[3], id[4], id[5], id[6], id[7]
+    );
+    otError error = otSrpClientSetHostName(fd_rpc_channel_thread.ot.instance, fd_rpc_channel_thread.ot.host_name);
+    fd_assert(error == OT_ERROR_NONE);
+    const otIp6Address *eid = otThreadGetMeshLocalEid(fd_rpc_channel_thread.ot.instance);
+    fd_assert(eid != NULL);
+    error = otSrpClientSetHostAddresses(fd_rpc_channel_thread.ot.instance, eid, 1);
+    otSrpClientSetCallback(fd_rpc_channel_thread.ot.instance, fd_rpc_channel_thread_ot_SrpClientCallback, NULL);
+    fd_assert(error == OT_ERROR_NONE);
+    otSrpClientEnableAutoStartMode(fd_rpc_channel_thread.ot.instance, fd_rpc_channel_thread_ot_SrpClientAutoStartCallback, NULL);
+
     otTcpEndpointInitializeArgs endpoint_initialize_args = {
         .mDisconnectedCallback = fd_rpc_channel_thread_ot_TcpDisconnected,
         .mEstablishedCallback = fd_rpc_channel_thread_ot_TcpEstablished,
@@ -244,7 +284,7 @@ void fd_rpc_channel_thread_up(void) {
         .mReceiveBuffer = fd_rpc_channel_thread.ot.receive_buffer,
         .mReceiveBufferSize = sizeof(fd_rpc_channel_thread.ot.receive_buffer),
     };
-    otError error = otTcpEndpointInitialize(fd_rpc_channel_thread.ot.instance, &fd_rpc_channel_thread.ot.endpoint, &endpoint_initialize_args);
+    error = otTcpEndpointInitialize(fd_rpc_channel_thread.ot.instance, &fd_rpc_channel_thread.ot.endpoint, &endpoint_initialize_args);
     fd_assert(error == OT_ERROR_NONE);
 
     otTcpListenerInitializeArgs listener_initialize_args = {
@@ -252,8 +292,6 @@ void fd_rpc_channel_thread_up(void) {
         .mAcceptDoneCallback= fd_rpc_channel_thread_ot_TcpAcceptDone,
     };
     error = otTcpListenerInitialize(fd_rpc_channel_thread.ot.instance, &fd_rpc_channel_thread.ot.listener, &listener_initialize_args);
-    const otIp6Address *eid = otThreadGetMeshLocalEid(fd_rpc_channel_thread.ot.instance);
-    fd_assert(eid != NULL);
     otSockAddr sock_addr = {
         .mAddress = *eid,
         .mPort = fd_rpc_channel_thread.configuration.service_port,
@@ -277,27 +315,7 @@ void fd_rpc_channel_thread_up(void) {
 }
 
 void fd_rpc_channel_thread_down(void) {
-}
-
-void fd_rpc_channel_thread_ot_SrpClientCallback(
-    otError aError,
-    const otSrpClientHostInfo *aHostInfo,
-    const otSrpClientService *aServices,
-    const otSrpClientService *aRemovedServices,
-    void *aContext
-) {
-    fd_assert(aError == OT_ERROR_NONE);
-    for (const otSrpClientService *service = aServices; service != NULL; service = service->mNext) {
-        if (service == &fd_rpc_channel_thread.ot.service) {
-            static int count = 0;
-            ++count;
-            break;
-        }
-    }
-}
-
-void fd_rpc_channel_thread_ot_SrpClientAutoStartCallback(const otSockAddr *aServerSockAddr, void *aContext) {
-    fd_assert(aServerSockAddr != NULL);
+    fd_rpc_channel_thread_set_state(fd_rpc_channel_thread_state_none);
 }
 
 void fd_rpc_channel_thread_set_dataset(otOperationalDataset dataset) {
@@ -322,24 +340,7 @@ void fd_rpc_channel_thread_set_dataset(otOperationalDataset dataset) {
     error = otThreadSetEnabled(ot_instance, true);
     fd_assert(error == OT_ERROR_NONE);
 
-    uint8_t id[8];
-    ssize_t length = hwinfo_get_device_id(id, sizeof(id));
-    fd_assert(length == sizeof(id));
-    snprintf(
-        fd_rpc_channel_thread.ot.host_name,
-        sizeof(fd_rpc_channel_thread.ot.host_name),
-        "%s-%02x%02x%02x%02x%02x%02x%02x%02x",
-        fd_rpc_channel_thread.configuration.name,
-        id[0], id[1], id[2], id[3], id[4], id[5], id[6], id[7]
-    );
-    error = otSrpClientSetHostName(fd_rpc_channel_thread.ot.instance, fd_rpc_channel_thread.ot.host_name);
-    fd_assert(error == OT_ERROR_NONE);
-    const otIp6Address *eid = otThreadGetMeshLocalEid(fd_rpc_channel_thread.ot.instance);
-    fd_assert(eid != NULL);
-    error = otSrpClientSetHostAddresses(fd_rpc_channel_thread.ot.instance, eid, 1);
-    otSrpClientSetCallback(fd_rpc_channel_thread.ot.instance, fd_rpc_channel_thread_ot_SrpClientCallback, NULL);
-    fd_assert(error == OT_ERROR_NONE);
-    otSrpClientEnableAutoStartMode(ot_instance, fd_rpc_channel_thread_ot_SrpClientAutoStartCallback, NULL);
+    fd_rpc_channel_thread_set_state(fd_rpc_channel_thread_state_started);
 }
 
 bool fd_rpc_channel_thread_is_role_active(otDeviceRole role) {
@@ -364,11 +365,9 @@ void fd_rpc_channel_thread_ot_StateChanged(uint32_t flags, void *context) {
     bool is_active = fd_rpc_channel_thread_is_role_active(fd_rpc_channel_thread.ot.role);
     if (!was_active && is_active) {
         fd_rpc_channel_thread_up();
-        fd_rpc_channel_thread_set_state(fd_rpc_channel_thread_state_started);
     }
     if (was_active && !is_active) {
         fd_rpc_channel_thread_down();
-        fd_rpc_channel_thread_set_state(fd_rpc_channel_thread_state_none);
     }
 }
 
