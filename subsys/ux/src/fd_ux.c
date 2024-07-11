@@ -210,10 +210,6 @@ void fd_ux_initialize(fd_ux_t *ux, const fd_ux_configuration_t *configuration) {
         ux->configuration.screens[id].id = id;
     }
     
-    for (int id = 0; id < ux->configuration.screen_count; ++id) {
-        fd_assert(ux->configuration.screens[id].plane_count > 0);
-    }
-
     fd_canvas_initialize(&ux->canvas);
     ux->canvas.graphics = configuration->graphics;
 
