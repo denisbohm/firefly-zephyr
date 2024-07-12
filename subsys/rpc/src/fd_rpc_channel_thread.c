@@ -248,10 +248,17 @@ void fd_rpc_channel_thread_ot_TcpReceiveAvailable(otTcpEndpoint *aEndpoint, size
         fd_rpc_channel_thread_rx(data->mData, data->mLength);
     }
     otTcpCommitReceive(aEndpoint, totalReceived, 0);
+
+    if (aEndOfStream) {
+        otError error = otTcpAbort(&fd_rpc_channel_thread.ot.endpoint);
+        fd_assert(error == OT_ERROR_NONE);
+    }
 }
             
 void fd_rpc_channel_thread_ot_TcpDisconnected(otTcpEndpoint *aEndpoint, otTcpDisconnectedReason aReason) {
     fd_rpc_channel_thread.is_connected = false;
+    otError error = otTcpAbort(&fd_rpc_channel_thread.ot.endpoint);
+    fd_assert(error == OT_ERROR_NONE);
     k_work_submit_to_queue(fd_rpc_channel_thread.configuration.work_queue, &fd_rpc_channel_thread.disconnected_work);
 }       
 
@@ -316,6 +323,24 @@ void fd_rpc_channel_thread_up(void) {
 
 void fd_rpc_channel_thread_down(void) {
     fd_rpc_channel_thread_set_state(fd_rpc_channel_thread_state_none);
+
+    otSrpClientDisableAutoStartMode(fd_rpc_channel_thread.ot.instance);
+
+    otError error = otSrpClientRemoveService(fd_rpc_channel_thread.ot.instance, &fd_rpc_channel_thread.ot.service);
+    fd_assert(error == OT_ERROR_NONE);
+
+    otSrpClientStop(fd_rpc_channel_thread.ot.instance);
+
+    error = otTcpStopListening(&fd_rpc_channel_thread.ot.listener);
+    fd_assert(error == OT_ERROR_NONE);
+
+    error = otTcpEndpointDeinitialize(&fd_rpc_channel_thread.ot.endpoint);
+    fd_assert(error == OT_ERROR_NONE);
+
+    error = otThreadSetEnabled(fd_rpc_channel_thread.ot.instance, false);
+    fd_assert(error == OT_ERROR_NONE);
+    error = otIp6SetEnabled(fd_rpc_channel_thread.ot.instance, false);
+    fd_assert(error == OT_ERROR_NONE);
 }
 
 void fd_rpc_channel_thread_set_dataset(otOperationalDataset dataset) {
