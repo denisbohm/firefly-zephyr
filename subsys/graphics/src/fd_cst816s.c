@@ -7,6 +7,8 @@
 
 #include <stdbool.h>
 
+fd_source_push()
+
 typedef struct {
     fd_cst816s_configuration_t configuration;
     struct k_work work;
@@ -103,3 +105,5 @@ void fd_cst816s_initialize(const fd_cst816s_configuration_t *configuration) {
     fd_cst816s_i2c_read(0xA9, &fwversion, sizeof(fwversion));
     fd_assert(fwversion == 0x01);
 }
+
+fd_source_pop()

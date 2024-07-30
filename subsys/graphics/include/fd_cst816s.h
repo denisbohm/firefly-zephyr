@@ -1,10 +1,14 @@
 #ifndef fd_cst816s_h
 #define fd_cst816s_h
 
+#include "fd_source.h"
+
 #include <zephyr/kernel.h>
 
 #include <stddef.h>
 #include <stdint.h>
+
+fd_source_push()
 
 typedef enum {
     fd_cst816s_gesture_none = 0x00,
@@ -35,5 +39,7 @@ typedef struct {
 } fd_cst816s_configuration_t;
 
 void fd_cst816s_initialize(const fd_cst816s_configuration_t *configuration);
+
+fd_source_pop()
 
 #endif

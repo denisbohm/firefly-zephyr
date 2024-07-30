@@ -10,13 +10,13 @@
  _Pragma ("GCC diagnostic warning \"-Wall\"")\
  _Pragma ("GCC diagnostic warning \"-Wextra\"")\
  _Pragma ("GCC diagnostic warning \"-Wstrict-prototypes\"")\
- _Pragma ("GCC diagnostic warning \"-Wno-unused-parameter\"")\
+ _Pragma ("GCC diagnostic warning \"-Wunused-parameter\"")\
  _Pragma ("GCC diagnostic warning \"-Wunused-function\"")\
  _Pragma ("GCC diagnostic warning \"-Wignored-qualifiers\"")\
  _Pragma ("GCC diagnostic warning \"-Wmissing-field-initializers\"")\
  _Pragma ("GCC diagnostic warning \"-Wdouble-promotion\"")\
  _Pragma ("GCC diagnostic warning \"-Wabsolute-value\"")\
- _Pragma ("GCC diagnostic warning \"-Wno-switch\"")\
+ _Pragma ("GCC diagnostic warning \"-Wswitch\"")\
  _Pragma ("GCC diagnostic warning \"-Wconversion\"")\
  _Pragma ("GCC diagnostic warning \"-Wunused-parameter\"")
 
