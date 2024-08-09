@@ -58,5 +58,18 @@ void fd_timing_format(const fd_timing_t *timing, char *buffer, size_t size) {
         timing->count, min_time, max_time, mean_time, standard_deviation);
 }
 
+fd_timing_t *fd_timing_list;
+
 void fd_timing_initialize(void) {
+    fd_timing_list = NULL;
+}
+
+void fd_timing_register(fd_timing_t *timing, const char *name) {
+    timing->name = name;
+    timing->next = fd_timing_list;
+    fd_timing_list = timing;
+}
+
+fd_timing_t *fd_timing_get_list(void) {
+    return fd_timing_list;
 }

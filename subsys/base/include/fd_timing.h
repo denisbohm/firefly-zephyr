@@ -4,7 +4,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
-typedef struct {
+struct fd_timing_s;
+
+typedef struct fd_timing_s {
     uint32_t count;
     double min_duration;
     double max_duration;
@@ -12,9 +14,15 @@ typedef struct {
     double sum_squared_duration;
 
     uint32_t start;
+
+    const char *name;
+    struct fd_timing_s *next;
 } fd_timing_t;
 
 void fd_timing_initialize(void);
+
+void fd_timing_register(fd_timing_t *timing, const char *name);
+fd_timing_t *fd_timing_get_list(void);
 
 double fd_timing_get_us_per_timestamp(void);
 
