@@ -66,6 +66,20 @@ typedef struct {
 
 void fd_rpc_initialize(void);
 
+#define fd_rpc_set_method_server(prefix, module, name)\
+    static const fd_rpc_method_server_t name ## _server = {\
+        .request = prefix ## _rpc_server_ ## module ## _ ## name ## _request,\
+    };\
+    fd_rpc_set_method_server_association(&prefix ## _rpc_service_ ## module ## _ ## name, &name ## _server)
+
+#define fd_rpc_set_method_server_stream(prefix, module, name)\
+    static const fd_rpc_method_server_t name ## _server = {\
+        .request = prefix ## _rpc_server_ ## module ## _ ## name ## _request,\
+        .finalize = prefix ## _rpc_server_ ## module ## _ ## name ## _finalize,\
+        .free_space_increased = prefix ## _rpc_server_ ## module ## _ ## name ## _free_space_increased,\
+    };\
+    fd_rpc_set_method_server_association(&prefix ## _rpc_service_ ## module ## _ ## name, &name ## _server)
+
 void fd_rpc_set_method_server_association(const fd_rpc_method_t *method, const fd_rpc_method_server_t *server);
 
 void fd_rpc_channel_opened(fd_rpc_channel_t *channel);

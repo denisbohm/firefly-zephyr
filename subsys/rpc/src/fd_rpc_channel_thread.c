@@ -326,30 +326,31 @@ void fd_rpc_channel_thread_down(void) {
 
     otSrpClientDisableAutoStartMode(fd_rpc_channel_thread.ot.instance);
 
-    otError error = otSrpClientRemoveService(fd_rpc_channel_thread.ot.instance, &fd_rpc_channel_thread.ot.service);
-    fd_assert(error == OT_ERROR_NONE);
+    if (fd_rpc_channel_thread.state > fd_rpc_channel_thread_state_started) {
+        otError error = otSrpClientRemoveService(fd_rpc_channel_thread.ot.instance, &fd_rpc_channel_thread.ot.service);
+        fd_assert(error == OT_ERROR_NONE);
 
-    otSrpClientStop(fd_rpc_channel_thread.ot.instance);
+        otSrpClientStop(fd_rpc_channel_thread.ot.instance);
 
-    error = otTcpStopListening(&fd_rpc_channel_thread.ot.listener);
-    fd_assert(error == OT_ERROR_NONE);
+        error = otTcpStopListening(&fd_rpc_channel_thread.ot.listener);
+        fd_assert(error == OT_ERROR_NONE);
 
-    error = otTcpEndpointDeinitialize(&fd_rpc_channel_thread.ot.endpoint);
-    fd_assert(error == OT_ERROR_NONE);
+        error = otTcpEndpointDeinitialize(&fd_rpc_channel_thread.ot.endpoint);
+        fd_assert(error == OT_ERROR_NONE);
+    }
 
-    error = otThreadSetEnabled(fd_rpc_channel_thread.ot.instance, false);
+    otError error = otThreadSetEnabled(fd_rpc_channel_thread.ot.instance, false);
     fd_assert(error == OT_ERROR_NONE);
     error = otIp6SetEnabled(fd_rpc_channel_thread.ot.instance, false);
     fd_assert(error == OT_ERROR_NONE);
 }
 
 void fd_rpc_channel_thread_set_dataset(otOperationalDataset dataset) {
-    otInstance *ot_instance = fd_rpc_channel_thread.ot.instance;
+    if (fd_rpc_channel_thread.state != fd_rpc_channel_thread_state_none) {
+        fd_rpc_channel_thread_down();
+    }
 
-    otError error = otThreadSetEnabled(ot_instance, false);
-    fd_assert(error == OT_ERROR_NONE);
-    error = otIp6SetEnabled(ot_instance, false);
-    fd_assert(error == OT_ERROR_NONE);
+    otInstance *ot_instance = fd_rpc_channel_thread.ot.instance;
 
     /* Set the router selection jitter to override the 2 minute default.
        CLI cmd > routerselectionjitter 20
@@ -357,7 +358,7 @@ void fd_rpc_channel_thread_set_dataset(otOperationalDataset dataset) {
     uint8_t jitterValue = 20;
     otThreadSetRouterSelectionJitter(ot_instance, jitterValue);
     
-    error = otDatasetSetActive(ot_instance, &dataset);
+    otError error = otDatasetSetActive(ot_instance, &dataset);
     fd_assert(error == OT_ERROR_NONE);
 
     error = otIp6SetEnabled(ot_instance, true);
