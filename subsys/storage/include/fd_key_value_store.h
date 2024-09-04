@@ -23,6 +23,7 @@ void fd_key_value_store_erase(void);
 
 bool fd_key_value_store_set(const char *key, const pb_msgdesc_t *descriptor, const void *object);
 bool fd_key_value_store_get(const char *key, const pb_msgdesc_t *descriptor, void *object);
+bool fd_key_value_store_has(const char *key);
 bool fd_key_value_store_remove(const char *key);
 
 #endif

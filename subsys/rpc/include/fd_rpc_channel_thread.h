@@ -11,6 +11,7 @@ fd_source_push()
 
 typedef struct {
     const char *name;
+    const char *instance_name;
     struct k_work_q *work_queue;
     uint16_t service_port;
 } fd_rpc_channel_thread_configuration_t;
@@ -35,13 +36,14 @@ typedef struct {
     void (*status_changed)(fd_rpc_channel_thread_status_t status);
     void (*connected)(void);
     void (*disconnected)(void);
-} fd_rpc_channel_thread_consumer_t;
+} fd_rpc_channel_thread_listener_t;
 
-void fd_rpc_channel_thread_set_consumer(const fd_rpc_channel_thread_consumer_t *consumer);
+void fd_rpc_channel_thread_add_listener(const fd_rpc_channel_thread_listener_t *listener);
 
 fd_rpc_channel_thread_status_t fd_rpc_channel_thread_get_status(void);
 
 void fd_rpc_channel_thread_set_dataset(otOperationalDataset dataset);
+void fd_rpc_channel_thread_stop(void);
 
 fd_source_pop()
 

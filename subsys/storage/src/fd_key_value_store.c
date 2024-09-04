@@ -213,6 +213,15 @@ void *fd_key_value_store_lookup(const char *key, size_t key_size, size_t *value_
     return NULL;
 }
 
+bool fd_key_value_store_has(const char *key) {
+    size_t size = 0;
+    uint8_t *data = fd_key_value_store_lookup(key, strlen(key), &size);
+    if (data == NULL) {
+        return false;
+    }
+    return true;
+}
+
 bool fd_key_value_store_get(const char *key, const pb_msgdesc_t *descriptor, void *object) {
     size_t size = 0;
     uint8_t *data = fd_key_value_store_lookup(key, strlen(key), &size);
