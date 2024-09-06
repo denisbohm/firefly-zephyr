@@ -23,7 +23,7 @@ class ConverterModel: ObservableObject {
     }
     
     init() {
-        let prefix = "fd_"
+        let prefix = "pt_"
         let depth = 4
         /*
         let height:Float = 14
@@ -31,9 +31,9 @@ class ConverterModel: ObservableObject {
         let cFontSymbol = "b612_regular_14"
         let fileName = Bundle.main.path(forResource: "B612-Regular", ofType: "ttf")!
          */
-        let height:Float = 28
+        let height:Float = 12
         let cFontName = "Roboto-Medium"
-        let cFontSymbol = "roboto_medium_28"
+        let cFontSymbol = "roboto_medium_12"
         let fileName = Bundle.main.path(forResource: "Roboto-Medium", ofType: "ttf")!
         let characters =
             "!\"#$%&'()*+,-./" +
@@ -65,7 +65,7 @@ class ConverterModel: ObservableObject {
         h += "\n"
         h += "#include \"\(prefix)graphics.h\"\n"
         h += "\n"
-        h += "extern const \(prefix)graphics_font_t \(prefix)font_\(cFontSymbol);\n"
+        h += "extern const fd_graphics_font_t \(prefix)font_\(cFontSymbol);\n"
         h += "\n"
         h += "#endif\n"
         print(h)
@@ -83,7 +83,7 @@ class ConverterModel: ObservableObject {
             c += "\n"
         }
         
-        c += "const \(prefix)graphics_glyph_t \(prefix)font_\(cFontSymbol)_glyphs[] = {\n"
+        c += "const fd_graphics_glyph_t \(prefix)font_\(cFontSymbol)_glyphs[] = {\n"
         
         for glyph in glyphs {
             let code = Int(glyph.character.asciiValue!)
@@ -103,7 +103,7 @@ class ConverterModel: ObservableObject {
         
         c += "};\n"
         c += "\n"
-        c += "const \(prefix)graphics_font_t \(prefix)font_\(cFontSymbol) = {\n"
+        c += "const fd_graphics_font_t \(prefix)font_\(cFontSymbol) = {\n"
         c += "    .name = \"\(cFontName)\",\n"
         c += "    .height = \(String(format: "%0.1f", height))f,\n"
         c += "    .advance = \(advance),\n"
