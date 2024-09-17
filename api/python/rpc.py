@@ -196,6 +196,7 @@ class SocketChannel(Transport.StreamChannel):
         self.family = family
         self.server_socket = None
         self.socket = None
+        self.run = False
         self.thread = None
         self.send_queue = queue.Queue()
         self.send_queue_receive_socket, self.send_queue_send_socket = socket.socketpair()
@@ -205,7 +206,7 @@ class SocketChannel(Transport.StreamChannel):
         self.send_queue_send_socket.send(b"\x00")
 
     def run_loop(self):
-        while True:
+        while self.run:
             ready_sockets, _, _ = select.select([self.socket, self.send_queue_receive_socket], [], [])
             for ready_socket in ready_sockets:
                 if ready_socket is self.socket:
@@ -216,8 +217,13 @@ class SocketChannel(Transport.StreamChannel):
                     self.socket.sendall(self.send_queue.get())
 
     def run_loop_in_thread(self):
+        self.run = True
         self.thread = threading.Thread(target=self.run_loop, args=())
         self.thread.start()
+
+    def close(self):
+        self.run = False
+        self.thread.join()
 
     def run_server(self):
         self.server_socket = socket.socket(self.family, socket.SOCK_STREAM)

@@ -43,6 +43,6 @@ void fd_counter_task_start(fd_counter_task_t *task) {
     }
     fd_counter_item_t *item = &fd_counter.items[fd_counter.item_count++];
     item->task = task;
-    k_timeout_t ms = K_MSEC((int)(task->interval * 1000.0));
+    k_timeout_t ms = K_MSEC((int)(task->interval * 1000.0f));
     k_timer_start(&item->timer, ms, ms);
 }

@@ -86,7 +86,7 @@ bool fd_rpc_server_ux_frame_buffer_read_send(void) {
         response.which_message = firefly_ux_v1_FrameBufferReadResponse_read_tag;
         memcpy(response.message.read.data.bytes, &frame_buffer.data[fd_rpc_server_ux.frame_buffer_read.offset], length);
         fd_rpc_server_ux.frame_buffer_read.offset += length;
-        response.message.read.data.size = length;
+        response.message.read.data.size = (pb_size_t)length;
         bool success = fd_rpc_server_send_client_response(fd_rpc_server_ux.frame_buffer_read.context, &response);
         if (!success) {
             return false;

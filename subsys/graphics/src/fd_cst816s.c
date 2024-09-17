@@ -1,6 +1,7 @@
 #include "fd_cst816s.h"
 
 #include "fd_assert.h"
+#include "fd_unused.h"
 
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/i2c.h>
@@ -51,7 +52,7 @@ bool fd_cst816s_read_touch(fd_cst816s_touch_t *touch) {
     return true;
 }
 
-void fd_cst816s_work(struct k_work *work) {
+void fd_cst816s_work(struct k_work *work fd_unused) {
     fd_cst816s_touch_t touch;
     if (!fd_cst816s_read_touch(&touch)) {
         return;
@@ -59,7 +60,7 @@ void fd_cst816s_work(struct k_work *work) {
     fd_cst816s.configuration.touch(&touch);
 }
 
-void fd_cst816s_isr(const struct device *port, struct gpio_callback *cb, gpio_port_pins_t pins) {
+void fd_cst816s_isr(const struct device *port fd_unused, struct gpio_callback *cb fd_unused, gpio_port_pins_t pins fd_unused) {
     k_work_submit_to_queue(fd_cst816s.configuration.work_queue, &fd_cst816s.work);
 }
 

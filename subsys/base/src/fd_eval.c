@@ -1,6 +1,7 @@
 #include "fd_eval.h"
 
 #include "fd_assert.h"
+#include "fd_unused.h"
 
 #include <math.h>
 #include <stdbool.h>
@@ -117,11 +118,11 @@ fd_eval_string_t fd_eval_string_initialize(const char *string) {
     return (fd_eval_string_t) { .string = string, .length = strlen(string) };
 }
 
-fd_eval_value_t fd_eval_value_initialize_boolean(double boolean) {
+fd_eval_value_t fd_eval_value_initialize_boolean(bool boolean) {
     return (fd_eval_value_t) { .type = fd_eval_value_type_boolean, .boolean = boolean };
 }
 
-fd_eval_value_t fd_eval_value_initialize_integer(double integer) {
+fd_eval_value_t fd_eval_value_initialize_integer(int64_t integer) {
     return (fd_eval_value_t) { .type = fd_eval_value_type_integer, .integer = integer };
 }
 
@@ -261,7 +262,7 @@ fd_eval_string_t fd_eval_next(fd_eval_t *eval) {
 
 void fd_eval_consume(fd_eval_t *eval) {
     fd_eval_string_t token = fd_eval_next(eval);
-    eval->input_index = (token.string + token.length) - eval->input.string;
+    eval->input_index = (size_t)((token.string + token.length) - eval->input.string);
 }
 
 bool fd_eval_string_equals_string(fd_eval_string_t a, fd_eval_string_t b) {
@@ -344,7 +345,7 @@ fd_eval_node_t *fd_eval_expression(fd_eval_t *eval, uint32_t precedence) {
     return node;
 }
 
-bool fd_eval_get_symbol_value_default(fd_eval_string_t token, fd_eval_value_t *value) {
+bool fd_eval_get_symbol_value_default(fd_eval_string_t token fd_unused, fd_eval_value_t *value fd_unused) {
     return false;
 }
 
@@ -791,14 +792,14 @@ fd_eval_value_t fd_eval_binary_or_evaluate(fd_eval_value_t a, fd_eval_value_t b)
     });
 }
 
-fd_eval_value_t fd_eval_parse_integer(fd_eval_t *eval, fd_eval_string_t token) {
+fd_eval_value_t fd_eval_parse_integer(fd_eval_t *eval fd_unused, fd_eval_string_t token) {
     char *end = NULL;
     int64_t integer = strtoll(token.string, &end, 10);
     fd_assert(end == (token.string + token.length));
     return (fd_eval_value_t) { .type = fd_eval_value_type_integer, .integer = integer };
 }
 
-fd_eval_value_t fd_eval_parse_real(fd_eval_t *eval, fd_eval_string_t token) {
+fd_eval_value_t fd_eval_parse_real(fd_eval_t *eval fd_unused, fd_eval_string_t token) {
     char *end = NULL;
     double real = strtod(token.string, &end);
     fd_assert(end == (token.string + token.length));

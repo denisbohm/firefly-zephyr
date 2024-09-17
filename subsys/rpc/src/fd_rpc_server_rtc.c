@@ -33,7 +33,7 @@ bool fd_rpc_server_rtc_get_configuration_request(fd_rpc_server_context_t *contex
         .has_configuration = true,
         .configuration = {
             .time_zone_offset = configuration.time_zone_offset,
-            .display_format = configuration.display_format,
+            .display_format = (firefly_rtc_v1_DisplayFormat)configuration.display_format,
         }
     };
     return fd_rpc_server_send_client_response(context, &response);
@@ -42,7 +42,7 @@ bool fd_rpc_server_rtc_get_configuration_request(fd_rpc_server_context_t *contex
 bool fd_rpc_server_rtc_set_configuration_request(fd_rpc_server_context_t *context, const void *a_request fd_unused) {
     const firefly_rtc_v1_SetConfigurationRequest *request = a_request;
     fd_rtc_configuration_t configuration = {
-        .display_format = request->configuration.display_format,
+        .display_format = (fd_rtc_display_format_t)request->configuration.display_format,
         .time_zone_offset = request->configuration.time_zone_offset,
     };
     fd_rtc_set_configuration(&configuration);

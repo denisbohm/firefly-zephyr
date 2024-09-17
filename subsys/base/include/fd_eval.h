@@ -51,8 +51,8 @@ bool fd_eval_string_equals(fd_eval_string_t a, const char *b);
 fd_eval_string_t fd_eval_string_initialize(const char *string);
 
 // initialize a eval value
-fd_eval_value_t fd_eval_value_initialize_boolean(double boolean);
-fd_eval_value_t fd_eval_value_initialize_integer(double integer);
+fd_eval_value_t fd_eval_value_initialize_boolean(bool boolean);
+fd_eval_value_t fd_eval_value_initialize_integer(int64_t integer);
 fd_eval_value_t fd_eval_value_initialize_real(double real);
 
 // data type conversions

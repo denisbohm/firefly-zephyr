@@ -1,5 +1,7 @@
 #include "fd_graphics_color_16bit.h"
 
+#include "fd_unused.h"
+
 #include <string.h>
 
 fd_source_push_speed()
@@ -45,7 +47,7 @@ static void fd_graphics_color_16bit_get_pixel(fd_graphics_t *graphics, int x, in
     color->b = rgb.b << 3;
 }
 
-static void fd_graphics_color_16bit_blit(fd_graphics_t *graphics, fd_graphics_area_t area) {
+static void fd_graphics_color_16bit_blit(fd_graphics_t *graphics fd_unused, fd_graphics_area_t area fd_unused) {
 }
 
 static void fd_graphics_color_16bit_write_background(fd_graphics_t *graphics) {

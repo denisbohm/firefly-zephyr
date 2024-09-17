@@ -206,7 +206,7 @@ void fd_ux_initialize(fd_ux_t *ux, const fd_ux_configuration_t *configuration) {
     snprintf(ux->display_configuration_key, sizeof(ux->display_configuration_key), "ux/%u/display", configuration->identifier);
     snprintf(ux->interaction_configuration_key, sizeof(ux->interaction_configuration_key), "ux/%u/interaction", configuration->identifier);
     
-    for (int id = 0; id < ux->configuration.screen_count; ++id) {
+    for (uint32_t id = 0; id < ux->configuration.screen_count; ++id) {
         ux->configuration.screens[id].id = id;
     }
     
@@ -285,15 +285,15 @@ fd_ux_frame_buffer_t fd_ux_get_frame_buffer(fd_ux_t *ux) {
     fd_graphics_t *graphics = ux->configuration.graphics;
     return (fd_ux_frame_buffer_t) {
         .data = graphics->buffer,
-        .size = graphics->width * graphics->height * 3,
+        .size = (size_t)(graphics->width * graphics->height * 3),
     };
 }
 
 fd_ux_frame_buffer_metadata_t fd_ux_get_frame_buffer_metadata(fd_ux_t *ux) {
     fd_graphics_t *graphics = ux->configuration.graphics;
     return (fd_ux_frame_buffer_metadata_t) {
-        .width = graphics->width,
-        .height = graphics->height,
+        .width = (uint32_t)graphics->width,
+        .height = (uint32_t)graphics->height,
         .type = fd_ux_frame_buffer_type_color,
         .components = {
             .color = {

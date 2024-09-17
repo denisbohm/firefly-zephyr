@@ -2,6 +2,7 @@
 
 #include "fd_assert.h"
 #include "fd_timer.h"
+#include "fd_unused.h"
 #include "fd_ux.h"
 
 #include <string.h>
@@ -40,7 +41,7 @@ bool fd_ux_button_is_any_pressed(fd_ux_button_t *ux_button) {
     return ux_button->buttons != 0;
 }
 
-void fd_ux_button_ux_state_changed(void *context, fd_ux_state_t old, fd_ux_state_t new) {
+void fd_ux_button_ux_state_changed(void *context fd_unused, fd_ux_state_t old fd_unused, fd_ux_state_t new fd_unused) {
 }
 
 void fd_ux_button_event(fd_ux_button_t *ux_button, const fd_button_event_t *event) {
@@ -175,7 +176,7 @@ void fd_ux_button_change(void *context) {
     fd_ux_button_change_logic(ux_button, buttons, fd_timer_get_timestamp());
 
     // start debounce timer
-    fd_timer_start(&ux_button->timer, 0.05);
+    fd_timer_start(&ux_button->timer, 0.05f);
 }
 
 void fd_ux_button_initialize(fd_ux_button_t *ux_button, const fd_ux_button_configuration_t *configuration) {

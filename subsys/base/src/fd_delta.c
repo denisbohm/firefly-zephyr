@@ -9,15 +9,15 @@ uint32_t fd_delta_get_resolution(uint32_t value) {
     if (value == 0) {
         return 0;
     }
-    return 32 - __builtin_clz(value);
+    return 32 - (uint32_t)__builtin_clz(value);
 }
 
 uint32_t fd_delta_zigzag_encode(int32_t value) {
-    return (2 * value) ^ (value >> (sizeof(int32_t) * 8 - 1));
+    return (uint32_t)((2 * value) ^ (value >> (sizeof(int32_t) * 8 - 1)));
 }
 
 int32_t fd_delta_zigzag_decode(uint32_t value) {
-    return (value >> 1) ^ (-(value & 1));
+    return (int32_t)((value >> 1) ^ (-(value & 1)));
 }
 
 int32_t fd_delta_get_value(const void *objects, uint32_t index, size_t size, size_t offset) {

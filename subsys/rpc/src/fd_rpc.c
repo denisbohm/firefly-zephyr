@@ -93,12 +93,12 @@ bool fd_rpc_channel_send_packet(fd_rpc_channel_t *channel, fd_rpc_channel_packet
     
     length = (uint16_t)(packet->put_index - header_size);
     size_t index = sizeof(crc16);
-    data[index] = length & 0xff;
-    data[index + 1] = (length >> 8) & 0xff;
+    data[index] = (uint8_t)(length & 0xff);
+    data[index + 1] = (uint8_t)((length >> 8) & 0xff);
     crc16 = fd_crc16_update(&data[sizeof(crc16)], packet->put_index - sizeof(crc16));
     index = 0;
-    data[index] = crc16 & 0xff;
-    data[index + 1] = (crc16 >> 8) & 0xff;
+    data[index] = (uint8_t)(crc16 & 0xff);
+    data[index + 1] = (uint8_t)((crc16 >> 8) & 0xff);
     uint8_t buffer[32];
     size_t encoded_length = fd_cobs_encode(data, packet->put_index, packet->size, buffer, sizeof(buffer));
     if (encoded_length == 0) {
@@ -183,7 +183,7 @@ void fd_rpc_set_method_server_association(const fd_rpc_method_t *method, const f
     association->server = server;
 }
 
-const fd_rpc_method_server_association_t *fd_rpc_get_method_server_association(fd_rpc_channel_t *channel, fd_rpc_call_t *call) {
+const fd_rpc_method_server_association_t *fd_rpc_get_method_server_association(fd_rpc_channel_t *channel fd_unused, fd_rpc_call_t *call) {
     for (size_t i = 0; i < fd_rpc.method_server_associations_count; ++i) {
         const fd_rpc_method_server_association_t *association = &fd_rpc.method_server_associations[i];
         const fd_rpc_method_t *method = association->method;
@@ -351,7 +351,7 @@ fd_rpc_channel_t *fd_rpc_client_context_get_channel(fd_rpc_client_context_t *con
     return context->common.channel;
 }
 
-void fd_rpc_channel_opened(fd_rpc_channel_t *channel) {
+void fd_rpc_channel_opened(fd_rpc_channel_t *channel fd_unused) {
 }
 
 void fd_rpc_channel_closed(fd_rpc_channel_t *channel) {

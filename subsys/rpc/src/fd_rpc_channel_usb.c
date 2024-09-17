@@ -65,13 +65,13 @@ void fd_rpc_channel_usb_rx_work(struct k_work *context fd_unused) {
 void fd_rpc_channel_usb_rx_irq(void) {
     uint8_t buffer[64];
     size_t length = MIN(ring_buf_space_get(&fd_rpc_channel_usb.rx_ringbuf), sizeof(buffer));
-    int recv_length = uart_fifo_read(fd_rpc_channel_usb.device, buffer, length);
+    int recv_length = uart_fifo_read(fd_rpc_channel_usb.device, buffer, (int)length);
     fd_assert(recv_length >= 0);
     if (recv_length < 0) {
         // Failed to read UART FIFO
         recv_length = 0;
     };
-    int rb_length = ring_buf_put(&fd_rpc_channel_usb.rx_ringbuf, buffer, recv_length);
+    int rb_length = (int)ring_buf_put(&fd_rpc_channel_usb.rx_ringbuf, buffer, (uint32_t)recv_length);
     fd_assert(rb_length == recv_length);
     if (rb_length < recv_length) {
         // Dropped recv_len - rb_len bytes
@@ -93,12 +93,12 @@ void fd_rpc_channel_usb_tx_irq(void) {
         fd_assert(result == 0);
         uart_irq_tx_disable(fd_rpc_channel_usb.device);
     } else {
-        int send_length = uart_fifo_fill(fd_rpc_channel_usb.device, buffer, length);
+        int send_length = uart_fifo_fill(fd_rpc_channel_usb.device, buffer, (int)length);
         fd_assert(send_length <= (int)length);
-        int result = ring_buf_get_finish(&fd_rpc_channel_usb.tx_ringbuf, send_length);
+        int result = ring_buf_get_finish(&fd_rpc_channel_usb.tx_ringbuf, (uint32_t)send_length);
         fd_assert(result == 0);
         ++fd_rpc_channel_usb.tx_uart_count;
-        fd_rpc_channel_usb.tx_uart_bytes += send_length;
+        fd_rpc_channel_usb.tx_uart_bytes += (size_t)send_length;
     }
     k_work_submit_to_queue(fd_rpc_channel_usb.configuration.work_queue, &fd_rpc_channel_usb.callback_work);
 }
