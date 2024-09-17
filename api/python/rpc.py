@@ -207,7 +207,7 @@ class SocketChannel(Transport.StreamChannel):
 
     def run_loop(self):
         while self.run:
-            ready_sockets, _, _ = select.select([self.socket, self.send_queue_receive_socket], [], [])
+            ready_sockets, _, _ = select.select([self.socket, self.send_queue_receive_socket], [], [], 1.0)
             for ready_socket in ready_sockets:
                 if ready_socket is self.socket:
                     data = self.socket.recv(1024)
