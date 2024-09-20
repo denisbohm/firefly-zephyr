@@ -47,7 +47,7 @@ void fd_ble_set_tx_power(uint8_t handle_type, uint16_t handle, int8_t tx_pwr_lvl
 	int err = bt_hci_cmd_send_sync(BT_HCI_OP_VS_WRITE_TX_POWER_LEVEL, buf, &rsp);
     fd_assert(err == 0);
 	if (err) {
-		uint8_t reason = rsp ? ((struct bt_hci_rp_vs_write_tx_power_level *)rsp->data)->status : 0;
+		// uint8_t reason = rsp ? ((struct bt_hci_rp_vs_write_tx_power_level *)rsp->data)->status : 0;
 		return;
 	}
 
