@@ -28,10 +28,12 @@ typedef struct {
     otDeviceRole role;
 
     otTcpEndpoint endpoint;
-    uint8_t receive_buffer[1024];
+    uint8_t receive_buffer[CONFIG_FIREFLY_SUBSYS_RPC_USB_TX_BUFFER_SIZE];
     uint8_t send_buffer[CONFIG_FIREFLY_SUBSYS_RPC_USB_TX_BUFFER_SIZE];
     otLinkedBuffer send_linked_buffer;
     volatile bool is_send_pending;
+    int64_t send_time;
+    int64_t max_send_time;
 
     otTcpListener listener;
 
@@ -39,6 +41,7 @@ typedef struct {
     char service_name[128];
     char service_instance_name[128];
     otSrpClientService service;
+    otError service_error;
 } fd_rpc_channel_thread_ot_t;
 
 typedef struct {
@@ -54,6 +57,7 @@ typedef struct {
     struct k_work disconnected_work;
     struct k_work rx_work;
     struct k_work tx_work;
+    struct k_timer timer;
 
     uint8_t rx_ring_buffer[CONFIG_FIREFLY_SUBSYS_RPC_USB_RX_BUFFER_SIZE];
     struct ring_buf rx_ringbuf;
@@ -99,8 +103,8 @@ void fd_rpc_channel_thread_set_state(fd_rpc_channel_thread_state_t state) {
 }
 
 void fd_rpc_channel_thread_rx_work(struct k_work *context fd_unused) {
-    uint8_t data[64];
     while (true) {
+        uint8_t data[64];
         size_t length = ring_buf_get(&fd_rpc_channel_thread.rx_ringbuf, data, sizeof(data));
         if (length <= 0) {
             break;
@@ -110,18 +114,23 @@ void fd_rpc_channel_thread_rx_work(struct k_work *context fd_unused) {
 }
 
 void fd_rpc_channel_thread_rx(const uint8_t *data, size_t length) {
+    uint32_t space = ring_buf_space_get(&fd_rpc_channel_thread.rx_ringbuf);
+    fd_assert(space >= length);
     int rb_length = ring_buf_put(&fd_rpc_channel_thread.rx_ringbuf, data, length);
     fd_assert(rb_length == length);
     if (rb_length < length) {
-        // Dropped recv_len - rb_len bytes
+        // Dropped length - rb_length bytes
     }
-    k_work_submit_to_queue(fd_rpc_channel_thread.configuration.work_queue, &fd_rpc_channel_thread.rx_work);
+    int result = k_work_submit_to_queue(fd_rpc_channel_thread.configuration.work_queue, &fd_rpc_channel_thread.rx_work);
+    fd_assert(result >= 0);
 }
 
 void fd_rpc_channel_thread_connected_work(struct k_work *work fd_unused) {
     fd_rpc_channel_opened(&fd_rpc_channel_thread.channel);
 
     fd_rpc_channel_thread_set_state(fd_rpc_channel_thread_state_connected);
+
+    k_timer_start(&fd_rpc_channel_thread.timer, K_MSEC(250), K_MSEC(250));
 
     for (uint32_t i = 0; i < fd_rpc_channel_thread.listener_count; ++i) {
         const fd_rpc_channel_thread_listener_t *listener = fd_rpc_channel_thread.listeners[i];
@@ -132,6 +141,8 @@ void fd_rpc_channel_thread_connected_work(struct k_work *work fd_unused) {
 }
 
 void fd_rpc_channel_thread_disconnected_work(struct k_work *work fd_unused) {
+    k_timer_stop(&fd_rpc_channel_thread.timer);
+
     fd_rpc_channel_closed(&fd_rpc_channel_thread.channel);
 
     fd_rpc_channel_thread_set_state(fd_rpc_channel_thread_state_listening);
@@ -152,28 +163,37 @@ void fd_rpc_channel_thread_tx(void) {
     uint8_t *buffer = NULL;
     uint32_t length = ring_buf_get_claim(&fd_rpc_channel_thread.tx_ringbuf, &buffer, sizeof(fd_rpc_channel_thread.tx_ring_buffer));
     if (length == 0) {
-        int result = ring_buf_get_finish(&fd_rpc_channel_thread.tx_ringbuf, length);
+        int result = ring_buf_get_finish(&fd_rpc_channel_thread.tx_ringbuf, 0);
         fd_assert(result == 0);
-
-        if (fd_rpc_channel_thread.free_space_increased_callback != NULL) {
-            fd_rpc_channel_thread.free_space_increased_callback(&fd_rpc_channel_thread.channel);
-        }
         return;
     }
 
+    fd_rpc_channel_thread.ot.send_time = k_uptime_get();
     fd_rpc_channel_thread.ot.is_send_pending = true;
     memcpy(fd_rpc_channel_thread.ot.send_buffer, buffer, length);
     fd_rpc_channel_thread.ot.send_linked_buffer.mData = fd_rpc_channel_thread.ot.send_buffer;
     fd_rpc_channel_thread.ot.send_linked_buffer.mLength = length;
-    uint32_t flags = 0;
-    otError error = otTcpSendByReference(&fd_rpc_channel_thread.ot.endpoint, &fd_rpc_channel_thread.ot.send_linked_buffer, flags);
+    const uint32_t flags = 0;
+    otError error fd_unused = otTcpSendByReference(&fd_rpc_channel_thread.ot.endpoint, &fd_rpc_channel_thread.ot.send_linked_buffer, flags);
+    // Can get an error when socket is closed before this work item is executed. -denis
     fd_assert(error == OT_ERROR_NONE);
+    if (error != OT_ERROR_NONE) {
+        fd_rpc_channel_thread.ot.is_send_pending = false;
+
+        int result = ring_buf_get_finish(&fd_rpc_channel_thread.tx_ringbuf, 0);
+        fd_assert(result == 0);
+        return;
+    }
 
     int result = ring_buf_get_finish(&fd_rpc_channel_thread.tx_ringbuf, length);
     fd_assert(result == 0);
 
     ++fd_rpc_channel_thread.tx_thread_count;
     fd_rpc_channel_thread.tx_thread_bytes += length;
+
+    if (fd_rpc_channel_thread.free_space_increased_callback != NULL) {
+        fd_rpc_channel_thread.free_space_increased_callback(&fd_rpc_channel_thread.channel);
+    }
 }
 
 void fd_rpc_channel_thread_tx_work(struct k_work *work fd_unused) {
@@ -190,12 +210,22 @@ bool fd_rpc_channel_thread_packet_write(const uint8_t *data, size_t size) {
     ++fd_rpc_channel_thread.tx_ring_count;
     fd_rpc_channel_thread.tx_ring_bytes += length;
 
-    k_work_submit_to_queue(fd_rpc_channel_thread.configuration.work_queue, &fd_rpc_channel_thread.tx_work);
+    int result = k_work_submit_to_queue(fd_rpc_channel_thread.configuration.work_queue, &fd_rpc_channel_thread.tx_work);
+    fd_assert(result >= 0);
     return true;
+}
+
+void fd_rpc_channel_thread_timer(struct k_timer *timer fd_unused) {
+    fd_rpc_channel_thread_tx();
 }
 
 size_t fd_rpc_channel_thread_get_free_space(void) {
     uint32_t space = ring_buf_space_get(&fd_rpc_channel_thread.tx_ringbuf);
+    return space;
+}
+
+size_t fd_rpc_channel_thread_get_rx_free_space(void) {
+    uint32_t space = ring_buf_space_get(&fd_rpc_channel_thread.rx_ringbuf);
     return space;
 }
 
@@ -215,11 +245,9 @@ void fd_rpc_channel_thread_ot_SrpClientCallback(
     const otSrpClientService *aRemovedServices,
     void *aContext
 ) {
-    fd_assert(aError == OT_ERROR_NONE);
     for (const otSrpClientService *service = aServices; service != NULL; service = service->mNext) {
         if (service == &fd_rpc_channel_thread.ot.service) {
-            static int count = 0;
-            ++count;
+            fd_rpc_channel_thread.ot.service_error = aError;
             break;
         }
     }
@@ -235,6 +263,10 @@ otTcpIncomingConnectionAction fd_rpc_channel_thread_ot_TcpAcceptReady(otTcpListe
 }
 
 void fd_rpc_channel_thread_ot_TcpAcceptDone(otTcpListener *aListener, otTcpEndpoint *aEndpoint, const otSockAddr *aPeer) {
+	ring_buf_init(&fd_rpc_channel_thread.rx_ringbuf, sizeof(fd_rpc_channel_thread.rx_ring_buffer), fd_rpc_channel_thread.rx_ring_buffer);
+	ring_buf_init(&fd_rpc_channel_thread.tx_ringbuf, sizeof(fd_rpc_channel_thread.tx_ring_buffer), fd_rpc_channel_thread.tx_ring_buffer);
+    fd_rpc_channel_thread.ot.is_send_pending = false;
+
     fd_rpc_channel_thread.is_connected = true;
     k_work_submit_to_queue(fd_rpc_channel_thread.configuration.work_queue, &fd_rpc_channel_thread.connected_work);
 }
@@ -246,7 +278,14 @@ void fd_rpc_channel_thread_ot_TcpForwardProgress(otTcpEndpoint *aEndpoint, size_
 }
 
 void fd_rpc_channel_thread_ot_TcpSendDone(otTcpEndpoint *aEndpoint, otLinkedBuffer *aData) {   
+    fd_assert(fd_rpc_channel_thread.ot.is_send_pending);
     fd_rpc_channel_thread.ot.is_send_pending = false;
+    int64_t now = k_uptime_get();
+    int64_t delta = now - fd_rpc_channel_thread.ot.send_time;
+    if (delta > fd_rpc_channel_thread.ot.max_send_time) {
+        fd_rpc_channel_thread.ot.max_send_time = delta;
+    }
+    fd_assert(delta < 5000);
     k_work_submit_to_queue(fd_rpc_channel_thread.configuration.work_queue, &fd_rpc_channel_thread.tx_work);
 }
 
@@ -425,16 +464,16 @@ void fd_rpc_channel_thread_initialize(const fd_rpc_channel_thread_configuration_
     fd_rpc_channel_thread.channel = (fd_rpc_channel_t) { 
         .packet_write = fd_rpc_channel_thread_packet_write,
         .get_free_space = fd_rpc_channel_thread_get_free_space,
+        .get_rx_free_space = fd_rpc_channel_thread_get_rx_free_space,
         .set_free_space_increased_callback = fd_rpc_channel_thread_set_free_space_increased_callback,
     };
 
     fd_binary_initialize(&fd_rpc_channel_thread.rx_packet, fd_rpc_channel_thread.rx_packet_buffer, sizeof(fd_rpc_channel_thread.rx_packet_buffer));
     
+    k_timer_init(&fd_rpc_channel_thread.timer, fd_rpc_channel_thread_timer, 0);
+
     k_work_init(&fd_rpc_channel_thread.rx_work, fd_rpc_channel_thread_rx_work);
     k_work_init(&fd_rpc_channel_thread.tx_work, fd_rpc_channel_thread_tx_work);
-
-	ring_buf_init(&fd_rpc_channel_thread.rx_ringbuf, sizeof(fd_rpc_channel_thread.rx_ring_buffer), fd_rpc_channel_thread.rx_ring_buffer);
-	ring_buf_init(&fd_rpc_channel_thread.tx_ringbuf, sizeof(fd_rpc_channel_thread.tx_ring_buffer), fd_rpc_channel_thread.tx_ring_buffer);
 
     k_work_init(&fd_rpc_channel_thread.connected_work, fd_rpc_channel_thread_connected_work);
     k_work_init(&fd_rpc_channel_thread.disconnected_work, fd_rpc_channel_thread_disconnected_work);

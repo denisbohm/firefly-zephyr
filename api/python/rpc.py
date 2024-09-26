@@ -14,6 +14,7 @@ import queue
 import select
 import socket
 import threading
+import time
 import traceback
 
 
@@ -35,6 +36,10 @@ class Transport:
             if Transport.default_channel is None:
                 Transport.default_channel = self
 
+        def close(self):
+            if Transport.default_channel is self:
+                Transport.default_channel = None
+
         def packet_write(self, binary):
             pass
 
@@ -48,7 +53,10 @@ class Transport:
             super().__init__()
             self.transport = transport
             self.buffer = bytearray()
-            self.data = bytes()
+
+        def close(self):
+            super().close()
+            self.buffer = bytearray()
 
         def write(self, data):
             pass
@@ -61,8 +69,8 @@ class Transport:
                 packet = cobs.decode(data)
                 self.transport.receive(self, packet)
             except Exception as exception:
-                print(f"RPC Stream Channel: {str(exception)}")
-                print(traceback.format_exc())
+                RPC.log(f"{time.time()}: RPC Stream Channel: {str(exception)}, data: {data}")
+                RPC.log(traceback.format_exc())
 
         def read(self, data):
             for byte in data:
@@ -169,7 +177,11 @@ class SerialChannel(Transport.StreamChannel):
     def close(self):
         self.run = False
         self.thread.join()
+        self.thread = None
+        super().close()
         self.serial_port.close()
+        self.serial_port = None
+        self.port = None
 
     def run_client(self):
         self.port = SerialChannel.find_serial_port(vid=0x2fe3, pid=0x0100)
@@ -202,19 +214,26 @@ class SocketChannel(Transport.StreamChannel):
         self.send_queue_receive_socket, self.send_queue_send_socket = socket.socketpair()
 
     def write(self, data):
+        RPC.log(f"{time.time()}: socket write {len(data)}")
         self.send_queue.put(data)
         self.send_queue_send_socket.send(b"\x00")
 
     def run_loop(self):
         while self.run:
             ready_sockets, _, _ = select.select([self.socket, self.send_queue_receive_socket], [], [], 1.0)
+            RPC.log(f"{time.time()}: ready sockets {repr(ready_sockets)}")
             for ready_socket in ready_sockets:
                 if ready_socket is self.socket:
+                    RPC.log(f"{time.time()}: socket recv")
                     data = self.socket.recv(1024)
+                    RPC.log(f"{time.time()}: socket read {len(data)}")
                     self.read(data)
                 if ready_socket is self.send_queue_receive_socket:
                     self.send_queue_receive_socket.recv(1)
-                    self.socket.sendall(self.send_queue.get())
+                    data = self.send_queue.get()
+                    RPC.log(f"{time.time()}: socket sendall {len(data)}")
+                    self.socket.sendall(data)
+                    RPC.log(f"{time.time()}: socket sendall done")
 
     def run_loop_in_thread(self):
         self.run = True
@@ -224,6 +243,14 @@ class SocketChannel(Transport.StreamChannel):
     def close(self):
         self.run = False
         self.thread.join()
+        self.thread = None
+        super().close()
+        self.send_queue_receive_socket.close()
+        self.send_queue_receive_socket = None
+        self.send_queue_send_socket.close()
+        self.send_queue_send_socket = None
+        self.socket.close()
+        self.socket = None
 
     def run_server(self):
         self.server_socket = socket.socket(self.family, socket.SOCK_STREAM)
@@ -243,6 +270,13 @@ class SocketChannel(Transport.StreamChannel):
 
 
 class RPC:
+
+    should_log = False
+
+    @staticmethod
+    def log(message):
+        if RPC.should_log:
+            print(f"{time.time()}: {message}")
 
     class DecodeError(Exception):
 
@@ -570,7 +604,7 @@ class RPC:
             pass
         rpc.client_context_free(context)
         if response is None:
-            raise RPC.TimeoutError("unary call timeout")
+            raise RPC.TimeoutError(f"unary call timeout {timeout}")
         return response
 
     @staticmethod

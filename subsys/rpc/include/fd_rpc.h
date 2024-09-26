@@ -29,6 +29,7 @@ typedef struct fd_rpc_channel_s {
     bool (*packet_write)(const uint8_t *data, size_t size);
 
     size_t (*get_free_space)(void);
+    size_t (*get_rx_free_space)(void);
     void (*set_free_space_increased_callback)(fd_rpc_channel_free_space_increased_callback_t callback);
 } fd_rpc_channel_t;
 
