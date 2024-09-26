@@ -181,6 +181,11 @@ size_t fd_rpc_channel_usb_get_free_space(void) {
     return space;
 }
 
+size_t fd_rpc_channel_usb_get_rx_free_space(void) {
+    uint32_t space = ring_buf_space_get(&fd_rpc_channel_usb.rx_ringbuf);
+    return space;
+}
+
 void fd_rpc_channel_usb_set_free_space_increased_callback(fd_rpc_channel_free_space_increased_callback_t callback) {
     fd_rpc_channel_usb.free_space_increased_callback = callback;
 }
@@ -205,6 +210,7 @@ void fd_rpc_channel_usb_initialize(const fd_rpc_channel_usb_configuration_t *con
     fd_rpc_channel_usb.channel = (fd_rpc_channel_t) { 
         .packet_write = fd_rpc_channel_usb_packet_write,
         .get_free_space = fd_rpc_channel_usb_get_free_space,
+        .get_rx_free_space = fd_rpc_channel_usb_get_rx_free_space,
         .set_free_space_increased_callback = fd_rpc_channel_usb_set_free_space_increased_callback,
     };
 
