@@ -1,12 +1,12 @@
 #!/bin/zsh
 
 # The following or similar should setup the PATH to have the right protobuf binaries:
-# toolchain=/opt/nordic/ncs/toolchains/20d68df7e5
+# toolchain=/opt/nordic/ncs/toolchains/580e4ef81c
 # export PATH=$toolchain/bin:$toolchain/opt/nanopb/generator-bin:$PATH
 
 setopt extended_glob
 
-proto_path=/opt/nordic/ncs/v2.5.0/modules/lib/nanopb/generator/proto
+proto_path=/opt/nordic/ncs/v2.7.0/modules/lib/nanopb/generator/proto
 
 c_out=`pwd`/../subsys/rpc/protobuf
 python_out=`pwd`/python

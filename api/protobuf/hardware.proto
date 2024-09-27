@@ -1,0 +1,135 @@
+syntax = "proto3";
+
+import "nanopb.proto";
+
+import "options.proto";
+
+package firefly.hardware.v1;
+
+option (firefly.options.v1.package_id) = 8;
+option (firefly.options.v1.c_prefix) = "fd";
+
+service Hardware {
+    option (firefly.options.v1.service_id) = 1;
+
+    rpc getDeviceIdentifier(GetDeviceIdentifierRequest) returns (GetDeviceIdentifierResponse) {
+        option (firefly.options.v1.method_id) = 1;
+    }
+
+    rpc configurePort(ConfigurePortRequest) returns (ConfigurePortResponse) {
+        option (firefly.options.v1.method_id) = 2;
+    }
+
+    rpc getPort(GetPortRequest) returns (GetPortResponse) {
+        option (firefly.options.v1.method_id) = 3;
+    }
+
+    rpc setPort(SetPortRequest) returns (SetPortResponse) {
+        option (firefly.options.v1.method_id) = 4;
+    }
+
+    rpc spi_transceive(SpiTransceiveRequest) returns (SpiTransceiveResponse) {
+        option (firefly.options.v1.method_id) = 5;
+    }
+
+    rpc i2c_transfer(I2cTransferRequest) returns (I2cTransferResponse) {
+        option (firefly.options.v1.method_id) = 6;
+    }
+    
+}
+
+message GetDeviceIdentifierRequest {
+}
+
+message GetDeviceIdentifierResponse {
+    bytes identifier = 1 [(nanopb).max_size = 32];
+}
+
+message ConfigurePortRequest {
+    string port = 1 [(nanopb).max_size = 16];
+    uint32 pins = 2;
+    uint32 flags = 3;
+}
+
+message ConfigurePortResponse {
+    int32 result = 1;
+}
+
+message GetPortRequest {
+    string port = 1 [(nanopb).max_size = 16];
+}
+
+message GetPortResponse {
+    int32 result = 1;
+    uint32 pins = 2;
+}
+
+message SetPortRequest {
+    string port = 1 [(nanopb).max_size = 16];
+    uint32 pins = 2;
+    uint32 value = 3;
+}
+
+message SetPortResponse {
+    int32 result = 1;
+}
+
+message SpiChipSelect {
+    string port = 1 [(nanopb).max_size = 16];
+    uint32 pin = 2;
+    uint32 flags = 3;
+}
+
+message SpiTransceiveRequest {
+    string device = 1 [(nanopb).max_size = 16];
+    uint32 frequency = 2;
+    uint32 operation = 3;
+    SpiChipSelect chip_select = 4;
+
+    bytes data = 5 [(nanopb).max_size = 256];
+}
+
+message SpiTransceiveResponse {
+    int32 result = 1;
+
+    bytes data = 2 [(nanopb).max_size = 256];
+}
+
+message I2cOperationRead {
+    uint32 flags = 1;
+    uint32 length = 2;
+}
+
+message I2cResultRead {
+    bytes data = 1 [(nanopb).max_size = 64];
+}
+
+message I2cOperationWrite {
+    uint32 flags = 1;
+    bytes data = 2 [(nanopb).max_size = 64];
+}
+
+message I2cResult {
+    oneof msg {
+        I2cResultRead read = 1;
+    }
+}
+
+message I2cOperation {
+    oneof msg {
+        I2cOperationRead read = 1;
+        I2cOperationWrite write = 2;
+    }
+}
+
+message I2cTransferRequest {
+    string device = 1 [(nanopb).max_size = 16];
+    uint32 address = 2;
+    uint32 frequency = 3;
+    repeated I2cOperation operations = 4 [(nanopb).max_count = 4];
+}
+
+message I2cTransferResponse {
+    int32 result = 1;
+    repeated I2cResult results = 4 [(nanopb).max_count = 4];
+}

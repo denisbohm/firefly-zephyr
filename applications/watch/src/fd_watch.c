@@ -113,7 +113,7 @@ void fd_watch_power_off(void) {
 
 void fd_watch_tick_work(struct k_work *work fd_unused) {
     fd_timer_update(0.020f);
-    fd_ux_tick(&fd_watch.ux);
+    fd_ux_tick();
 }
 
 void fd_watch_tick_timer_irq(struct k_timer *timer fd_unused) {

@@ -176,7 +176,7 @@ void fd_rpc_channel_thread_tx(void) {
     const uint32_t flags = 0;
     otError error fd_unused = otTcpSendByReference(&fd_rpc_channel_thread.ot.endpoint, &fd_rpc_channel_thread.ot.send_linked_buffer, flags);
     // Can get an error when socket is closed before this work item is executed. -denis
-    fd_assert(error == OT_ERROR_NONE);
+    // fd_assert(error == OT_ERROR_NONE);
     if (error != OT_ERROR_NONE) {
         fd_rpc_channel_thread.ot.is_send_pending = false;
 
