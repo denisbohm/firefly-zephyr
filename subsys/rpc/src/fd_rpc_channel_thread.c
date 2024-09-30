@@ -145,7 +145,9 @@ void fd_rpc_channel_thread_disconnected_work(struct k_work *work fd_unused) {
 
     fd_rpc_channel_closed(&fd_rpc_channel_thread.channel);
 
-    fd_rpc_channel_thread_set_state(fd_rpc_channel_thread_state_listening);
+    if (fd_rpc_channel_thread.state == fd_rpc_channel_thread_state_connected) {
+        fd_rpc_channel_thread_set_state(fd_rpc_channel_thread_state_listening);
+    }
 
     for (uint32_t i = 0; i < fd_rpc_channel_thread.listener_count; ++i) {
         const fd_rpc_channel_thread_listener_t *listener = fd_rpc_channel_thread.listeners[i];
@@ -310,7 +312,7 @@ void fd_rpc_channel_thread_ot_TcpDisconnected(otTcpEndpoint *aEndpoint, otTcpDis
     otError error = otTcpAbort(&fd_rpc_channel_thread.ot.endpoint);
     fd_assert(error == OT_ERROR_NONE);
     k_work_submit_to_queue(fd_rpc_channel_thread.configuration.work_queue, &fd_rpc_channel_thread.disconnected_work);
-}       
+}
 
 void fd_rpc_channel_thread_up(void) {
     uint8_t id[8];
@@ -380,7 +382,7 @@ void fd_rpc_channel_thread_down(void) {
 
         otSrpClientStop(fd_rpc_channel_thread.ot.instance);
 
-        error = otTcpStopListening(&fd_rpc_channel_thread.ot.listener);
+        error = otTcpListenerDeinitialize(&fd_rpc_channel_thread.ot.listener);
         fd_assert(error == OT_ERROR_NONE);
 
         error = otTcpEndpointDeinitialize(&fd_rpc_channel_thread.ot.endpoint);
