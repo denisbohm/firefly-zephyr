@@ -249,7 +249,9 @@ void fd_rpc_channel_thread_ot_SrpClientCallback(
 ) {
     for (const otSrpClientService *service = aServices; service != NULL; service = service->mNext) {
         if (service == &fd_rpc_channel_thread.ot.service) {
-            fd_rpc_channel_thread.ot.service_error = aError;
+            if (aError != OT_ERROR_NONE) {
+                fd_rpc_channel_thread.ot.service_error = aError;
+            }
             break;
         }
     }
@@ -377,12 +379,19 @@ void fd_rpc_channel_thread_down(void) {
     otSrpClientDisableAutoStartMode(fd_rpc_channel_thread.ot.instance);
 
     if (fd_rpc_channel_thread.state > fd_rpc_channel_thread_state_started) {
+        // Removing a service is an asynchronous sequence of events.
+        // The subsequent otSrpClientStop does not allow time for this to complete.
+        // On the next start it will complete, but interfere with adding the service.
+        // So we just leave the service registered to wait for a TTL timeout.
+        // -denis
+        /*
         otError error = otSrpClientRemoveService(fd_rpc_channel_thread.ot.instance, &fd_rpc_channel_thread.ot.service);
-        fd_assert((error == OT_ERROR_NONE) || (error == OT_ERROR_NOT_FOUND));
+        fd_assert(error == OT_ERROR_NONE);
+        */
 
         otSrpClientStop(fd_rpc_channel_thread.ot.instance);
 
-        error = otTcpListenerDeinitialize(&fd_rpc_channel_thread.ot.listener);
+        otError error = otTcpListenerDeinitialize(&fd_rpc_channel_thread.ot.listener);
         fd_assert(error == OT_ERROR_NONE);
 
         error = otTcpEndpointDeinitialize(&fd_rpc_channel_thread.ot.endpoint);
