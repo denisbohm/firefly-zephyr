@@ -218,6 +218,7 @@ void fd_ux_initialize(fd_ux_t *ux, const fd_ux_configuration_t *configuration) {
     fd_ux_set_screen(ux, ux->configuration.initial_screen);
 
 #if CONFIG_FIREFLY_SUBSYS_STORAGE_KEY_VALUE_STORE
+    fd_key_value_store_initialize();
     fd_key_value_store_listener_t listener = {
         .was_set = fd_ux_persist_was_changed,
         .was_removed = fd_ux_persist_was_changed,

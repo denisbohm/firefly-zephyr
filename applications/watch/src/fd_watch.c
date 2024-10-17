@@ -4,29 +4,32 @@
 #include "fd_watch_screen_splash.h"
 #include "fd_watch_screen_time.h"
 
+#include "fd_assert.h"
+#include "fd_cst816s.h"
 #include "fd_event.h"
-#include "fd_font_b612_regular_6.h"
 #include "fd_font_b612_regular_12.h"
+#include "fd_gc9a01.h"
 #include "fd_gpio.h"
-#include "fd_graphics_color_16bit.h"
+#include "fd_graphics_color_8bit.h"
 #include "fd_rpc.h"
 #include "fd_rpc_channel_usb.h"
 #include "fd_rpc_server_rtc.h"
 #include "fd_rpc_server_ux.h"
 #include "fd_rtc.h"
-#include "fd_ssd1331.h"
 #include "fd_timer.h"
 #include "fd_unused.h"
 #include "fd_ux.h"
 #include "fd_ux_button.h"
 
-#define fd_watch_display_width 96
-#define fd_watch_display_height 64
+#include <zephyr/drivers/gpio.h>
+
+#define fd_watch_display_width 240
+#define fd_watch_display_height 240
 
 typedef struct {
     fd_graphics_t graphics;
-    fd_graphics_color_16bit_t color_16bit;
-    uint8_t frame_buffer[fd_graphics_color_16bit_frame_buffer_size(fd_watch_display_width, fd_watch_display_height)];
+    fd_graphics_color_8bit_t color_8bit;
+    uint8_t frame_buffer[fd_graphics_color_8bit_frame_buffer_size(fd_watch_display_width, fd_watch_display_height)];
 
     struct k_work tick_work;
     struct k_timer tick_timer;
@@ -37,21 +40,21 @@ typedef struct {
 
 fd_watch_t fd_watch;
 
-void fd_watch_ssd1331_update(fd_graphics_t *graphics fd_unused, fd_graphics_area_t area) {
-    fd_ssd1331_write_image_start(area.x, area.y, area.width, area.height);
+void fd_watch_graphics_update(fd_graphics_t *graphics fd_unused, fd_graphics_area_t area) {
+    fd_gc9a01_write_image_start(area.x, area.y, area.width, area.height);
     for (int y = 0; y < area.height; ++y) {
-        uint8_t *data = &fd_watch.frame_buffer[((area.y + y) * fd_watch_display_width + area.x) * 2];
-        fd_ssd1331_write_image_subdata(data, area.width * 2);
+        uint8_t *data = &fd_watch.frame_buffer[((area.y + y) * fd_watch_display_width + area.x) * 3];
+        fd_gc9a01_write_image_subdata(data, area.width * 3);
     }
-    fd_ssd1331_write_image_end();
+    fd_gc9a01_write_image_end();
 }
 
-void fd_watch_ssd1331_on(fd_graphics_t *graphics fd_unused) {
-    fd_ssd1331_display_on();
+void fd_watch_graphics_display_on(fd_graphics_t *graphics fd_unused) {
+    fd_gc9a01_display_on();
 }
 
-void fd_watch_ssd1331_off(fd_graphics_t *graphics fd_unused) {
-    fd_ssd1331_display_off();
+void fd_watch_graphics_display_off(fd_graphics_t *graphics fd_unused) {
+    fd_gc9a01_display_off();
 }
 
 void fd_watch_display_on(void) {
@@ -63,19 +66,23 @@ void fd_watch_display_off(void) {
 }
 
 void fd_watch_display_initialize(void) {
+    struct gpio_dt_spec bl = (struct gpio_dt_spec)GPIO_DT_SPEC_GET(DT_CHOSEN(firefly_spi_display_bl), gpios);
+    int result = gpio_pin_configure_dt(&bl, GPIO_OUTPUT_ACTIVE);
+    fd_assert(result == 0);
+
     fd_graphics_t *graphics = &fd_watch.graphics;
-    fd_graphics_color_16bit_initialize(
-        &fd_watch.color_16bit,
+    fd_graphics_color_8bit_initialize(
+        &fd_watch.color_8bit,
         fd_watch.frame_buffer,
         sizeof(fd_watch.frame_buffer),
         graphics,
         fd_watch_display_width,
         fd_watch_display_height
     );
-    fd_ssd1331_initialize();
-    fd_watch.graphics.backend.update = fd_watch_ssd1331_update;
-    fd_watch.graphics.backend.display_on = fd_watch_ssd1331_on;
-    fd_watch.graphics.backend.display_off = fd_watch_ssd1331_off;
+    fd_gc9a01_initialize();
+    fd_watch.graphics.backend.update = fd_watch_graphics_update;
+    fd_watch.graphics.backend.display_on = fd_watch_graphics_display_on;
+    fd_watch.graphics.backend.display_off = fd_watch_graphics_display_off;
 
     fd_graphics_area_t area = { .x = 0, .y = 0, .width = graphics->width, .height = graphics->height };
     fd_graphics_write_background(graphics);
@@ -83,10 +90,10 @@ void fd_watch_display_initialize(void) {
 
     fd_graphics_set_font(graphics, &fd_font_b612_regular_12);
     fd_graphics_set_foreground(graphics, (fd_graphics_color_t) { .argb=0xff00ff00 });
-    fd_graphics_write_string(graphics, 0, 18, "Watch");
-    fd_graphics_set_font(graphics, &fd_font_b612_regular_6);
+    fd_graphics_write_string(graphics, 40, 18, "Watch");
+    fd_graphics_set_font(graphics, &fd_font_b612_regular_12);
     fd_graphics_set_foreground(graphics, (fd_graphics_color_t) { .argb=0xffff0000 });
-    fd_graphics_write_string(graphics, 0, 32, "12:00:00");
+    fd_graphics_write_string(graphics, 60, 32, "12:00:00");
     fd_graphics_update(graphics, area);
 }
 
