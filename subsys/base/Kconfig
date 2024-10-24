@@ -10,6 +10,10 @@ menuconfig FIREFLY_SUBSYS_BASE
 	help
 	  Include base firmware in the system configuration.
 
+config FIREFLY_SUBSYS_BASE_ANIMATION_PLAYER_LIMIT
+     int "firefly animation player limit"
+     default 4
+
 if FIREFLY_SUBSYS_BASE
 
 config FIREFLY_SUBSYS_BASE_LOG
