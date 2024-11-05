@@ -35,7 +35,7 @@ typedef struct {
     otUdpSocket socket;
     otMessageInfo message_info;
     struct k_work_delayable send_done_work;
-    fd_rpc_stream stream;
+    fd_rpc_stream_t stream;
 } fd_rpc_channel_thread_ot_udp_t;
 
 typedef struct {
@@ -629,7 +629,7 @@ exit:
 }
 
 bool fd_rpc_channel_thread_udp_stream_send_command(struct fd_rpc_stream_s *stream, const uint8_t *data, size_t length) {
-    return fd_rpc_channel_thread_udp_stream_send_data(data, length, NULL, 0);
+    return fd_rpc_channel_thread_udp_stream_send_data(stream, data, length, NULL, 0);
 }
 
 void fd_rpc_channel_thread_udp_stream_initialize(void) {

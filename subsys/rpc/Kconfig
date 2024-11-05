@@ -42,13 +42,13 @@ config FIREFLY_SUBSYS_RPC_USB_RX_BUFFER_SIZE
 
 config FIREFLY_SUBSYS_RPC_THREAD_TX_BUFFER_SIZE
 	int "RPC THREAD TX BUFFER SIZE"
-    default 1024
+    default 2048
 	help
 	  Buffer size to use for RPC THREAD TX buffer.
 
 config FIREFLY_SUBSYS_RPC_THREAD_RX_BUFFER_SIZE
 	int "RPC THREAD RX BUFFER SIZE"
-    default 1024
+    default 2048
 	help
 	  Buffer size to use for RPC THREAD RX buffer.
 
