@@ -3,6 +3,7 @@
 #include "fd_assert.h"
 #include "fd_binary.h"
 #include "fd_rpc.h"
+#include "fd_rpc_stream.h"
 #include "fd_unused.h"
 #include "fd_usb.h"
 
@@ -13,6 +14,7 @@
 #include <openthread/tcp.h>
 #include <openthread/thread.h>
 #include <openthread/thread_ftd.h>
+#include <openthread/udp.h>
 
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/hwinfo.h>
@@ -24,18 +26,38 @@
 fd_source_push()
 
 typedef struct {
+    otTcpEndpoint endpoint;
+    otTcpListener listener;
+} fd_rpc_channel_thread_ot_tcp_t;
+
+typedef struct {
+    k_timeout_t send_delay;
+    otUdpSocket socket;
+    otMessageInfo message_info;
+    struct k_work_delayable send_done_work;
+    fd_rpc_stream stream;
+} fd_rpc_channel_thread_ot_udp_t;
+
+typedef struct {
+    void (*up)(void);
+    void (*down)(void);
+    otError (*send)(void);
+} fd_rpc_channel_thread_protocol_t;
+
+typedef struct {
     otInstance *instance;
     otDeviceRole role;
 
-    otTcpEndpoint endpoint;
-    uint8_t receive_buffer[CONFIG_FIREFLY_SUBSYS_RPC_USB_TX_BUFFER_SIZE];
-    uint8_t send_buffer[CONFIG_FIREFLY_SUBSYS_RPC_USB_TX_BUFFER_SIZE];
+    fd_rpc_channel_thread_ot_tcp_t tcp;
+    fd_rpc_channel_thread_ot_udp_t udp;
+    fd_rpc_channel_thread_protocol_t protocol;
+
+    uint8_t receive_buffer[CONFIG_FIREFLY_SUBSYS_RPC_THREAD_TX_BUFFER_SIZE];
+    uint8_t send_buffer[CONFIG_FIREFLY_SUBSYS_RPC_THREAD_TX_BUFFER_SIZE];
     otLinkedBuffer send_linked_buffer;
     volatile bool is_send_pending;
     int64_t send_time;
     int64_t max_send_time;
-
-    otTcpListener listener;
 
     char host_name[128];
     char service_name[128];
@@ -59,9 +81,9 @@ typedef struct {
     struct k_work tx_work;
     struct k_timer timer;
 
-    uint8_t rx_ring_buffer[CONFIG_FIREFLY_SUBSYS_RPC_USB_RX_BUFFER_SIZE];
+    uint8_t rx_ring_buffer[CONFIG_FIREFLY_SUBSYS_RPC_THREAD_RX_BUFFER_SIZE];
     struct ring_buf rx_ringbuf;
-    uint8_t tx_ring_buffer[CONFIG_FIREFLY_SUBSYS_RPC_USB_TX_BUFFER_SIZE];
+    uint8_t tx_ring_buffer[CONFIG_FIREFLY_SUBSYS_RPC_THREAD_TX_BUFFER_SIZE];
     struct ring_buf tx_ringbuf;
     uint8_t rx_packet_buffer[CONFIG_FIREFLY_SUBSYS_RPC_BUFFER_SIZE];
     fd_binary_t rx_packet;
@@ -116,7 +138,9 @@ void fd_rpc_channel_thread_rx_work(struct k_work *context fd_unused) {
         if (length <= 0) {
             break;
         }
-        fd_rpc_channel_received_data(&fd_rpc_channel_thread.channel, &fd_rpc_channel_thread.rx_packet, data, length);
+
+        bool result = fd_rpc_channel_received_data(&fd_rpc_channel_thread.channel, &fd_rpc_channel_thread.rx_packet, data, length);
+        fd_assert(result);
     }
 }
 
@@ -147,6 +171,13 @@ void fd_rpc_channel_thread_connected_work(struct k_work *work fd_unused) {
     }
 }
 
+void fd_rpc_channel_thread_connected(void) {
+    fd_rpc_channel_thread_reset_buffers();
+
+    fd_rpc_channel_thread.is_connected = true;
+    k_work_submit_to_queue(fd_rpc_channel_thread.configuration.work_queue, &fd_rpc_channel_thread.connected_work);
+}
+
 void fd_rpc_channel_thread_disconnected_work(struct k_work *work fd_unused) {
     k_timer_stop(&fd_rpc_channel_thread.timer);
 
@@ -162,6 +193,47 @@ void fd_rpc_channel_thread_disconnected_work(struct k_work *work fd_unused) {
             listener->disconnected();
         }
     }
+}
+
+void fd_rpc_channel_thread_disconnected(void) {
+    fd_rpc_channel_thread.is_connected = false;
+
+    fd_rpc_channel_thread_reset_buffers();
+
+    k_work_submit_to_queue(fd_rpc_channel_thread.configuration.work_queue, &fd_rpc_channel_thread.disconnected_work);
+}   
+
+void fd_rpc_channel_thread_send_done(void) {
+    fd_assert(fd_rpc_channel_thread.ot.is_send_pending);
+    fd_rpc_channel_thread.ot.is_send_pending = false;
+    int64_t now = k_uptime_get();
+    int64_t delta = now - fd_rpc_channel_thread.ot.send_time;
+    if (delta > fd_rpc_channel_thread.ot.max_send_time) {
+        fd_rpc_channel_thread.ot.max_send_time = delta;
+    }
+    // Can happen if device goes out of range. -denis
+    // fd_assert(delta < 5000);
+    k_work_submit_to_queue(fd_rpc_channel_thread.configuration.work_queue, &fd_rpc_channel_thread.tx_work);
+}
+
+otError fd_rpc_channel_thread_tcp_send(void) {
+    const uint32_t flags = 0;
+    otError error fd_unused = otTcpSendByReference(&fd_rpc_channel_thread.ot.tcp.endpoint, &fd_rpc_channel_thread.ot.send_linked_buffer, flags);
+    // Can get an error when socket is closed before this work item is executed. -denis
+    // fd_assert(error == OT_ERROR_NONE);
+    return error;
+}
+
+void fd_rpc_channel_thread_udp_send_done_work(struct k_work *work fd_unused) {
+    fd_rpc_channel_thread_send_done();
+}
+
+otError fd_rpc_channel_thread_udp_send(void) {
+    bool result = fd_rpc_stream_send_data(&fd_rpc_channel_thread.ot.udp.stream, fd_rpc_channel_thread.ot.send_linked_buffer.mData, fd_rpc_channel_thread.ot.send_linked_buffer.mLength);
+    if (!result) {
+        return OT_ERROR_NO_BUFS;
+    }
+    return OT_ERROR_NONE;
 }
 
 void fd_rpc_channel_thread_tx(void) {
@@ -182,10 +254,8 @@ void fd_rpc_channel_thread_tx(void) {
     memcpy(fd_rpc_channel_thread.ot.send_buffer, buffer, length);
     fd_rpc_channel_thread.ot.send_linked_buffer.mData = fd_rpc_channel_thread.ot.send_buffer;
     fd_rpc_channel_thread.ot.send_linked_buffer.mLength = length;
-    const uint32_t flags = 0;
-    otError error fd_unused = otTcpSendByReference(&fd_rpc_channel_thread.ot.endpoint, &fd_rpc_channel_thread.ot.send_linked_buffer, flags);
-    // Can get an error when socket is closed before this work item is executed. -denis
-    // fd_assert(error == OT_ERROR_NONE);
+
+    otError error = fd_rpc_channel_thread.ot.protocol.send();
     if (error != OT_ERROR_NONE) {
         fd_rpc_channel_thread.ot.is_send_pending = false;
 
@@ -270,15 +340,12 @@ void fd_rpc_channel_thread_ot_SrpClientAutoStartCallback(const otSockAddr *aServ
 }
 
 otTcpIncomingConnectionAction fd_rpc_channel_thread_ot_TcpAcceptReady(otTcpListener *aListener, const otSockAddr *aPeer, otTcpEndpoint **aAcceptInto) {
-    *aAcceptInto = &fd_rpc_channel_thread.ot.endpoint;
+    *aAcceptInto = &fd_rpc_channel_thread.ot.tcp.endpoint;
     return OT_TCP_INCOMING_CONNECTION_ACTION_ACCEPT;
 }
 
 void fd_rpc_channel_thread_ot_TcpAcceptDone(otTcpListener *aListener, otTcpEndpoint *aEndpoint, const otSockAddr *aPeer) {
-	fd_rpc_channel_thread_reset_buffers();
-
-    fd_rpc_channel_thread.is_connected = true;
-    k_work_submit_to_queue(fd_rpc_channel_thread.configuration.work_queue, &fd_rpc_channel_thread.connected_work);
+	fd_rpc_channel_thread_connected();
 }
 
 void fd_rpc_channel_thread_ot_TcpEstablished(otTcpEndpoint *aEndpoint) {
@@ -288,16 +355,7 @@ void fd_rpc_channel_thread_ot_TcpForwardProgress(otTcpEndpoint *aEndpoint, size_
 }
 
 void fd_rpc_channel_thread_ot_TcpSendDone(otTcpEndpoint *aEndpoint, otLinkedBuffer *aData) {   
-    fd_assert(fd_rpc_channel_thread.ot.is_send_pending);
-    fd_rpc_channel_thread.ot.is_send_pending = false;
-    int64_t now = k_uptime_get();
-    int64_t delta = now - fd_rpc_channel_thread.ot.send_time;
-    if (delta > fd_rpc_channel_thread.ot.max_send_time) {
-        fd_rpc_channel_thread.ot.max_send_time = delta;
-    }
-    // Can happen if device goes out of range. -denis
-    // fd_assert(delta < 5000);
-    k_work_submit_to_queue(fd_rpc_channel_thread.configuration.work_queue, &fd_rpc_channel_thread.tx_work);
+    fd_rpc_channel_thread_send_done();
 }
 
 void fd_rpc_channel_thread_ot_TcpReceiveAvailable(otTcpEndpoint *aEndpoint, size_t aBytesAvailable, bool aEndOfStream, size_t aBytesRemaining) {           
@@ -311,20 +369,61 @@ void fd_rpc_channel_thread_ot_TcpReceiveAvailable(otTcpEndpoint *aEndpoint, size
     otTcpCommitReceive(aEndpoint, totalReceived, 0);
 
     if (aEndOfStream) {
-        otError error = otTcpAbort(&fd_rpc_channel_thread.ot.endpoint);
+        otError error = otTcpAbort(&fd_rpc_channel_thread.ot.tcp.endpoint);
         fd_assert(error == OT_ERROR_NONE);
     }
 }
-            
-void fd_rpc_channel_thread_ot_TcpDisconnected(otTcpEndpoint *aEndpoint, otTcpDisconnectedReason aReason) {
-    fd_rpc_channel_thread.is_connected = false;
 
-    otError error = otTcpAbort(&fd_rpc_channel_thread.ot.endpoint);
+void fd_rpc_channel_thread_ot_TcpDisconnected(otTcpEndpoint *aEndpoint, otTcpDisconnectedReason aReason) {
+    otError error = otTcpAbort(&fd_rpc_channel_thread.ot.tcp.endpoint);
     fd_assert(error == OT_ERROR_NONE);
 
-    fd_rpc_channel_thread_reset_buffers();
+    fd_rpc_channel_thread_disconnected();
+}
 
-    k_work_submit_to_queue(fd_rpc_channel_thread.configuration.work_queue, &fd_rpc_channel_thread.disconnected_work);
+void fd_rpc_channel_thread_tcp_up(void) {
+    otTcpEndpointInitializeArgs endpoint_initialize_args = {
+        .mDisconnectedCallback = fd_rpc_channel_thread_ot_TcpDisconnected,
+        .mEstablishedCallback = fd_rpc_channel_thread_ot_TcpEstablished,
+        .mForwardProgressCallback = fd_rpc_channel_thread_ot_TcpForwardProgress,
+        .mReceiveAvailableCallback = fd_rpc_channel_thread_ot_TcpReceiveAvailable,
+        .mSendDoneCallback= fd_rpc_channel_thread_ot_TcpSendDone,
+        .mReceiveBuffer = fd_rpc_channel_thread.ot.receive_buffer,
+        .mReceiveBufferSize = sizeof(fd_rpc_channel_thread.ot.receive_buffer),
+    };
+    otError error = otTcpEndpointInitialize(fd_rpc_channel_thread.ot.instance, &fd_rpc_channel_thread.ot.tcp.endpoint, &endpoint_initialize_args);
+    fd_assert(error == OT_ERROR_NONE);
+
+    otTcpListenerInitializeArgs listener_initialize_args = {
+        .mAcceptReadyCallback = fd_rpc_channel_thread_ot_TcpAcceptReady,
+        .mAcceptDoneCallback= fd_rpc_channel_thread_ot_TcpAcceptDone,
+    };
+    error = otTcpListenerInitialize(fd_rpc_channel_thread.ot.instance, &fd_rpc_channel_thread.ot.tcp.listener, &listener_initialize_args);
+    const otIp6Address *eid = otThreadGetMeshLocalEid(fd_rpc_channel_thread.ot.instance);
+    fd_assert(eid != NULL);
+    otSockAddr sock_addr = {
+        .mAddress = *eid,
+        .mPort = fd_rpc_channel_thread.configuration.service_port,
+    };
+    error = otTcpListen(&fd_rpc_channel_thread.ot.tcp.listener, &sock_addr);
+    fd_assert(error == OT_ERROR_NONE);
+}
+
+void fd_rpc_channel_thread_udp_receive(void *aContext, otMessage *aMessage, const otMessageInfo *aMessageInfo) {
+    uint8_t data[1024 + 1];
+    uint16_t offset = 0;
+    uint16_t length = otMessageRead(aMessage, offset, data, sizeof(data));
+    fd_assert(length <= 1024);
+    fd_rpc_stream_receive(&fd_rpc_channel_thread.ot.udp.stream, data, length);
+}
+
+void fd_rpc_channel_thread_udp_up(void) {
+    memset(&fd_rpc_channel_thread.ot.udp.socket, 0, sizeof(fd_rpc_channel_thread.ot.udp.socket));
+    otUdpOpen(fd_rpc_channel_thread.ot.instance, &fd_rpc_channel_thread.ot.udp.socket, fd_rpc_channel_thread_udp_receive, NULL);
+    otSockAddr sock_addr = {
+        .mPort = fd_rpc_channel_thread.configuration.service_port,
+    };
+    otUdpBind(fd_rpc_channel_thread.ot.instance, &fd_rpc_channel_thread.ot.udp.socket, &sock_addr, OT_NETIF_THREAD);
 }
 
 void fd_rpc_channel_thread_up(void) {
@@ -347,36 +446,14 @@ void fd_rpc_channel_thread_up(void) {
     fd_assert(error == OT_ERROR_NONE);
     otSrpClientEnableAutoStartMode(fd_rpc_channel_thread.ot.instance, fd_rpc_channel_thread_ot_SrpClientAutoStartCallback, NULL);
 
-    otTcpEndpointInitializeArgs endpoint_initialize_args = {
-        .mDisconnectedCallback = fd_rpc_channel_thread_ot_TcpDisconnected,
-        .mEstablishedCallback = fd_rpc_channel_thread_ot_TcpEstablished,
-        .mForwardProgressCallback = fd_rpc_channel_thread_ot_TcpForwardProgress,
-        .mReceiveAvailableCallback = fd_rpc_channel_thread_ot_TcpReceiveAvailable,
-        .mSendDoneCallback= fd_rpc_channel_thread_ot_TcpSendDone,
-        .mReceiveBuffer = fd_rpc_channel_thread.ot.receive_buffer,
-        .mReceiveBufferSize = sizeof(fd_rpc_channel_thread.ot.receive_buffer),
-    };
-    error = otTcpEndpointInitialize(fd_rpc_channel_thread.ot.instance, &fd_rpc_channel_thread.ot.endpoint, &endpoint_initialize_args);
-    fd_assert(error == OT_ERROR_NONE);
-
-    otTcpListenerInitializeArgs listener_initialize_args = {
-        .mAcceptReadyCallback = fd_rpc_channel_thread_ot_TcpAcceptReady,
-        .mAcceptDoneCallback= fd_rpc_channel_thread_ot_TcpAcceptDone,
-    };
-    error = otTcpListenerInitialize(fd_rpc_channel_thread.ot.instance, &fd_rpc_channel_thread.ot.listener, &listener_initialize_args);
-    otSockAddr sock_addr = {
-        .mAddress = *eid,
-        .mPort = fd_rpc_channel_thread.configuration.service_port,
-    };
-    error = otTcpListen(&fd_rpc_channel_thread.ot.listener, &sock_addr);
-    fd_assert(error == OT_ERROR_NONE);
+    fd_rpc_channel_thread.ot.protocol.up();
 
     otSrpClientService *service = &fd_rpc_channel_thread.ot.service;
     snprintf(fd_rpc_channel_thread.ot.service_name, sizeof(fd_rpc_channel_thread.ot.service_name), "_%s._tcp", fd_rpc_channel_thread.configuration.name);
     service->mName = fd_rpc_channel_thread.ot.service_name;
     snprintf(fd_rpc_channel_thread.ot.service_instance_name, sizeof(fd_rpc_channel_thread.ot.service_instance_name), "%s", fd_rpc_channel_thread.configuration.instance_name);
     service->mInstanceName = fd_rpc_channel_thread.ot.service_instance_name;
-    service->mPort = sock_addr.mPort;
+    service->mPort = fd_rpc_channel_thread.configuration.service_port;
     service->mPriority = 1;
     service->mWeight = 1;
     service->mNumTxtEntries = 0;
@@ -384,6 +461,21 @@ void fd_rpc_channel_thread_up(void) {
     fd_assert((error == OT_ERROR_NONE) || (error == OT_ERROR_ALREADY));
 
     fd_rpc_channel_thread_set_state(fd_rpc_channel_thread_state_listening);
+}
+
+void fd_rpc_channel_thread_tcp_down(void) {
+    otError error = otTcpListenerDeinitialize(&fd_rpc_channel_thread.ot.tcp.listener);
+    fd_assert(error == OT_ERROR_NONE);
+
+    error = otTcpEndpointDeinitialize(&fd_rpc_channel_thread.ot.tcp.endpoint);
+    fd_assert(error == OT_ERROR_NONE);
+}
+
+void fd_rpc_channel_thread_udp_down(void) {
+    k_work_cancel_delayable(&fd_rpc_channel_thread.ot.udp.send_done_work);
+
+    otError error = otUdpClose(fd_rpc_channel_thread.ot.instance, &fd_rpc_channel_thread.ot.udp.socket);
+    fd_assert(error == OT_ERROR_NONE);
 }
 
 void fd_rpc_channel_thread_down(void) {
@@ -402,11 +494,7 @@ void fd_rpc_channel_thread_down(void) {
 
         otSrpClientStop(fd_rpc_channel_thread.ot.instance);
 
-        otError error = otTcpListenerDeinitialize(&fd_rpc_channel_thread.ot.listener);
-        fd_assert(error == OT_ERROR_NONE);
-
-        error = otTcpEndpointDeinitialize(&fd_rpc_channel_thread.ot.endpoint);
-        fd_assert(error == OT_ERROR_NONE);
+        fd_rpc_channel_thread.ot.protocol.down();
     }
 
     otError error = otThreadSetEnabled(fd_rpc_channel_thread.ot.instance, false);
@@ -480,8 +568,105 @@ void fd_rpc_channel_thread_initialize_ot(void) {
     otSetStateChangedCallback(fd_rpc_channel_thread.ot.instance, fd_rpc_channel_thread_ot_StateChanged, fd_rpc_channel_thread.ot.instance);
 }
 
+void fd_rpc_channel_thread_udp_stream_received_connect(struct fd_rpc_stream_s *stream) {
+	fd_rpc_channel_thread_connected();
+}
+
+void fd_rpc_channel_thread_udp_stream_received_disconnect(struct fd_rpc_stream_s *stream) {
+	fd_rpc_channel_thread_disconnected();
+}
+
+void fd_rpc_channel_thread_udp_stream_received_keep_alive(struct fd_rpc_stream_s *stream) {
+}
+
+void fd_rpc_channel_thread_udp_stream_received_data(struct fd_rpc_stream_s *stream, const uint8_t *data, size_t length) {
+    fd_rpc_channel_thread_rx(data, length);
+}
+
+void fd_rpc_channel_thread_udp_stream_received_ack(struct fd_rpc_stream_s *stream) {
+}
+
+void fd_rpc_channel_thread_udp_stream_sent_disconnect(struct fd_rpc_stream_s *stream) {
+	fd_rpc_channel_thread_disconnected();
+}
+
+bool fd_rpc_channel_thread_udp_stream_send_data(struct fd_rpc_stream_s *stream, const uint8_t *header, size_t header_length, const uint8_t *data, size_t length) {
+    otMessage *message = otUdpNewMessage(fd_rpc_channel_thread.ot.instance, NULL);
+    fd_assert(message != NULL);
+    if (message == NULL) {
+        return false;
+    }
+
+    otError error = OT_ERROR_NONE;
+    if (header_length > 0) {
+        error = otMessageAppend(message, header, header_length);
+        fd_assert(error == OT_ERROR_NONE);
+        if (error != OT_ERROR_NONE) {
+            goto exit;
+        }
+    }
+    if (length > 0) {
+        error = otMessageAppend(message, data, length);
+        fd_assert(error == OT_ERROR_NONE);
+        if (error != OT_ERROR_NONE) {
+            goto exit;
+        }
+    }
+    error = otUdpSend(fd_rpc_channel_thread.ot.instance, &fd_rpc_channel_thread.ot.udp.socket, message, &fd_rpc_channel_thread.ot.udp.message_info);
+    fd_assert(error == OT_ERROR_NONE);
+    if (error != OT_ERROR_NONE) {
+        goto exit;
+    }
+    int result = k_work_schedule_for_queue(fd_rpc_channel_thread.configuration.work_queue, &fd_rpc_channel_thread.ot.udp.send_done_work, fd_rpc_channel_thread.ot.udp.send_delay);
+    fd_assert(result >= 0);
+
+exit:
+    if (error != OT_ERROR_NONE) {
+        otMessageFree(message);
+        return false;
+    }
+    return true;
+}
+
+bool fd_rpc_channel_thread_udp_stream_send_command(struct fd_rpc_stream_s *stream, const uint8_t *data, size_t length) {
+    return fd_rpc_channel_thread_udp_stream_send_data(data, length, NULL, 0);
+}
+
+void fd_rpc_channel_thread_udp_stream_initialize(void) {
+    static const fd_rpc_stream_client_t client = {
+        fd_rpc_channel_thread_udp_stream_received_connect,
+        fd_rpc_channel_thread_udp_stream_received_disconnect,
+        fd_rpc_channel_thread_udp_stream_received_keep_alive,
+        fd_rpc_channel_thread_udp_stream_received_data,
+        fd_rpc_channel_thread_udp_stream_received_ack,
+        fd_rpc_channel_thread_udp_stream_sent_disconnect,
+        fd_rpc_channel_thread_udp_stream_send_command,
+        fd_rpc_channel_thread_udp_stream_send_data,
+    };
+    fd_rpc_stream_initialize(&fd_rpc_channel_thread.ot.udp.stream, &client);
+}
+
 void fd_rpc_channel_thread_initialize(const fd_rpc_channel_thread_configuration_t *configuration) {
     fd_rpc_channel_thread.configuration = *configuration;
+
+    switch (configuration->transport) {
+        case fd_rpc_channel_thread_transport_tcp:
+            fd_rpc_channel_thread.ot.protocol.up = fd_rpc_channel_thread_tcp_up;
+            fd_rpc_channel_thread.ot.protocol.down = fd_rpc_channel_thread_tcp_down;
+            fd_rpc_channel_thread.ot.protocol.send = fd_rpc_channel_thread_tcp_send;
+            break;
+        case fd_rpc_channel_thread_transport_udp:
+            fd_rpc_channel_thread.ot.protocol.up = fd_rpc_channel_thread_udp_up;
+            fd_rpc_channel_thread.ot.protocol.down = fd_rpc_channel_thread_udp_down;
+            fd_rpc_channel_thread.ot.protocol.send = fd_rpc_channel_thread_udp_send;
+            fd_rpc_channel_thread_udp_stream_initialize();
+            break;
+        default:
+            fd_assert_fail("unsupported transport");
+    }
+
+    fd_rpc_channel_thread.ot.udp.send_delay = K_MSEC(10);
+    k_work_init_delayable(&fd_rpc_channel_thread.ot.udp.send_done_work, fd_rpc_channel_thread_udp_send_done_work);
 
     fd_rpc_channel_thread.channel = (fd_rpc_channel_t) { 
         .packet_write = fd_rpc_channel_thread_packet_write,

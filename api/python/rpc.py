@@ -13,6 +13,7 @@ from enum import Enum
 import queue
 import select
 import socket
+import struct
 import threading
 import time
 import traceback
@@ -263,6 +264,252 @@ class SocketChannel(Transport.StreamChannel):
 
     def run_client(self):
         self.socket = socket.socket(self.family, socket.SOCK_STREAM)
+        connect_args = (self.host, self.port) if self.family == socket.AF_INET else (self.host, self.port, 0, 0)
+        self.socket.connect(connect_args)
+        print(f"client connect to {self.host}:{self.port}")
+        self.run_loop_in_thread()
+
+
+class Stream:
+
+    class Client:
+        def received_connect(self, stream):
+            pass
+        def received_disconnect(self, stream):
+            pass
+        def received_keep_alive(self, stream):
+            pass
+        def received_data(self, stream, data):
+            pass
+        def received_ack(self, stream):
+            pass
+        def sent_disconnect(self, stream):
+            pass
+        def send_command(self, stream, data):
+            return False
+        def send_data(self, stream, header, data):
+            return False
+
+    version = 1
+
+    header_type_command = 0x80000000
+
+    command_connect_request = 0x00000000
+    command_connect_response = 0x00000001
+    command_disconnect = 0x00000002
+    command_keep_alive = 0x00000004
+    command_ack = 0x00000006
+    command_nack = 0x00000008
+    command_ackack = 0x0000000a
+
+    class State(Enum):
+        disconnected = 0
+        connected = 1
+
+    class Receive:
+
+        def __init__(self):
+            self.sequence_number = 0
+
+    class Send:
+
+        def __init__(self):
+            self.sequence_number = 0
+
+    def __init__(self, client):
+        self.client = client
+        self.state = Stream.State.disconnected
+        self.receive = Stream.Receive()
+        self.send = Stream.Send()
+
+    def receive_reset(self):
+        self.receive.sequence_number = 0
+        self.send.sequence_number = 0
+
+    def send_connect_response(self):
+        data = struct.pack("<LBBBH",
+                    Stream.command_connect_response | Stream.header_type_command,
+                    0x00,  # result accepted
+                    Stream.version,
+                    1,  # maximum flow window size 1
+                    1024  # MTU
+        )
+        self.client.send_command(self, data)
+
+    def send_disconnect(self):
+        data = struct.pack("<L", Stream.fd_rpc_stream_command_disconnect | Stream.header_type_command)
+        self.client.send_command(self, data)
+
+        self.state = Stream.State.disconnected
+        self.client.sent_disconnect(self)
+
+    def send_keep_alive(self):
+        data = struct.pack("<L", Stream.fd_rpc_stream_command_keep_alive | Stream.header_type_command)
+        self.client.send_command(self, data)
+
+    def send_ack(self):
+        data = struct.pack("<LL", Stream.fd_rpc_stream_command_ack | Stream.header_type_command, self.receive.sequence_number)
+        self.client.send_command(self, data)
+
+    def send_nack(self):
+        data = struct.pack("<LL", Stream.fd_rpc_stream_command_nack | Stream.header_type_command, self.send.sequence_number)
+        self.client.send_command(self, data)
+
+    def send_data(self, data):
+        header = struct.pack("<LL", Stream.fd_rpc_stream_command_nack | Stream.header_type_command, self.send.sequence_number)
+        self.client.send_data(self, header, data)
+
+    def receive_ack(self, data):
+        serial_number = struct.unpack("<L")[0] & ~0x80000000
+        if serial_number < self.send.sequence_number:
+            # duplicate ack - ignore it
+            return
+        if serial_number == self.send.sequence_number:
+            self.send.sequence_number += 1
+            self.client.received_ack(self)
+            return
+        # should not happen
+        self.send_disconnect()
+
+    def receive_nack(self, data):
+        # MFW is 1, so a nack should not happen
+        self.send_disconnect()
+
+    def receive_connect_request(self, data):
+        self.receive_reset()
+        self.state = Stream.State.connected
+        self.send_connect_response()
+        self.client.received_connect(self)
+
+    def receive_disconnect_request(self):
+        self.receive_reset()
+        self.state = Stream.State.disconnected
+        self.client.received_disconnect()
+
+    def receive_data(self, sequence_number, data):
+        if sequence_number < self.receive.sequence_number:
+            # retransmitted data - ignore
+            return
+        if sequence_number == self.receive.sequence_number:
+            # next data in the sequence - process it
+            self.send_ack()
+            self.client.received_data(self, data);
+            self.receive.sequence_number += 1
+            return
+        # data gap detected
+        self.send_nack()
+
+    def receive(self, data):
+        if len(data) < 4:
+            return
+        header = struct.unpack("<L", data)[0]
+        if (header & Stream.header_type_command) != 0:
+            command = header & ~Stream.header_type_command
+            match command:
+                case Stream.command_connect_request:
+                    self.receive_connect_request(data[4:])
+                case Stream.command_connect_response:
+                    print("unexpected command")
+                case Stream.command_disconnect:
+                    self.receive_disconnect_request()
+                case Stream.command_keep_alive:
+                    self.client.received_keep_alive()
+                case Stream.command_ack:
+                    self.receive_ack(data[4:])
+                case Stream.command_nack:
+                    self.receive_nack(data[4:])
+                case Stream.command_ackack:
+                    print("unimplemented command")
+                case _:
+                    print("unknown command")
+        else:
+            if self.state == Stream.State.connected:
+                self.receive_data(header, data[4:])
+
+
+class UdpChannel(Transport.StreamChannel):
+
+    def __init__(self, transport, host, port, family=socket.AF_INET):
+        super().__init__(transport)
+        self.host = host
+        self.port = port
+        self.family = family
+        self.server_socket = None
+        self.socket = None
+        self.run = False
+        self.thread = None
+        self.send_queue = queue.Queue()
+        self.send_queue_receive_socket, self.send_queue_send_socket = socket.socketpair()
+        self.stream = Stream(self)
+
+    def received_connect(self, stream):
+        print("connected")
+
+    def received_disconnect(self, stream):
+        print("disconnected")
+
+    def received_keep_alive(self, stream):
+        pass
+
+    def received_data(self, stream, data):
+        self.read(data)
+
+    def received_ack(self, stream):
+        pass
+
+    def sent_disconnect(self, stream):
+        print("disconnected")
+
+    def send_command(self, stream, data):
+        address = (self.host, self.port) if self.family == socket.AF_INET else (self.host, self.port, 0, 0)
+        length = self.socket.sendto(data, address)
+        if length != len(data):
+            print("send failed")
+
+    def send_data(self, stream, header, data):
+        self.send_command(header + data)
+    
+    def write(self, data):
+        RPC.log(f"{time.time()}: socket write {len(data)}")
+        self.send_queue.put(data)
+        self.send_queue_send_socket.send(b"\x00")
+
+    def run_loop(self):
+        while self.run:
+            ready_sockets, _, _ = select.select([self.socket, self.send_queue_receive_socket], [], [], 1.0)
+            RPC.log(f"{time.time()}: ready sockets {repr(ready_sockets)}")
+            for ready_socket in ready_sockets:
+                if ready_socket is self.socket:
+                    RPC.log(f"{time.time()}: socket recvfrom")
+                    data, address = self.socket.recvfrom(1024)
+                    RPC.log(f"{time.time()}: socket recvfrom {address} {len(data)}")
+                    self.stream.receive(data)
+                if ready_socket is self.send_queue_receive_socket:
+                    self.send_queue_receive_socket.recv(1)
+                    data = self.send_queue.get()
+                    RPC.log(f"{time.time()}: stream send {len(data)}")
+                    self.stream.send_data(data)
+                    RPC.log(f"{time.time()}: stream send done")
+
+    def run_loop_in_thread(self):
+        self.run = True
+        self.thread = threading.Thread(target=self.run_loop, args=())
+        self.thread.start()
+
+    def close(self):
+        self.run = False
+        self.thread.join()
+        self.thread = None
+        super().close()
+        self.send_queue_receive_socket.close()
+        self.send_queue_receive_socket = None
+        self.send_queue_send_socket.close()
+        self.send_queue_send_socket = None
+        self.socket.close()
+        self.socket = None
+
+    def run_client(self):
+        self.socket = socket.socket(self.family, socket.SOCK_DGRAM)
         connect_args = (self.host, self.port) if self.family == socket.AF_INET else (self.host, self.port, 0, 0)
         self.socket.connect(connect_args)
         print(f"client connect to {self.host}:{self.port}")

@@ -9,11 +9,17 @@
 
 fd_source_push()
 
+typedef enum {
+    fd_rpc_channel_thread_transport_tcp,
+    fd_rpc_channel_thread_transport_udp,
+} fd_rpc_channel_thread_transport_t;
+
 typedef struct {
     const char *name;
     const char *instance_name;
     struct k_work_q *work_queue;
     uint16_t service_port;
+    fd_rpc_channel_thread_transport_t transport;
 } fd_rpc_channel_thread_configuration_t;
 
 void fd_rpc_channel_thread_initialize(const fd_rpc_channel_thread_configuration_t *configuration);
