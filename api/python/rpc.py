@@ -326,6 +326,15 @@ class Stream:
         self.receive.sequence_number = 0
         self.send.sequence_number = 0
 
+    def send_connect_request(self):
+        data = struct.pack("<LBBH",
+                    Stream.command_connect_request | Stream.header_type_command,
+                    Stream.version,
+                    1,  # maximum flow window size 1
+                    1024  # MTU
+        )
+        self.client.send_command(self, data)
+
     def send_connect_response(self):
         data = struct.pack("<LBBBH",
                     Stream.command_connect_response | Stream.header_type_command,
@@ -348,19 +357,19 @@ class Stream:
         self.client.send_command(self, data)
 
     def send_ack(self):
-        data = struct.pack("<LL", Stream.fd_rpc_stream_command_ack | Stream.header_type_command, self.receive.sequence_number)
+        data = struct.pack("<LL", Stream.command_ack | Stream.header_type_command, self.receive.sequence_number)
         self.client.send_command(self, data)
 
     def send_nack(self):
-        data = struct.pack("<LL", Stream.fd_rpc_stream_command_nack | Stream.header_type_command, self.send.sequence_number)
+        data = struct.pack("<LL", Stream.command_nack | Stream.header_type_command, self.send.sequence_number)
         self.client.send_command(self, data)
 
     def send_data(self, data):
-        header = struct.pack("<LL", Stream.fd_rpc_stream_command_nack | Stream.header_type_command, self.send.sequence_number)
+        header = struct.pack("<L", self.send.sequence_number)
         self.client.send_data(self, header, data)
 
     def receive_ack(self, data):
-        serial_number = struct.unpack("<L")[0] & ~0x80000000
+        serial_number = struct.unpack("<L", data[0:4])[0] & ~0x80000000
         if serial_number < self.send.sequence_number:
             # duplicate ack - ignore it
             return
@@ -381,10 +390,15 @@ class Stream:
         self.send_connect_response()
         self.client.received_connect(self)
 
+    def receive_connect_response(self):
+        self.receive_reset()
+        self.state = Stream.State.connected
+        self.client.received_connect(self)
+
     def receive_disconnect_request(self):
         self.receive_reset()
         self.state = Stream.State.disconnected
-        self.client.received_disconnect()
+        self.client.received_disconnect(self)
 
     def receive_data(self, sequence_number, data):
         if sequence_number < self.receive.sequence_number:
@@ -399,17 +413,17 @@ class Stream:
         # data gap detected
         self.send_nack()
 
-    def receive(self, data):
+    def receive_message(self, data):
         if len(data) < 4:
             return
-        header = struct.unpack("<L", data)[0]
+        header = struct.unpack("<L", data[0:4])[0]
         if (header & Stream.header_type_command) != 0:
             command = header & ~Stream.header_type_command
             match command:
                 case Stream.command_connect_request:
                     self.receive_connect_request(data[4:])
                 case Stream.command_connect_response:
-                    print("unexpected command")
+                    self.receive_connect_response()
                 case Stream.command_disconnect:
                     self.receive_disconnect_request()
                 case Stream.command_keep_alive:
@@ -441,9 +455,11 @@ class UdpChannel(Transport.StreamChannel):
         self.send_queue = queue.Queue()
         self.send_queue_receive_socket, self.send_queue_send_socket = socket.socketpair()
         self.stream = Stream(self)
+        self.connect_queue = queue.Queue()
 
     def received_connect(self, stream):
         print("connected")
+        self.connect_queue.put(0)
 
     def received_disconnect(self, stream):
         print("disconnected")
@@ -467,7 +483,7 @@ class UdpChannel(Transport.StreamChannel):
             print("send failed")
 
     def send_data(self, stream, header, data):
-        self.send_command(header + data)
+        self.send_command(stream, header + data)
     
     def write(self, data):
         RPC.log(f"{time.time()}: socket write {len(data)}")
@@ -481,9 +497,9 @@ class UdpChannel(Transport.StreamChannel):
             for ready_socket in ready_sockets:
                 if ready_socket is self.socket:
                     RPC.log(f"{time.time()}: socket recvfrom")
-                    data, address = self.socket.recvfrom(1024)
+                    data, address = self.socket.recvfrom(4 + 1024)  # header + data
                     RPC.log(f"{time.time()}: socket recvfrom {address} {len(data)}")
-                    self.stream.receive(data)
+                    self.stream.receive_message(data)
                 if ready_socket is self.send_queue_receive_socket:
                     self.send_queue_receive_socket.recv(1)
                     data = self.send_queue.get()
@@ -492,9 +508,11 @@ class UdpChannel(Transport.StreamChannel):
                     RPC.log(f"{time.time()}: stream send done")
 
     def run_loop_in_thread(self):
+        self.stream.send_connect_request()
         self.run = True
         self.thread = threading.Thread(target=self.run_loop, args=())
         self.thread.start()
+        self.connect_queue.get(timeout=10.0)
 
     def close(self):
         self.run = False

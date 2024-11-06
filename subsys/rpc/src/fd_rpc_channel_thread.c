@@ -52,8 +52,8 @@ typedef struct {
     fd_rpc_channel_thread_ot_udp_t udp;
     fd_rpc_channel_thread_protocol_t protocol;
 
-    uint8_t receive_buffer[CONFIG_FIREFLY_SUBSYS_RPC_THREAD_TX_BUFFER_SIZE];
-    uint8_t send_buffer[CONFIG_FIREFLY_SUBSYS_RPC_THREAD_TX_BUFFER_SIZE];
+    uint8_t receive_buffer[CONFIG_FIREFLY_SUBSYS_RPC_THREAD_RECEIVE_BUFFER_SIZE];
+    uint8_t send_buffer[CONFIG_FIREFLY_SUBSYS_RPC_THREAD_SEND_BUFFER_SIZE];
     otLinkedBuffer send_linked_buffer;
     volatile bool is_send_pending;
     int64_t send_time;
@@ -242,7 +242,7 @@ void fd_rpc_channel_thread_tx(void) {
     }
 
     uint8_t *buffer = NULL;
-    uint32_t length = ring_buf_get_claim(&fd_rpc_channel_thread.tx_ringbuf, &buffer, sizeof(fd_rpc_channel_thread.tx_ring_buffer));
+    uint32_t length = ring_buf_get_claim(&fd_rpc_channel_thread.tx_ringbuf, &buffer, sizeof(fd_rpc_channel_thread.ot.send_buffer));
     if (length == 0) {
         int result = ring_buf_get_finish(&fd_rpc_channel_thread.tx_ringbuf, 0);
         fd_assert(result == 0);
@@ -410,6 +410,8 @@ void fd_rpc_channel_thread_tcp_up(void) {
 }
 
 void fd_rpc_channel_thread_udp_receive(void *aContext, otMessage *aMessage, const otMessageInfo *aMessageInfo) {
+    fd_rpc_channel_thread.ot.udp.message_info = *aMessageInfo; // !!! should probably do this only on connect -denis
+
     uint8_t data[1024 + 1];
     uint16_t offset = 0;
     uint16_t length = otMessageRead(aMessage, offset, data, sizeof(data));
@@ -584,13 +586,14 @@ void fd_rpc_channel_thread_udp_stream_received_data(struct fd_rpc_stream_s *stre
 }
 
 void fd_rpc_channel_thread_udp_stream_received_ack(struct fd_rpc_stream_s *stream) {
+    fd_rpc_channel_thread_send_done();
 }
 
 void fd_rpc_channel_thread_udp_stream_sent_disconnect(struct fd_rpc_stream_s *stream) {
 	fd_rpc_channel_thread_disconnected();
 }
 
-bool fd_rpc_channel_thread_udp_stream_send_data(struct fd_rpc_stream_s *stream, const uint8_t *header, size_t header_length, const uint8_t *data, size_t length) {
+bool fd_rpc_channel_thread_udp_stream_send(struct fd_rpc_stream_s *stream, const uint8_t *header, size_t header_length, const uint8_t *data, size_t length) {
     otMessage *message = otUdpNewMessage(fd_rpc_channel_thread.ot.instance, NULL);
     fd_assert(message != NULL);
     if (message == NULL) {
@@ -617,8 +620,6 @@ bool fd_rpc_channel_thread_udp_stream_send_data(struct fd_rpc_stream_s *stream, 
     if (error != OT_ERROR_NONE) {
         goto exit;
     }
-    int result = k_work_schedule_for_queue(fd_rpc_channel_thread.configuration.work_queue, &fd_rpc_channel_thread.ot.udp.send_done_work, fd_rpc_channel_thread.ot.udp.send_delay);
-    fd_assert(result >= 0);
 
 exit:
     if (error != OT_ERROR_NONE) {
@@ -628,8 +629,12 @@ exit:
     return true;
 }
 
+bool fd_rpc_channel_thread_udp_stream_send_data(struct fd_rpc_stream_s *stream, const uint8_t *header, size_t header_length, const uint8_t *data, size_t length) {
+    return fd_rpc_channel_thread_udp_stream_send(stream, header, header_length, data, length);
+}
+
 bool fd_rpc_channel_thread_udp_stream_send_command(struct fd_rpc_stream_s *stream, const uint8_t *data, size_t length) {
-    return fd_rpc_channel_thread_udp_stream_send_data(stream, data, length, NULL, 0);
+    return fd_rpc_channel_thread_udp_stream_send(stream, data, length, NULL, 0);
 }
 
 void fd_rpc_channel_thread_udp_stream_initialize(void) {
