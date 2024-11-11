@@ -74,7 +74,7 @@ void fd_drawing_image_update(fd_drawing_update_parameters_t *parameters) {
 
 void fd_drawing_image_render(fd_drawing_render_parameters_t *parameters) {
     const fd_drawing_image_t *drawing = (fd_drawing_image_t *)parameters->drawing->object;
-    const fd_view_image_t *view = &drawing->view;
+    const fd_view_image_t *view = &drawing->previous_view;
     if (!view->visible) {
         return;
     }

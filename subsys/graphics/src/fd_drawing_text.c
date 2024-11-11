@@ -76,7 +76,7 @@ void fd_drawing_text_update(fd_drawing_update_parameters_t *parameters) {
 
 void fd_drawing_text_render(fd_drawing_render_parameters_t *parameters) {
     const fd_drawing_text_t *drawing = (fd_drawing_text_t *)parameters->drawing->object;
-    const fd_view_text_t *view = &drawing->view;
+    const fd_view_text_t *view = &drawing->previous_view;
     if (!view->visible) {
         return;
     }

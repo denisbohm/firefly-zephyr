@@ -57,7 +57,7 @@ void fd_drawing_battery_update(fd_drawing_update_parameters_t *parameters) {
 
 void fd_drawing_battery_render(fd_drawing_render_parameters_t *parameters) {
     const fd_drawing_battery_t *drawing = (fd_drawing_battery_t *)parameters->drawing->object;
-    const fd_view_battery_t *view = &drawing->view;
+    const fd_view_battery_t *view = &drawing->previous_view;
     if (!view->visible) {
         return;
     }

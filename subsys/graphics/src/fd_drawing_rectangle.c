@@ -38,7 +38,7 @@ void fd_drawing_rectangle_update(fd_drawing_update_parameters_t *parameters) {
 
 void fd_drawing_rectangle_render(fd_drawing_render_parameters_t *parameters) {
     const fd_drawing_rectangle_t *drawing = (fd_drawing_rectangle_t *)parameters->drawing->object;
-    const fd_view_rectangle_t *view = &drawing->view;
+    const fd_view_rectangle_t *view = &drawing->previous_view;
     if (!view->visible) {
         return;
     }
