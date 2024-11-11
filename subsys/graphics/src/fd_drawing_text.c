@@ -2,6 +2,10 @@
 
 #include <string.h>
 
+fd_drawing_text_buffer_implement(fd, 8)
+fd_drawing_text_buffer_implement(fd, 16)
+fd_drawing_text_buffer_implement(fd, 32)
+
 void fd_drawing_text_layout(fd_drawing_text_t *drawing, fd_graphics_t *graphics) {
     const fd_view_text_t *view = &drawing->view;
     if (!view->visible) {
@@ -64,6 +68,10 @@ void fd_drawing_text_update(fd_drawing_update_parameters_t *parameters) {
     bool opaque = false;
     parameters->add_change(context, area, opaque);
     memcpy(old_view, new_view, sizeof(*old_view));
+    // copy text buffer if present
+    if (drawing->update != NULL) {
+        drawing->update(drawing);
+    }
 }
 
 void fd_drawing_text_render(fd_drawing_render_parameters_t *parameters) {

@@ -1,6 +1,19 @@
 #include "fd_canvas.h"
 
+#include "fd_timing.h"
+
 #include <string.h>
+
+#if CONFIG_FIREFLY_SUBSYS_BASE_TIMING_NRF5
+typedef struct {
+    bool initialized;
+    fd_timing_t update_timing;
+    fd_timing_t render_timing;
+    fd_timing_t transfer_timing;
+} fd_canvas_timing_t;
+
+fd_canvas_timing_t fd_canvas_timing;
+#endif
 
 void fd_canvas_add_change(fd_drawing_context_t *context, fd_graphics_area_t area, bool opaque) {
     fd_canvas_t *canvas = (fd_canvas_t *)context->object;
@@ -9,6 +22,10 @@ void fd_canvas_add_change(fd_drawing_context_t *context, fd_graphics_area_t area
 }
 
 void fd_canvas_update(fd_canvas_t *canvas) {
+#if CONFIG_FIREFLY_SUBSYS_BASE_TIMING_NRF5
+    fd_timing_start(&fd_canvas_timing.update_timing);
+#endif
+
     canvas->change.area = fd_graphics_area_empty;
     canvas->change.opaque = true;
     fd_drawing_context_t context = {
@@ -27,6 +44,10 @@ void fd_canvas_update(fd_canvas_t *canvas) {
             drawing->class->update(&update_parameters);
         }
     }
+
+#if CONFIG_FIREFLY_SUBSYS_BASE_TIMING_NRF5
+    fd_timing_end(&fd_canvas_timing.update_timing);
+#endif
 }
 
 void fd_canvas_render(fd_canvas_t *canvas) {
@@ -35,6 +56,10 @@ void fd_canvas_render(fd_canvas_t *canvas) {
         return;
     }
     
+#if CONFIG_FIREFLY_SUBSYS_BASE_TIMING_NRF5
+    fd_timing_start(&fd_canvas_timing.render_timing);
+#endif
+
     fd_graphics_reset(canvas->graphics);
     fd_graphics_set_clipping(canvas->graphics, area);
     if (!canvas->change.opaque) {
@@ -66,10 +91,30 @@ void fd_canvas_render(fd_canvas_t *canvas) {
             drawing->class->render(&render_parameters);
         }
     }
+
+#if CONFIG_FIREFLY_SUBSYS_BASE_TIMING_NRF5
+    fd_timing_end(&fd_canvas_timing.render_timing);
+
+    fd_timing_start(&fd_canvas_timing.transfer_timing);
+#endif
+
     fd_graphics_reset(canvas->graphics);
     fd_graphics_update(canvas->graphics, area);
+
+#if CONFIG_FIREFLY_SUBSYS_BASE_TIMING_NRF5
+    fd_timing_end(&fd_canvas_timing.transfer_timing);
+#endif
 }
 
 void fd_canvas_initialize(fd_canvas_t *canvas) {
     memset(canvas, 0, sizeof(*canvas));
+
+#if CONFIG_FIREFLY_SUBSYS_BASE_TIMING_NRF5
+    if (!fd_canvas_timing.initialized) {
+        fd_canvas_timing.initialized = true;
+        fd_timing_register(&fd_canvas_timing.update_timing, "canvas update");
+        fd_timing_register(&fd_canvas_timing.render_timing, "canvas render");
+        fd_timing_register(&fd_canvas_timing.transfer_timing, "canvas transfer");
+    }
+#endif
 }
