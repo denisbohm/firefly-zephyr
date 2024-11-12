@@ -10,6 +10,8 @@
 
 #include "ux.pb.h"
 
+#include <zephyr/kernel.h>
+
 fd_source_push()
 
 typedef enum {
@@ -45,6 +47,7 @@ typedef struct {
     void (*state_changed)(fd_ux_state_t old_state, fd_ux_state_t new_state);
     fd_ux_state_t (*get_idle_transition_state)(void);
     fd_drawing_plane_t *plane;
+    struct k_work_q *work_queue;
 } fd_ux_configuration_t;
 
 typedef struct {

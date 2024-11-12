@@ -94,8 +94,7 @@ void fd_ux_set_interaction_configuration(fd_ux_t *ux, const firefly_ux_v1_Intera
 
 void fd_ux_update(fd_ux_t *ux) {
     fd_canvas_t *canvas = &ux->canvas;
-    fd_canvas_update(canvas);
-    fd_canvas_render(canvas);
+    fd_canvas_update(canvas, fd_graphics_area_empty, true);
 }
 
 bool fd_ux_get_update_enabled(fd_ux_t *ux) {
@@ -212,6 +211,7 @@ void fd_ux_initialize(fd_ux_t *ux, const fd_ux_configuration_t *configuration) {
     
     fd_canvas_initialize(&ux->canvas);
     ux->canvas.graphics = configuration->graphics;
+    ux->canvas.work_queue = configuration->work_queue;
 
     ux->animation = true;
     ux->update_enabled = true;
@@ -258,12 +258,9 @@ static void fd_ux_set_screen_to(fd_ux_t *ux, uint32_t screen_id, bool preview) {
         screen->activate();
     }
     
-    fd_canvas_update(canvas);
     int width = canvas->graphics->width;
     int height = canvas->graphics->height;
-    canvas->change.area = (fd_graphics_area_t) { .x = 0, .y = 0, .width = width, .height = height };
-    canvas->change.opaque = false;
-    fd_canvas_render(canvas);
+    fd_canvas_update(canvas, (fd_graphics_area_t) { .x = 0, .y = 0, .width = width, .height = height }, false);
 }
 
 uint32_t fd_ux_get_screen(fd_ux_t *ux) {
