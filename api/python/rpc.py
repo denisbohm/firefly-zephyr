@@ -272,6 +272,13 @@ class SocketChannel(Transport.StreamChannel):
 
 class Stream:
 
+    should_log = False
+
+    @staticmethod
+    def log(message):
+        if Stream.should_log:
+            print(f"Stream: {time.time()}: {message}")
+
     class Client:
         def received_connect(self, stream):
             pass
@@ -327,6 +334,7 @@ class Stream:
         self.send.sequence_number = 0
 
     def send_connect_request(self):
+        Stream.log("send connect request")
         data = struct.pack("<LBBH",
                     Stream.command_connect_request | Stream.header_type_command,
                     Stream.version,
@@ -336,6 +344,7 @@ class Stream:
         self.client.send_command(self, data)
 
     def send_connect_response(self):
+        Stream.log("send connect response")
         data = struct.pack("<LBBBH",
                     Stream.command_connect_response | Stream.header_type_command,
                     0x00,  # result accepted
@@ -346,6 +355,7 @@ class Stream:
         self.client.send_command(self, data)
 
     def send_disconnect(self):
+        Stream.log("send disconnect")
         data = struct.pack("<L", Stream.fd_rpc_stream_command_disconnect | Stream.header_type_command)
         self.client.send_command(self, data)
 
@@ -353,23 +363,28 @@ class Stream:
         self.client.sent_disconnect(self)
 
     def send_keep_alive(self):
+        Stream.log("send keep alive")
         data = struct.pack("<L", Stream.fd_rpc_stream_command_keep_alive | Stream.header_type_command)
         self.client.send_command(self, data)
 
     def send_ack(self):
+        Stream.log(f"send ack: sn f{self.receive.sequence_number}")
         data = struct.pack("<LL", Stream.command_ack | Stream.header_type_command, self.receive.sequence_number)
         self.client.send_command(self, data)
 
     def send_nack(self):
+        Stream.log(f"send nack: sn f{self.send.sequence_number}")
         data = struct.pack("<LL", Stream.command_nack | Stream.header_type_command, self.send.sequence_number)
         self.client.send_command(self, data)
 
     def send_data(self, data):
+        Stream.log(f"send data: sn f{self.send.sequence_number}, len {len(data)}")
         header = struct.pack("<L", self.send.sequence_number)
         self.client.send_data(self, header, data)
 
     def receive_ack(self, data):
         serial_number = struct.unpack("<L", data[0:4])[0] & ~0x80000000
+        Stream.log(f"receive ack: sn {serial_number}")
         if serial_number < self.send.sequence_number:
             # duplicate ack - ignore it
             return
@@ -381,26 +396,31 @@ class Stream:
         self.send_disconnect()
 
     def receive_nack(self, data):
+        Stream.log("receive nack")
         # MFW is 1, so a nack should not happen
         self.send_disconnect()
 
     def receive_connect_request(self, data):
+        Stream.log("receive connect request")
         self.receive_reset()
         self.state = Stream.State.connected
         self.send_connect_response()
         self.client.received_connect(self)
 
     def receive_connect_response(self):
+        Stream.log("receive connect response")
         self.receive_reset()
         self.state = Stream.State.connected
         self.client.received_connect(self)
 
     def receive_disconnect_request(self):
+        Stream.log("receive disconnect request")
         self.receive_reset()
         self.state = Stream.State.disconnected
         self.client.received_disconnect(self)
 
     def receive_data(self, sequence_number, data):
+        Stream.log(f"receive data: sn {sequence_number}, len {len(data)})")
         if sequence_number < self.receive.sequence_number:
             # retransmitted data - ignore
             return
@@ -541,7 +561,7 @@ class RPC:
     @staticmethod
     def log(message):
         if RPC.should_log:
-            print(f"{time.time()}: {message}")
+            print(f"RPC: {time.time()}: {message}")
 
     class DecodeError(Exception):
 
