@@ -309,6 +309,22 @@ class Stream:
     command_nack = 0x00000008
     command_ackack = 0x0000000a
 
+    class Tracker:
+
+        def __init__(self, timeout):
+            self.timeout = timeout
+            self.last_active_time = 0.0
+
+        def reset(self):
+            self.last_active_time = 0.0
+
+        def update(self, time):
+            self.last_active_time = time
+
+        def check(self, time):
+            delta = time - self.last_active_time
+            return delta <= self.timeout
+        
     class State(Enum):
         disconnected = 0
         connected = 1
@@ -317,11 +333,13 @@ class Stream:
 
         def __init__(self):
             self.sequence_number = 0
+            self.keep_alive = Stream.Tracker(5.0)
 
     class Send:
 
         def __init__(self):
             self.sequence_number = 0
+            self.keep_alive = Stream.Tracker(2.0)
 
     class SendTimeout(Exception):
 
@@ -339,10 +357,17 @@ class Stream:
         if self.send_lock.locked():
             self.send_lock.release()
         self.receive.sequence_number = 0
+        self.receive.keep_alive.reset()
         self.send.sequence_number = 0
+        self.send.keep_alive.reset()
         self.state = Stream.State.disconnected
 
+    def send_command(self, data):
+        self.send.keep_alive.update(time.time())
+        self.client.send_command(self, data)
+
     def send_connect_request(self):
+        now = time.time()
         Stream.log("send connect request")
         data = struct.pack("<LBBH",
                     Stream.command_connect_request | Stream.header_type_command,
@@ -350,7 +375,7 @@ class Stream:
                     1,  # maximum flow window size 1
                     1024  # MTU
         )
-        self.client.send_command(self, data)
+        self.send_command(data)
 
     def send_connect_response(self):
         Stream.log("send connect response")
@@ -361,36 +386,37 @@ class Stream:
                     1,  # maximum flow window size 1
                     1024  # MTU
         )
-        self.client.send_command(self, data)
+        self.send_command(data)
 
     def send_disconnect(self):
         Stream.log("send disconnect")
-        data = struct.pack("<L", Stream.fd_rpc_stream_command_disconnect | Stream.header_type_command)
-        self.client.send_command(self, data)
+        data = struct.pack("<L", Stream.command_disconnect | Stream.header_type_command)
+        self.send_command(data)
 
         self.disconnect()
         self.client.sent_disconnect(self)
 
     def send_keep_alive(self):
         Stream.log("send keep alive")
-        data = struct.pack("<L", Stream.fd_rpc_stream_command_keep_alive | Stream.header_type_command)
-        self.client.send_command(self, data)
+        data = struct.pack("<L", Stream.command_keep_alive | Stream.header_type_command)
+        self.send_command(data)
 
     def send_ack(self):
         Stream.log(f"send ack: sn {self.receive.sequence_number}")
         data = struct.pack("<LL", Stream.command_ack | Stream.header_type_command, self.receive.sequence_number)
-        self.client.send_command(self, data)
+        self.send_command(data)
 
     def send_nack(self):
         Stream.log(f"send nack: sn {self.send.sequence_number}")
         data = struct.pack("<LL", Stream.command_nack | Stream.header_type_command, self.send.sequence_number)
-        self.client.send_command(self, data)
+        self.send_command(data)
 
     def wait_for_send_ack(self):
         if not self.send_lock.acquire(timeout=5.0):
             raise Stream.SendTimeout()
 
     def send_data(self, data):
+        self.send.keep_alive.update(time.time())
         Stream.log(f"send data: sn {self.send.sequence_number}, len {len(data)}")
         header = struct.pack("<L", self.send.sequence_number)
         self.client.send_data(self, header, data)
@@ -417,6 +443,9 @@ class Stream:
     def receive_connect_request(self, data):
         Stream.log("receive connect request")
         self.disconnect()
+        now = time.time()
+        self.receive.keep_alive.update(now)
+        self.send.keep_alive.update(now)
         self.state = Stream.State.connected
         self.send_connect_response()
         self.client.received_connect(self)
@@ -424,6 +453,9 @@ class Stream:
     def receive_connect_response(self):
         Stream.log("receive connect response")
         self.disconnect()
+        now = time.time()
+        self.receive.keep_alive.update(now)
+        self.send.keep_alive.update(now)
         self.state = Stream.State.connected
         self.client.received_connect(self)
 
@@ -431,6 +463,9 @@ class Stream:
         Stream.log("receive disconnect request")
         self.disconnect()
         self.client.received_disconnect(self)
+
+    def receive_keep_alive(self):
+        self.client.received_keep_alive(self)
 
     def receive_data(self, sequence_number, data):
         Stream.log(f"receive data: sn {sequence_number}, len {len(data)})")
@@ -447,6 +482,8 @@ class Stream:
         self.send_nack()
 
     def receive_message(self, data):
+        self.receive.keep_alive.update(time.time())
+
         if len(data) < 4:
             return
         header = struct.unpack("<L", data[0:4])[0]
@@ -460,7 +497,7 @@ class Stream:
                 case Stream.command_disconnect:
                     self.receive_disconnect_request()
                 case Stream.command_keep_alive:
-                    self.client.received_keep_alive()
+                    self.receive_keep_alive()
                 case Stream.command_ack:
                     self.receive_ack(data[4:])
                 case Stream.command_nack:
@@ -473,8 +510,25 @@ class Stream:
             if self.state == Stream.State.connected:
                 self.receive_data(header, data[4:])
 
+    def check(self):
+        if self.state == Stream.State.disconnected:
+            return
+
+        now = time.time()
+        if not self.send.keep_alive.check(now):
+            self.send_keep_alive()
+        if not self.receive.keep_alive.check(now):
+            self.send_disconnect()
+
 
 class UdpChannel(Transport.StreamChannel):
+
+    should_log = False
+
+    @staticmethod
+    def log(message):
+        if Stream.should_log:
+            print(f"UDP Channel: {time.time()}: {message}")
 
     def __init__(self, transport, host, port, family=socket.AF_INET):
         super().__init__(transport)
@@ -491,14 +545,14 @@ class UdpChannel(Transport.StreamChannel):
         self.connect_queue = queue.Queue()
 
     def received_connect(self, stream):
-        print("connected")
+        UdpChannel.log("received connect")
         self.connect_queue.put(0)
 
     def received_disconnect(self, stream):
-        print("disconnected")
+        UdpChannel.log("received disconnect")
 
     def received_keep_alive(self, stream):
-        pass
+        UdpChannel.log("received keep alive")
 
     def received_data(self, stream, data):
         self.read(data)
@@ -507,19 +561,19 @@ class UdpChannel(Transport.StreamChannel):
         pass
 
     def sent_disconnect(self, stream):
-        print("disconnected")
+        UdpChannel.log("sent disconnect")
 
     def send_command(self, stream, data):
         address = (self.host, self.port) if self.family == socket.AF_INET else (self.host, self.port, 0, 0)
         length = self.socket.sendto(data, address)
         if length != len(data):
-            print("send failed")
+            UdpChannel.log("send failed")
 
     def send_data(self, stream, header, data):
         self.send_command(stream, header + data)
     
     def write(self, data):
-        RPC.log(f"{time.time()}: socket write {len(data)}")
+        UdpChannel.log(f"write {len(data)}")
 
         # need to block if stream is waiting for an ack
         self.stream.wait_for_send_ack()
@@ -530,19 +584,20 @@ class UdpChannel(Transport.StreamChannel):
     def run_loop(self):
         while self.run:
             ready_sockets, _, _ = select.select([self.socket, self.send_queue_receive_socket], [], [], 1.0)
-            RPC.log(f"{time.time()}: ready sockets {repr(ready_sockets)}")
+            UdpChannel.log(f"ready sockets {repr(ready_sockets)}")
             for ready_socket in ready_sockets:
                 if ready_socket is self.socket:
-                    RPC.log(f"{time.time()}: socket recvfrom")
+                    UdpChannel.log(f"socket recvfrom")
                     data, address = self.socket.recvfrom(4 + 1024)  # header + data
-                    RPC.log(f"{time.time()}: socket recvfrom {address} {len(data)}")
+                    UdpChannel.log(f"socket recvfrom {address} {len(data)}")
                     self.stream.receive_message(data)
                 if ready_socket is self.send_queue_receive_socket:
                     self.send_queue_receive_socket.recv(1)
                     data = self.send_queue.get()
-                    RPC.log(f"{time.time()}: stream send {len(data)}")
+                    UdpChannel.log(f"stream send {len(data)}")
                     self.stream.send_data(data)
-                    RPC.log(f"{time.time()}: stream send done")
+                    UdpChannel.log(f"stream send done")
+            self.stream.check()
 
     def run_loop_in_thread(self):
         self.stream.send_connect_request()

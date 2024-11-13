@@ -44,11 +44,23 @@ typedef enum {
 } fd_rpc_stream_state_t;
 
 typedef struct {
+    uint32_t timeout;
+    int64_t last_active_time;
+} fd_rpc_stream_tracker_t;
+
+typedef enum {
+    fd_rpc_stream_tracker_status_ok,
+    fd_rpc_stream_tracker_status_timeout,
+} fd_rpc_stream_tracker_status_t;
+
+typedef struct {
     uint32_t sequence_number;
+    fd_rpc_stream_tracker_t keep_alive;
 } fd_rpc_stream_receive_t;
 
 typedef struct {
     uint32_t sequence_number;
+    fd_rpc_stream_tracker_t keep_alive;
 } fd_rpc_stream_send_t;
 
 typedef struct fd_rpc_stream_s {
@@ -60,6 +72,8 @@ typedef struct fd_rpc_stream_s {
 } fd_rpc_stream_t;
 
 void fd_rpc_stream_initialize(fd_rpc_stream_t *stream, const fd_rpc_stream_client_t *client);
+
+void fd_rpc_stream_check(fd_rpc_stream_t *stream);
 
 void fd_rpc_stream_send_disconnect(fd_rpc_stream_t *stream);
 

@@ -88,6 +88,7 @@ typedef struct {
     struct ring_buf tx_ringbuf;
     uint8_t rx_packet_buffer[CONFIG_FIREFLY_SUBSYS_RPC_BUFFER_SIZE];
     fd_binary_t rx_packet;
+    uint64_t last_rx_time;
 
     uint32_t tx_ring_count;
     size_t tx_ring_bytes;
@@ -301,6 +302,8 @@ bool fd_rpc_channel_thread_packet_write(const uint8_t *data, size_t size) {
 
 void fd_rpc_channel_thread_timer_work(struct k_work *work fd_unused) {
     fd_rpc_channel_thread_tx();
+
+    fd_rpc_stream_check(&fd_rpc_channel_thread.ot.udp.stream);
 }
 
 void fd_rpc_channel_thread_timer(struct k_timer *timer fd_unused) {
@@ -421,6 +424,8 @@ void fd_rpc_channel_thread_tcp_up(void) {
 
 void fd_rpc_channel_thread_udp_receive(void *aContext, otMessage *aMessage, const otMessageInfo *aMessageInfo) {
     fd_rpc_channel_thread.ot.udp.message_info = *aMessageInfo; // !!! should probably do this only on connect -denis
+
+    fd_rpc_channel_thread.last_rx_time = k_uptime_get();
 
     uint8_t data[1024 + 1];
     uint16_t offset = 0;

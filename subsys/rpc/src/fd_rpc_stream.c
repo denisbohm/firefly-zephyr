@@ -81,12 +81,36 @@ Server: 0x80000002 // Disconnect
 
 fd_source_push()
 
+void fd_rpc_stream_tracker_initialize(fd_rpc_stream_tracker_t *tracker, uint32_t timeout) {
+    tracker->timeout = timeout;
+    tracker->last_active_time = 0;
+}
+
+void fd_rpc_stream_tracker_reset(fd_rpc_stream_tracker_t *tracker) {
+    tracker->last_active_time = 0;
+}
+
+void fd_rpc_stream_tracker_update(fd_rpc_stream_tracker_t *tracker, int64_t time) {
+    tracker->last_active_time = time;
+}
+
+fd_rpc_stream_tracker_status_t fd_rpc_stream_tracker_check(fd_rpc_stream_tracker_t *tracker, int64_t time) {
+    fd_assert(time >= tracker->last_active_time);
+    int64_t delta = time - tracker->last_active_time;
+    if (delta > tracker->timeout) {
+        return fd_rpc_stream_tracker_status_timeout;
+    }
+    return fd_rpc_stream_tracker_status_ok;
+}
+
 void fd_rpc_stream_initialize(fd_rpc_stream_t *stream, const fd_rpc_stream_client_t *client) {
     memset(stream, 0, sizeof(*stream));
     stream->client = client;
     k_sem_init(&stream->send_semaphore, 1, 1);
     unsigned int count = k_sem_count_get(&stream->send_semaphore);
     fd_assert(count == 1);
+    fd_rpc_stream_tracker_initialize(&stream->send.keep_alive, 2000);
+    fd_rpc_stream_tracker_initialize(&stream->receive.keep_alive, 5000);
 }
 
 void fd_rpc_stream_disconnect(fd_rpc_stream_t *stream) {
@@ -95,8 +119,15 @@ void fd_rpc_stream_disconnect(fd_rpc_stream_t *stream) {
     unsigned int count = k_sem_count_get(&stream->send_semaphore);
     fd_assert(count == 1);
     stream->receive.sequence_number = 0;
+    fd_rpc_stream_tracker_reset(&stream->receive.keep_alive);
     stream->send.sequence_number = 0;
+    fd_rpc_stream_tracker_reset(&stream->send.keep_alive);
     stream->state = fd_rpc_stream_state_disconnected;
+}
+
+void fd_rpc_stream_send_command(fd_rpc_stream_t *stream, const uint8_t *data, size_t size) {
+    fd_rpc_stream_tracker_update(&stream->send.keep_alive, k_uptime_get());
+    stream->client->send_command(stream, data, size);
 }
 
 void fd_rpc_stream_send_connect_response(fd_rpc_stream_t *stream) {
@@ -109,7 +140,7 @@ void fd_rpc_stream_send_connect_response(fd_rpc_stream_t *stream) {
     fd_binary_put_uint8(&binary, 1); // maximum flow window size 1
     fd_binary_put_uint16(&binary, 1024); // MTU
     fd_assert(binary.errors == 0);
-    stream->client->send_command(stream, data, binary.put_index);
+    fd_rpc_stream_send_command(stream, data, binary.put_index);
 }
 
 void fd_rpc_stream_send_disconnect(fd_rpc_stream_t *stream) {
@@ -118,7 +149,7 @@ void fd_rpc_stream_send_disconnect(fd_rpc_stream_t *stream) {
     fd_binary_initialize(&binary, data, sizeof(data));
     fd_binary_put_uint32(&binary, fd_rpc_stream_command_disconnect | fd_rpc_stream_header_type_command);
     fd_assert(binary.errors == 0);
-    stream->client->send_command(stream, data, binary.put_index);
+    fd_rpc_stream_send_command(stream, data, binary.put_index);
 
     fd_rpc_stream_disconnect(stream);
     stream->client->sent_disconnect(stream);
@@ -130,7 +161,7 @@ void fd_rpc_stream_send_keep_alive(fd_rpc_stream_t *stream) {
     fd_binary_initialize(&binary, data, sizeof(data));
     fd_binary_put_uint32(&binary, fd_rpc_stream_command_keep_alive | fd_rpc_stream_header_type_command);
     fd_assert(binary.errors == 0);
-    stream->client->send_command(stream, data, binary.put_index);
+    fd_rpc_stream_send_command(stream, data, binary.put_index);
 }
 
 void fd_rpc_stream_send_ack(fd_rpc_stream_t *stream) {
@@ -140,7 +171,7 @@ void fd_rpc_stream_send_ack(fd_rpc_stream_t *stream) {
     fd_binary_put_uint32(&binary, fd_rpc_stream_command_ack | fd_rpc_stream_header_type_command);
     fd_binary_put_uint32(&binary, stream->receive.sequence_number);
     fd_assert(binary.errors == 0);
-    stream->client->send_command(stream, data, binary.put_index);
+    fd_rpc_stream_send_command(stream, data, binary.put_index);
 }
 
 void fd_rpc_stream_send_nack(fd_rpc_stream_t *stream) {
@@ -150,7 +181,7 @@ void fd_rpc_stream_send_nack(fd_rpc_stream_t *stream) {
     fd_binary_put_uint32(&binary, fd_rpc_stream_command_nack | fd_rpc_stream_header_type_command);
     fd_binary_put_uint32(&binary, stream->send.sequence_number);
     fd_assert(binary.errors == 0);
-    stream->client->send_command(stream, data, binary.put_index);
+    fd_rpc_stream_send_command(stream, data, binary.put_index);
 }
 
 bool fd_rpc_stream_wait_for_send_ack(fd_rpc_stream_t *stream) {
@@ -159,6 +190,8 @@ bool fd_rpc_stream_wait_for_send_ack(fd_rpc_stream_t *stream) {
 }
 
 bool fd_rpc_stream_send_data(fd_rpc_stream_t *stream, const uint8_t *data, size_t length) {
+    fd_rpc_stream_tracker_update(&stream->send.keep_alive, k_uptime_get());
+
     uint8_t header[16];
     fd_binary_t binary;
     fd_binary_initialize(&binary, header, sizeof(header));
@@ -194,6 +227,10 @@ void fd_rpc_stream_receive_nack(fd_rpc_stream_t *stream, fd_binary_t *binary) {
 
 void fd_rpc_stream_receive_connect_request(fd_rpc_stream_t *stream, fd_binary_t *binary) {
     fd_rpc_stream_disconnect(stream);
+
+    int64_t now = k_uptime_get();
+    fd_rpc_stream_tracker_update(&stream->receive.keep_alive, now);
+    fd_rpc_stream_tracker_update(&stream->send.keep_alive, now);
     stream->state = fd_rpc_stream_state_connected;
     fd_rpc_stream_send_connect_response(stream);
     stream->client->received_connect(stream);
@@ -221,6 +258,8 @@ void fd_rpc_stream_receive_data(fd_rpc_stream_t *stream, uint32_t sequence_numbe
 }
 
 void fd_rpc_stream_receive(fd_rpc_stream_t *stream, const uint8_t *data, size_t length) {
+    fd_rpc_stream_tracker_update(&stream->receive.keep_alive, k_uptime_get());
+
     fd_assert(length >= 4);
     fd_binary_t binary;
     fd_binary_initialize(&binary, (uint8_t *)data, length);
@@ -257,6 +296,20 @@ void fd_rpc_stream_receive(fd_rpc_stream_t *stream, const uint8_t *data, size_t 
         if (stream->state == fd_rpc_stream_state_connected) {
             fd_rpc_stream_receive_data(stream, header, &data[4], length - 4);
         }
+    }
+}
+
+void fd_rpc_stream_check(fd_rpc_stream_t *stream) {
+    if (stream->state == fd_rpc_stream_state_disconnected) {
+        return;
+    }
+
+    int64_t time = k_uptime_get();
+    if (fd_rpc_stream_tracker_check(&stream->send.keep_alive, time) == fd_rpc_stream_tracker_status_timeout) {
+        fd_rpc_stream_send_keep_alive(stream);
+    }
+    if (fd_rpc_stream_tracker_check(&stream->receive.keep_alive, time) == fd_rpc_stream_tracker_status_timeout) {
+        fd_rpc_stream_send_disconnect(stream);
     }
 }
 
