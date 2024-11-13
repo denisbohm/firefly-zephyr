@@ -1,9 +1,15 @@
 #ifndef fd_rpc_stream_h
 #define fd_rpc_stream_h
 
+#include "fd_source.h"
+
+#include <zephyr/kernel.h>
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+
+fd_source_push()
 
 struct fd_rpc_stream_s;
 
@@ -50,6 +56,7 @@ typedef struct fd_rpc_stream_s {
     fd_rpc_stream_state_t state;
     fd_rpc_stream_receive_t receive;
     fd_rpc_stream_send_t send;
+    struct k_sem send_semaphore;
 } fd_rpc_stream_t;
 
 void fd_rpc_stream_initialize(fd_rpc_stream_t *stream, const fd_rpc_stream_client_t *client);
@@ -58,8 +65,11 @@ void fd_rpc_stream_send_disconnect(fd_rpc_stream_t *stream);
 
 void fd_rpc_stream_send_keep_alive(fd_rpc_stream_t *stream);
 
+bool fd_rpc_stream_wait_for_send_ack(fd_rpc_stream_t *stream);
 bool fd_rpc_stream_send_data(fd_rpc_stream_t *stream, const uint8_t *data, size_t length);
 
 void fd_rpc_stream_receive(fd_rpc_stream_t *stream, const uint8_t *data, size_t length);
+
+fd_source_pop()
 
 #endif

@@ -79,14 +79,21 @@ Server: 0x80000002 // Disconnect
 
 */
 
+fd_source_push()
+
 void fd_rpc_stream_initialize(fd_rpc_stream_t *stream, const fd_rpc_stream_client_t *client) {
     memset(stream, 0, sizeof(*stream));
     stream->client = client;
-    k_mutex_init(&stream->send_mutex);
+    k_sem_init(&stream->send_semaphore, 1, 1);
+    unsigned int count = k_sem_count_get(&stream->send_semaphore);
+    fd_assert(count == 1);
 }
 
 void fd_rpc_stream_disconnect(fd_rpc_stream_t *stream) {
-    k_mutex_unlock(stream->send_mutex);
+    k_sem_reset(&stream->send_semaphore);
+    k_sem_give(&stream->send_semaphore);
+    unsigned int count = k_sem_count_get(&stream->send_semaphore);
+    fd_assert(count == 1);
     stream->receive.sequence_number = 0;
     stream->send.sequence_number = 0;
     stream->state = fd_rpc_stream_state_disconnected;
@@ -147,7 +154,7 @@ void fd_rpc_stream_send_nack(fd_rpc_stream_t *stream) {
 }
 
 bool fd_rpc_stream_wait_for_send_ack(fd_rpc_stream_t *stream) {
-    int result = k_mutex_lock(&stream->send_mutex, K_SECONDS(5));
+    int result = k_sem_take(&stream->send_semaphore, K_SECONDS(5));
     return result == 0;
 }
 
@@ -168,8 +175,9 @@ void fd_rpc_stream_receive_ack(fd_rpc_stream_t *stream, fd_binary_t *binary) {
     }
     if (serial_number == stream->send.sequence_number) {
         ++stream->send.sequence_number;
-        int result = k_mutex_unlock(&stream->send_mutex);
-        fd_assert(result == 0);
+        unsigned int count = k_sem_count_get(&stream->send_semaphore);
+        fd_assert(count == 0);
+        k_sem_give(&stream->send_semaphore);
         stream->client->received_ack(stream);
         return;
     }
@@ -424,3 +432,5 @@ int main(void) {
 }
 
 #endif
+
+fd_source_pop()

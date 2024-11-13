@@ -80,6 +80,7 @@ typedef struct {
     struct k_work rx_work;
     struct k_work tx_work;
     struct k_timer timer;
+    struct k_work timer_work;
 
     uint8_t rx_ring_buffer[CONFIG_FIREFLY_SUBSYS_RPC_THREAD_RX_BUFFER_SIZE];
     struct ring_buf rx_ringbuf;
@@ -229,7 +230,11 @@ void fd_rpc_channel_thread_udp_send_done_work(struct k_work *work fd_unused) {
 }
 
 otError fd_rpc_channel_thread_udp_send(void) {
-    bool result = fd_rpc_stream_send_data(&fd_rpc_channel_thread.ot.udp.stream, fd_rpc_channel_thread.ot.send_linked_buffer.mData, fd_rpc_channel_thread.ot.send_linked_buffer.mLength);
+    bool result = fd_rpc_stream_wait_for_send_ack(&fd_rpc_channel_thread.ot.udp.stream);
+    if (!result) {
+        return OT_ERROR_NO_BUFS;
+    }
+    result = fd_rpc_stream_send_data(&fd_rpc_channel_thread.ot.udp.stream, fd_rpc_channel_thread.ot.send_linked_buffer.mData, fd_rpc_channel_thread.ot.send_linked_buffer.mLength);
     if (!result) {
         return OT_ERROR_NO_BUFS;
     }
@@ -294,8 +299,13 @@ bool fd_rpc_channel_thread_packet_write(const uint8_t *data, size_t size) {
     return true;
 }
 
-void fd_rpc_channel_thread_timer(struct k_timer *timer fd_unused) {
+void fd_rpc_channel_thread_timer_work(struct k_work *work fd_unused) {
     fd_rpc_channel_thread_tx();
+}
+
+void fd_rpc_channel_thread_timer(struct k_timer *timer fd_unused) {
+    int result = k_work_submit_to_queue(fd_rpc_channel_thread.configuration.work_queue, &fd_rpc_channel_thread.timer_work);
+    fd_assert(result >= 0);
 }
 
 size_t fd_rpc_channel_thread_get_free_space(void) {
@@ -683,6 +693,7 @@ void fd_rpc_channel_thread_initialize(const fd_rpc_channel_thread_configuration_
     fd_binary_initialize(&fd_rpc_channel_thread.rx_packet, fd_rpc_channel_thread.rx_packet_buffer, sizeof(fd_rpc_channel_thread.rx_packet_buffer));
     
     k_timer_init(&fd_rpc_channel_thread.timer, fd_rpc_channel_thread_timer, 0);
+    k_work_init(&fd_rpc_channel_thread.timer_work, fd_rpc_channel_thread_timer_work);
 
     k_work_init(&fd_rpc_channel_thread.rx_work, fd_rpc_channel_thread_rx_work);
     k_work_init(&fd_rpc_channel_thread.tx_work, fd_rpc_channel_thread_tx_work);
