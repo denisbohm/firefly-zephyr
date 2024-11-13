@@ -323,15 +323,24 @@ class Stream:
         def __init__(self):
             self.sequence_number = 0
 
+    class SendTimeout(Exception):
+
+        def __init__(self, message):
+            super().__init__(message)
+
     def __init__(self, client):
         self.client = client
         self.state = Stream.State.disconnected
         self.receive = Stream.Receive()
         self.send = Stream.Send()
+        self.send_lock = threading.Lock()
 
-    def receive_reset(self):
+    def disconnect(self):
+        if self.send_lock.locked():
+            self.send_lock.release()
         self.receive.sequence_number = 0
         self.send.sequence_number = 0
+        self.state = Stream.State.disconnected
 
     def send_connect_request(self):
         Stream.log("send connect request")
@@ -359,7 +368,7 @@ class Stream:
         data = struct.pack("<L", Stream.fd_rpc_stream_command_disconnect | Stream.header_type_command)
         self.client.send_command(self, data)
 
-        self.state = Stream.State.disconnected
+        self.disconnect()
         self.client.sent_disconnect(self)
 
     def send_keep_alive(self):
@@ -368,17 +377,21 @@ class Stream:
         self.client.send_command(self, data)
 
     def send_ack(self):
-        Stream.log(f"send ack: sn f{self.receive.sequence_number}")
+        Stream.log(f"send ack: sn {self.receive.sequence_number}")
         data = struct.pack("<LL", Stream.command_ack | Stream.header_type_command, self.receive.sequence_number)
         self.client.send_command(self, data)
 
     def send_nack(self):
-        Stream.log(f"send nack: sn f{self.send.sequence_number}")
+        Stream.log(f"send nack: sn {self.send.sequence_number}")
         data = struct.pack("<LL", Stream.command_nack | Stream.header_type_command, self.send.sequence_number)
         self.client.send_command(self, data)
 
+    def wait_for_send_ack(self):
+        if not self.send_lock.acquire(timeout=5.0):
+            raise Stream.SendTimeout()
+
     def send_data(self, data):
-        Stream.log(f"send data: sn f{self.send.sequence_number}, len {len(data)}")
+        Stream.log(f"send data: sn {self.send.sequence_number}, len {len(data)}")
         header = struct.pack("<L", self.send.sequence_number)
         self.client.send_data(self, header, data)
 
@@ -390,6 +403,7 @@ class Stream:
             return
         if serial_number == self.send.sequence_number:
             self.send.sequence_number += 1
+            self.send_lock.release()
             self.client.received_ack(self)
             return
         # should not happen
@@ -402,21 +416,20 @@ class Stream:
 
     def receive_connect_request(self, data):
         Stream.log("receive connect request")
-        self.receive_reset()
+        self.disconnect()
         self.state = Stream.State.connected
         self.send_connect_response()
         self.client.received_connect(self)
 
     def receive_connect_response(self):
         Stream.log("receive connect response")
-        self.receive_reset()
+        self.disconnect()
         self.state = Stream.State.connected
         self.client.received_connect(self)
 
     def receive_disconnect_request(self):
         Stream.log("receive disconnect request")
-        self.receive_reset()
-        self.state = Stream.State.disconnected
+        self.disconnect()
         self.client.received_disconnect(self)
 
     def receive_data(self, sequence_number, data):
@@ -507,6 +520,10 @@ class UdpChannel(Transport.StreamChannel):
     
     def write(self, data):
         RPC.log(f"{time.time()}: socket write {len(data)}")
+
+        # need to block if stream is waiting for an ack
+        self.stream.wait_for_send_ack()
+
         self.send_queue.put(data)
         self.send_queue_send_socket.send(b"\x00")
 

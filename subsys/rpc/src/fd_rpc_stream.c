@@ -82,11 +82,14 @@ Server: 0x80000002 // Disconnect
 void fd_rpc_stream_initialize(fd_rpc_stream_t *stream, const fd_rpc_stream_client_t *client) {
     memset(stream, 0, sizeof(*stream));
     stream->client = client;
+    k_mutex_init(&stream->send_mutex);
 }
 
-void fd_rpc_stream_receive_reset(fd_rpc_stream_t *stream) {
+void fd_rpc_stream_disconnect(fd_rpc_stream_t *stream) {
+    k_mutex_unlock(stream->send_mutex);
     stream->receive.sequence_number = 0;
     stream->send.sequence_number = 0;
+    stream->state = fd_rpc_stream_state_disconnected;
 }
 
 void fd_rpc_stream_send_connect_response(fd_rpc_stream_t *stream) {
@@ -110,7 +113,7 @@ void fd_rpc_stream_send_disconnect(fd_rpc_stream_t *stream) {
     fd_assert(binary.errors == 0);
     stream->client->send_command(stream, data, binary.put_index);
 
-    stream->state = fd_rpc_stream_state_disconnected;
+    fd_rpc_stream_disconnect(stream);
     stream->client->sent_disconnect(stream);
 }
 
@@ -143,6 +146,11 @@ void fd_rpc_stream_send_nack(fd_rpc_stream_t *stream) {
     stream->client->send_command(stream, data, binary.put_index);
 }
 
+bool fd_rpc_stream_wait_for_send_ack(fd_rpc_stream_t *stream) {
+    int result = k_mutex_lock(&stream->send_mutex, K_SECONDS(5));
+    return result == 0;
+}
+
 bool fd_rpc_stream_send_data(fd_rpc_stream_t *stream, const uint8_t *data, size_t length) {
     uint8_t header[16];
     fd_binary_t binary;
@@ -160,28 +168,31 @@ void fd_rpc_stream_receive_ack(fd_rpc_stream_t *stream, fd_binary_t *binary) {
     }
     if (serial_number == stream->send.sequence_number) {
         ++stream->send.sequence_number;
+        int result = k_mutex_unlock(&stream->send_mutex);
+        fd_assert(result == 0);
         stream->client->received_ack(stream);
         return;
     }
     // should not happen
+    fd_rpc_stream_disconnect(stream);
     fd_rpc_stream_send_disconnect(stream);
 }
 
 void fd_rpc_stream_receive_nack(fd_rpc_stream_t *stream, fd_binary_t *binary) {
     // MFW is 1, so a nack should not happen
+    fd_rpc_stream_disconnect(stream);
     fd_rpc_stream_send_disconnect(stream);
 }
 
 void fd_rpc_stream_receive_connect_request(fd_rpc_stream_t *stream, fd_binary_t *binary) {
-    fd_rpc_stream_receive_reset(stream);
+    fd_rpc_stream_disconnect(stream);
     stream->state = fd_rpc_stream_state_connected;
     fd_rpc_stream_send_connect_response(stream);
     stream->client->received_connect(stream);
 }
 
 void fd_rpc_stream_receive_disconnect_request(fd_rpc_stream_t *stream) {
-    fd_rpc_stream_receive_reset(stream);
-    stream->state = fd_rpc_stream_state_disconnected;
+    fd_rpc_stream_disconnect(stream);
     stream->client->received_disconnect(stream);
 }
 
