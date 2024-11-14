@@ -280,6 +280,10 @@ class Stream:
             print(f"Stream: {time.time()}: {message}")
 
     class Client:
+        def connected(self, stream):
+            pass
+        def disconnected(self, stream):
+            pass
         def received_connect(self, stream):
             pass
         def received_disconnect(self, stream):
@@ -343,8 +347,8 @@ class Stream:
 
     class SendTimeout(Exception):
 
-        def __init__(self, message):
-            super().__init__(message)
+        def __init__(self):
+            super().__init__("stream send timeout")
 
     def __init__(self, client):
         self.client = client
@@ -353,7 +357,18 @@ class Stream:
         self.send = Stream.Send()
         self.send_lock = threading.Lock()
 
+    def connected(self):
+        self.disconnect()
+        now = time.time()
+        self.receive.keep_alive.update(now)
+        self.send.keep_alive.update(now)
+        self.state = Stream.State.connected
+        self.client.connected(self)
+        self.client.received_connect(self)
+
     def disconnect(self):
+        if self.state == Stream.State.disconnected:
+            return
         if self.send_lock.locked():
             self.send_lock.release()
         self.receive.sequence_number = 0
@@ -361,6 +376,7 @@ class Stream:
         self.send.sequence_number = 0
         self.send.keep_alive.reset()
         self.state = Stream.State.disconnected
+        self.client.disconnected(self)
 
     def send_command(self, data):
         self.send.keep_alive.update(time.time())
@@ -442,22 +458,12 @@ class Stream:
 
     def receive_connect_request(self, data):
         Stream.log("receive connect request")
-        self.disconnect()
-        now = time.time()
-        self.receive.keep_alive.update(now)
-        self.send.keep_alive.update(now)
-        self.state = Stream.State.connected
+        self.connected()
         self.send_connect_response()
-        self.client.received_connect(self)
 
     def receive_connect_response(self):
         Stream.log("receive connect response")
-        self.disconnect()
-        now = time.time()
-        self.receive.keep_alive.update(now)
-        self.send.keep_alive.update(now)
-        self.state = Stream.State.connected
-        self.client.received_connect(self)
+        self.connected()
 
     def receive_disconnect_request(self):
         Stream.log("receive disconnect request")
@@ -530,7 +536,23 @@ class UdpChannel(Transport.StreamChannel):
         if Stream.should_log:
             print(f"UDP Channel: {time.time()}: {message}")
 
-    def __init__(self, transport, host, port, family=socket.AF_INET):
+    class Client:
+        def connected(self, udp_channel):
+            pass
+        def disconnected(self, udp_channel):
+            pass
+
+    class Options:
+        def __init__(self) -> None:
+            self.connect_when_run = True
+            self.client = None
+            
+    class ConnectTimeout(Exception):
+
+        def __init__(self):
+            super().__init__("UDP Channel Connect Timeout")
+
+    def __init__(self, transport, host, port, family=socket.AF_INET, options=None):
         super().__init__(transport)
         self.host = host
         self.port = port
@@ -543,7 +565,23 @@ class UdpChannel(Transport.StreamChannel):
         self.send_queue_receive_socket, self.send_queue_send_socket = socket.socketpair()
         self.stream = Stream(self)
         self.connect_queue = queue.Queue()
+        self.connect_when_run = True
+        self.client = None
+        if options is not None:
+            self.connect_when_run = options.connect_when_run
+            self.client = options.client
 
+    def is_connected(self):
+        return self.stream.state == Stream.State.connected
+    
+    def connected(self, stream):
+        if self.client is not None:
+            self.client.connected(self)
+    
+    def disconnected(self, stream):
+        if self.client is not None:
+            self.client.disconnected(self)
+    
     def received_connect(self, stream):
         UdpChannel.log("received connect")
         self.connect_queue.put(0)
@@ -599,12 +637,19 @@ class UdpChannel(Transport.StreamChannel):
                     UdpChannel.log(f"stream send done")
             self.stream.check()
 
-    def run_loop_in_thread(self):
+    def connect(self, timeout=5.0):
         self.stream.send_connect_request()
+        try:
+            self.connect_queue.get(timeout=timeout)
+        except queue.Empty:
+            raise UdpChannel.ConnectTimeout()
+
+    def run_loop_in_thread(self):
         self.run = True
         self.thread = threading.Thread(target=self.run_loop, args=())
         self.thread.start()
-        self.connect_queue.get(timeout=10.0)
+        if self.connect_when_run:
+            self.connect()
 
     def close(self):
         self.run = False
@@ -622,7 +667,7 @@ class UdpChannel(Transport.StreamChannel):
         self.socket = socket.socket(self.family, socket.SOCK_DGRAM)
         connect_args = (self.host, self.port) if self.family == socket.AF_INET else (self.host, self.port, 0, 0)
         self.socket.connect(connect_args)
-        print(f"client connect to {self.host}:{self.port}")
+        print(f"sent connect request to {self.host}:{self.port}")
         self.run_loop_in_thread()
 
 

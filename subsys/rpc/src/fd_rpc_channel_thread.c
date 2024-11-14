@@ -631,7 +631,7 @@ bool fd_rpc_channel_thread_udp_stream_send(struct fd_rpc_stream_s *stream, const
         }
     }
     error = otUdpSend(fd_rpc_channel_thread.ot.instance, &fd_rpc_channel_thread.ot.udp.socket, message, &fd_rpc_channel_thread.ot.udp.message_info);
-    fd_assert(error == OT_ERROR_NONE);
+//    fd_assert(error == OT_ERROR_NONE);
     if (error != OT_ERROR_NONE) {
         goto exit;
     }
