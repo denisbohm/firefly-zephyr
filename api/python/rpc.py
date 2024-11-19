@@ -356,6 +356,7 @@ class Stream:
         self.receive = Stream.Receive()
         self.send = Stream.Send()
         self.send_lock = threading.Lock()
+        self.send_ack_timeout = 5.0
 
     def connected(self):
         self.disconnect()
@@ -428,7 +429,7 @@ class Stream:
         self.send_command(data)
 
     def wait_for_send_ack(self):
-        if not self.send_lock.acquire(timeout=5.0):
+        if not self.send_lock.acquire(timeout=self.send_ack_timeout):
             raise Stream.SendTimeout()
 
     def send_data(self, data):
@@ -543,9 +544,12 @@ class UdpChannel(Transport.StreamChannel):
             pass
 
     class Options:
-        def __init__(self) -> None:
+        def __init__(self):
             self.connect_when_run = True
             self.client = None
+            self.send_keep_alive_interval = 2.0
+            self.receive_keep_alive_interval = 5.0
+            self.send_ack_timeout = 5.0
             
     class ConnectTimeout(Exception):
 
@@ -570,6 +574,9 @@ class UdpChannel(Transport.StreamChannel):
         if options is not None:
             self.connect_when_run = options.connect_when_run
             self.client = options.client
+            self.stream.send.keep_alive.timeout = options.send_keep_alive_interval
+            self.stream.receive.keep_alive.timeout = options.receive_keep_alive_interval
+            self.stream.send_ack_timeout = options.send_ack_timeout
 
     def is_connected(self):
         return self.stream.state == Stream.State.connected
