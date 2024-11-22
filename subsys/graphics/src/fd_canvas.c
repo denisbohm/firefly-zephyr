@@ -81,6 +81,8 @@ void fd_canvas_add_change(fd_drawing_context_t *context, fd_graphics_area_t area
 }
 
 void fd_canvas_update(fd_canvas_t *canvas, fd_graphics_area_t area, bool opaque) {
+    canvas->change.area = fd_graphics_area_union(canvas->change.area, area);
+    canvas->change.opaque = canvas->change.opaque && opaque;
     if (canvas->is_rendering) {
         return;
     }
@@ -89,8 +91,6 @@ void fd_canvas_update(fd_canvas_t *canvas, fd_graphics_area_t area, bool opaque)
     fd_timing_start(&fd_canvas_timing.update_timing);
 #endif
 
-    canvas->change.area = area;
-    canvas->change.opaque = opaque;
     fd_drawing_context_t context = {
         .object = canvas,
         .graphics = canvas->graphics,
@@ -119,6 +119,9 @@ void fd_canvas_update(fd_canvas_t *canvas, fd_graphics_area_t area, bool opaque)
     canvas->render_state.change = canvas->change;
     memcpy(canvas->render_state.planes, canvas->planes, sizeof(canvas->render_state.planes));
     canvas->render_state.plane_count = canvas->plane_count;
+
+    canvas->change.area = fd_graphics_area_empty;
+    canvas->change.opaque = true;
 
     if (canvas->work_queue == NULL) {
         fd_canvas_render(canvas);
