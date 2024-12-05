@@ -153,7 +153,7 @@ bool fd_binary_get_check(fd_binary_t *binary, uint32_t length) {
     if ((binary->get_index + length) <= binary->size) {
         return true;
     }
-    binary->errors |= fd_binary_error_overflow;
+    binary->errors |= fd_binary_error_underflow;
     return false;
 }
 
@@ -298,6 +298,7 @@ bool fd_binary_put_check(fd_binary_t *binary, uint32_t length) {
         return true;
     }
 
+    binary->errors |= fd_binary_error_overflow;
     return false;
 }
 

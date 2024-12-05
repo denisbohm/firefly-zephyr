@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package firefly.stream.v1;
+
+message Value {
+    oneof kind {
+        bool bool_value = 1;
+        uint32 uint32_value = 2;
+        int32 int32_value = 3;
+        float float_value = 4;
+    }
+}
+
+message ConnectionConfiguration {
+    Value maximum_flow_window = 1;
+    Value maximum_transmission_unit = 2;
+    Value receive_keep_alive = 3;
+    Value send_keep_alive = 4;
+    Value send_retry_timeout = 5;
+}

@@ -631,7 +631,7 @@ bool fd_rpc_channel_thread_udp_stream_send(struct fd_rpc_stream_s *stream, const
         }
     }
     error = otUdpSend(fd_rpc_channel_thread.ot.instance, &fd_rpc_channel_thread.ot.udp.socket, message, &fd_rpc_channel_thread.ot.udp.message_info);
-//    fd_assert(error == OT_ERROR_NONE);
+    fd_assert(error == OT_ERROR_NONE);
     if (error != OT_ERROR_NONE) {
         goto exit;
     }
@@ -642,10 +642,6 @@ exit:
         return false;
     }
     return true;
-}
-
-bool fd_rpc_channel_thread_udp_stream_send_data(struct fd_rpc_stream_s *stream, const uint8_t *header, size_t header_length, const uint8_t *data, size_t length) {
-    return fd_rpc_channel_thread_udp_stream_send(stream, header, header_length, data, length);
 }
 
 bool fd_rpc_channel_thread_udp_stream_send_command(struct fd_rpc_stream_s *stream, const uint8_t *data, size_t length) {
@@ -661,7 +657,6 @@ void fd_rpc_channel_thread_udp_stream_initialize(void) {
         fd_rpc_channel_thread_udp_stream_received_ack,
         fd_rpc_channel_thread_udp_stream_sent_disconnect,
         fd_rpc_channel_thread_udp_stream_send_command,
-        fd_rpc_channel_thread_udp_stream_send_data,
     };
     fd_rpc_stream_initialize(&fd_rpc_channel_thread.ot.udp.stream, &client);
 }

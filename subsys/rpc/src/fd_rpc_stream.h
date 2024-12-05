@@ -21,10 +21,9 @@ typedef struct {
     void (*received_ack)(struct fd_rpc_stream_s *stream);
     void (*sent_disconnect)(struct fd_rpc_stream_s *stream);
     bool (*send_command)(struct fd_rpc_stream_s *stream, const uint8_t *data, size_t length);
-    bool (*send_data)(struct fd_rpc_stream_s *stream, const uint8_t *header, size_t header_length, const uint8_t *data, size_t length);
 } fd_rpc_stream_client_t;
 
-#define fd_rpc_stream_version 1
+#define fd_rpc_stream_version 2
 
 #define fd_rpc_stream_header_type_command 0x80000000
 
@@ -63,12 +62,25 @@ typedef struct {
     fd_rpc_stream_tracker_t keep_alive;
 } fd_rpc_stream_send_t;
 
+typedef struct {
+   int64_t time;
+   uint8_t command[4 + 1024];
+   size_t length;
+   uint32_t timeout;
+} fd_rpc_stream_last_send_data_t;
+
 typedef struct fd_rpc_stream_s {
     const fd_rpc_stream_client_t *client;
     fd_rpc_stream_state_t state;
     fd_rpc_stream_receive_t receive;
     fd_rpc_stream_send_t send;
     struct k_sem send_semaphore;
+    fd_rpc_stream_last_send_data_t last_send_data;
+    uint32_t last_send_data_timeout;
+
+    uint32_t send_retry_count;
+    uint32_t send_keep_alive_count;
+    uint32_t receive_keep_alive__disconnect_count;
 } fd_rpc_stream_t;
 
 void fd_rpc_stream_initialize(fd_rpc_stream_t *stream, const fd_rpc_stream_client_t *client);

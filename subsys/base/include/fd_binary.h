@@ -34,9 +34,10 @@ typedef struct {
     uint32_t errors;
 } fd_binary_t;
 
-#define fd_binary_error_overflow               0x00000001
+#define fd_binary_error_underflow              0x00000001
 #define fd_binary_error_invalid_representation 0x00000002
 #define fd_binary_error_out_of_bounds          0x00000004
+#define fd_binary_error_overflow               0x00000008
 
 typedef struct {
     uint64_t length;

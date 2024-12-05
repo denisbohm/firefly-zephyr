@@ -26,6 +26,7 @@ zephyr_sources(protobuf/fd_rpc_service_ux.pb.c)
 
 zephyr_sources(protobuf/hardware.pb.c)
 zephyr_sources(protobuf/rtc.pb.c)
+zephyr_sources(protobuf/stream.pb.c)
 zephyr_sources(protobuf/ux.pb.c)
 
 endif()
