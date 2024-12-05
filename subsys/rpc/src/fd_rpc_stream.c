@@ -292,11 +292,6 @@ void fd_rpc_stream_receive_connect_request(fd_rpc_stream_t *stream, fd_binary_t 
     firefly_stream_v1_ConnectionConfiguration configuration = {};
     fd_rpc_stream_get_connection_configuration(binary, version, &configuration);
 
-    if (stream->state == fd_rpc_stream_state_connected) {
-        fd_rpc_stream_send_connect_response(stream, fd_rpc_stream_connect_result_already_connected, version, &configuration);
-        return;
-    }
-
     fd_rpc_stream_disconnect(stream);
 
     int64_t now = k_uptime_get();

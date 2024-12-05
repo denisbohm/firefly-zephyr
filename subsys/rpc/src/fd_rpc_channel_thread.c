@@ -422,7 +422,22 @@ void fd_rpc_channel_thread_tcp_up(void) {
     fd_assert(error == OT_ERROR_NONE);
 }
 
+bool fd_rpc_channel_thread_is_same_peer(const otMessageInfo *a, const otMessageInfo *b) {
+    if (a->mPeerPort != b->mPeerPort) {
+        return false;
+    }
+    if (memcmp(a->mPeerAddr.mFields.m8, b->mPeerAddr.mFields.m8, sizeof(a->mPeerAddr.mFields.m8)) != 0) {
+        return false;
+    }
+    return true;
+}
+
 void fd_rpc_channel_thread_udp_receive(void *aContext, otMessage *aMessage, const otMessageInfo *aMessageInfo) {
+    if (fd_rpc_channel_thread.ot.udp.stream.state == fd_rpc_stream_state_connected) {
+        if (!fd_rpc_channel_thread_is_same_peer(&fd_rpc_channel_thread.ot.udp.message_info, aMessageInfo)) {
+            return;
+        }
+    }
     fd_rpc_channel_thread.ot.udp.message_info = *aMessageInfo; // !!! should probably do this only on connect -denis
 
     fd_rpc_channel_thread.last_rx_time = k_uptime_get();
