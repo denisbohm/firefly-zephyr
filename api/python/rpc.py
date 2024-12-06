@@ -13,6 +13,7 @@ from serial.serialutil import SerialException
 
 from enum import Enum
 import queue
+import random
 import select
 import socket
 import struct
@@ -275,6 +276,8 @@ class SocketChannel(Transport.StreamChannel):
 class Stream:
 
     should_log = False
+    test_mode = False
+    test_drop_fraction = 0.5
 
     @staticmethod
     def log(message):
@@ -394,6 +397,13 @@ class Stream:
 
     def send_command(self, data):
         self.send.keep_alive.update(time.time())
+
+        if Stream.test_mode:
+            r = random.random()
+            if r < Stream.test_drop_fraction:
+                print("TEST: drop send")
+                return
+
         self.client.send_command(self, data)
 
     def send_connect_request(self, version, connection_configuration):
@@ -549,6 +559,12 @@ class Stream:
         self.send_nack()
 
     def receive_message(self, data):
+        if Stream.test_mode:
+            r = random.random()
+            if r < Stream.test_drop_fraction:
+                print("TEST: drop receive")
+                return
+
         self.receive.keep_alive.update(time.time())
 
         if len(data) < 4:
@@ -586,11 +602,13 @@ class Stream:
             deadline = self.last_send_data.time + self.last_send_data.timeout
             if now > deadline:
                 self.last_send_data.timeout *= 2.0
+                Stream.log("resend last data")
                 self.send_command(self.last_send_data.command)
 
         if not self.send.keep_alive.check(now):
             self.send_keep_alive()
         if not self.receive.keep_alive.check(now):
+            Stream.log("keep alive: disconnect")
             self.send_disconnect()
 
 
@@ -694,13 +712,12 @@ class UdpChannel(Transport.StreamChannel):
 
     def run_loop(self):
         while self.run:
-            ready_sockets, _, _ = select.select([self.socket, self.send_queue_receive_socket], [], [], 1.0)
-            UdpChannel.log(f"ready sockets {repr(ready_sockets)}")
+            ready_sockets, _, _ = select.select([self.socket, self.send_queue_receive_socket], [], [], 0.1)
+            # UdpChannel.log(f"ready sockets {repr(ready_sockets)}")
             for ready_socket in ready_sockets:
                 if ready_socket is self.socket:
-                    UdpChannel.log(f"socket recvfrom")
                     data, address = self.socket.recvfrom(4 + 1024)  # header + data
-                    UdpChannel.log(f"socket recvfrom {address} {data}")
+                    UdpChannel.log(f"socket recvfrom {address} {len(data)}")
                     self.stream.receive_message(data)
                 if ready_socket is self.send_queue_receive_socket:
                     self.send_queue_receive_socket.recv(1)
