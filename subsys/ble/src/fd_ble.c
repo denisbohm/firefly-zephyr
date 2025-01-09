@@ -30,6 +30,40 @@ typedef struct {
 
 fd_ble_t fd_ble;
 
+size_t fd_ble_get_version(uint8_t *git_hash, size_t size) {
+    if (size < 7) {
+        return 0;
+    }
+    
+	struct net_buf *buf = bt_hci_cmd_create(BT_HCI_OP_VS_READ_VERSION_INFO, 0);
+    fd_assert(buf != NULL);
+	if (!buf) {
+		return 0;
+	}
+
+	struct net_buf *rsp = NULL;
+	int err = bt_hci_cmd_send_sync(BT_HCI_OP_VS_READ_VERSION_INFO, buf, &rsp);
+    fd_assert(err == 0);
+	if (err) {
+		// uint8_t reason = rsp ? ((struct bt_hci_rp_vs_read_version_info *) rsp->data)->status : 0;
+        return 0;
+	}
+
+	struct bt_hci_rp_vs_read_version_info *rp = (void *)rsp->data;
+    // nRF Connect SDK Soft Device returns the git hash prefix encoded into the various fields -denis
+    // see https://github.com/nrfconnect/sdk-nrfxlib/blob/v2.9.0/softdevice_controller/lib/nrf53/soft-float/manifest.yaml
+	git_hash[0] = rp->fw_version;
+    git_hash[1] = rp->fw_revision & 0xff;
+    git_hash[2] = (rp->fw_revision >> 8) & 0xff;
+    git_hash[3] = rp->fw_build & 0xff;
+    git_hash[4] = (rp->fw_build >> 8) & 0xff;
+    git_hash[5] = (rp->fw_build >> 16) & 0xff;
+    git_hash[6] = (rp->fw_build >> 24) & 0xff;
+
+	net_buf_unref(rsp);
+    return 7;
+}
+
 void fd_ble_set_tx_power(uint8_t handle_type, uint16_t handle, int8_t tx_pwr_lvl) {
 	struct bt_hci_cp_vs_write_tx_power_level *cp;
 	struct net_buf *buf = bt_hci_cmd_create(BT_HCI_OP_VS_WRITE_TX_POWER_LEVEL, sizeof(*cp));

@@ -20,6 +20,8 @@ typedef struct {
 
 bool fd_ble_initialize(const fd_ble_configuration_t *configuration);
 
+size_t fd_ble_get_version(uint8_t *git_hash, size_t size);
+
 void fd_ble_set_service_uuid(const uint8_t uuid[16]);
 void fd_ble_set_manufacturer_data(const uint8_t *data, size_t size);
 
