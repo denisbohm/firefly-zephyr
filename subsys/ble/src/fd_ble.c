@@ -11,6 +11,8 @@
 #include <zephyr/settings/settings.h>
 #include <zephyr/sys/byteorder.h>
 
+#include <stdio.h>
+
 fd_source_push()
 
 typedef struct {
@@ -30,15 +32,40 @@ typedef struct {
 
 fd_ble_t fd_ble;
 
-size_t fd_ble_get_version(uint8_t *git_hash, size_t size) {
-    if (size < 7) {
-        return 0;
+typedef struct {
+    uint64_t git_hash;
+    char revision[32];
+} fd_ble_soft_device_t;
+
+const static fd_ble_soft_device_t fd_ble_soft_devices[] = {
+    {0x2d79a1c86a40b7, "2.9.0_2d79a1c86a40b7"},
+    {0xfe2cf96a7f3622, "2.8.0_fe2cf96a7f3622"},
+    {0xd6dac7ae08db72, "2.7.0_d6dac7ae08db72"},
+    {0x36f0e50e876848, "2.6.0_36f0e50e876848"},
+    {0xc593baa9144d8d, "2.5.0_c593baa9144d8d"},
+};
+
+const char *fd_ble_lookup_soft_device_revision(uint8_t soft_device_git_hash[7]) {
+    uint64_t git_hash = 0;
+    for (uint32_t i = 0; i < 7; ++i) {
+        git_hash |= (uint64_t)soft_device_git_hash[i] << ((7 - 1 - i) * 8);
     }
+    for (uint32_t i = 0; i < ARRAY_SIZE(fd_ble_soft_devices); ++i) {
+        const fd_ble_soft_device_t *soft_device = &fd_ble_soft_devices[i];
+        if (soft_device->git_hash == git_hash) {
+            return soft_device->revision;
+        }
+    }
+    return NULL;
+}
+
+void fd_ble_get_version(char *version, size_t size) {
+    version[0] = '\0';
     
 	struct net_buf *buf = bt_hci_cmd_create(BT_HCI_OP_VS_READ_VERSION_INFO, 0);
     fd_assert(buf != NULL);
 	if (!buf) {
-		return 0;
+		return;
 	}
 
 	struct net_buf *rsp = NULL;
@@ -46,13 +73,14 @@ size_t fd_ble_get_version(uint8_t *git_hash, size_t size) {
     fd_assert(err == 0);
 	if (err) {
 		// uint8_t reason = rsp ? ((struct bt_hci_rp_vs_read_version_info *) rsp->data)->status : 0;
-        return 0;
+        return;
 	}
 
 	struct bt_hci_rp_vs_read_version_info *rp = (void *)rsp->data;
     // nRF Connect SDK Soft Device returns the git hash prefix encoded into the various fields -denis
     // see https://github.com/nrfconnect/sdk-nrfxlib/blob/v2.9.0/softdevice_controller/lib/nrf53/soft-float/manifest.yaml
-	git_hash[0] = rp->fw_version;
+	uint8_t git_hash[7];
+    git_hash[0] = rp->fw_version;
     git_hash[1] = rp->fw_revision & 0xff;
     git_hash[2] = (rp->fw_revision >> 8) & 0xff;
     git_hash[3] = rp->fw_build & 0xff;
@@ -61,7 +89,19 @@ size_t fd_ble_get_version(uint8_t *git_hash, size_t size) {
     git_hash[6] = (rp->fw_build >> 24) & 0xff;
 
 	net_buf_unref(rsp);
-    return 7;
+
+    const char *revision = fd_ble_lookup_soft_device_revision(git_hash);
+    if (revision != NULL) {
+        strncpy(version, revision, size);
+        return;
+    }
+
+    char git_hash_revision[16];
+    git_hash_revision[0] = '_';
+    for (uint32_t i = 0; i < sizeof(git_hash); ++i) {
+        snprintf(&git_hash_revision[1 + i * 2], 3, "%02x", git_hash[i]);
+    }
+    strncpy(version, git_hash_revision, size);
 }
 
 void fd_ble_set_tx_power(uint8_t handle_type, uint16_t handle, int8_t tx_pwr_lvl) {
