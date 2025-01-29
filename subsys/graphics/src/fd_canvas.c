@@ -75,12 +75,20 @@ void fd_canvas_render(fd_canvas_t *canvas) {
 }
 
 void fd_canvas_add_change(fd_drawing_context_t *context, fd_graphics_area_t area, bool opaque) {
+    fd_graphics_t *graphics = context->graphics;
+    fd_graphics_area_t graphics_area = { .x = 0, .y = 0, .width = graphics->width, .height = graphics->height };
+    fd_assert(fd_graphics_area_contains(graphics_area, area));
+
     fd_canvas_t *canvas = (fd_canvas_t *)context->object;
     canvas->change.area = fd_graphics_area_union(canvas->change.area, area);
     canvas->change.opaque = canvas->change.opaque && opaque;
 }
 
 void fd_canvas_update(fd_canvas_t *canvas, fd_graphics_area_t area, bool opaque) {
+    fd_graphics_t *graphics = canvas->graphics;
+    fd_graphics_area_t graphics_area = { .x = 0, .y = 0, .width = graphics->width, .height = graphics->height };
+    fd_assert(fd_graphics_area_contains(graphics_area, area));
+    
     canvas->change.area = fd_graphics_area_union(canvas->change.area, area);
     canvas->change.opaque = canvas->change.opaque && opaque;
     if (canvas->is_rendering) {

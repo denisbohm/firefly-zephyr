@@ -9,7 +9,7 @@
 #include <pb_encode.h>
 #include <pb_decode.h>
 
-#include <zephyr/net/buf.h>
+#include <zephyr/net_buf.h>
 
 fd_source_push()
 

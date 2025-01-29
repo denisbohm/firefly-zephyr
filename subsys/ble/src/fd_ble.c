@@ -249,8 +249,8 @@ void fd_ble_connected(struct bt_conn *conn, uint8_t result) {
 
 void fd_ble_disconnected(struct bt_conn *conn, uint8_t reason) {
 	fd_ble.disconnect_reason = reason;
-    bt_conn_unref(conn);
     fd_ble.conn = 0;
+    bt_conn_unref(conn);
 
     if (fd_ble.configuration->disconnected) {
         fd_ble.configuration->disconnected(conn);

@@ -28,11 +28,11 @@ service Hardware {
         option (firefly.options.v1.method_id) = 4;
     }
 
-    rpc spi_transceive(SpiTransceiveRequest) returns (SpiTransceiveResponse) {
+    rpc spiTransceive(SpiTransceiveRequest) returns (SpiTransceiveResponse) {
         option (firefly.options.v1.method_id) = 5;
     }
 
-    rpc i2c_transfer(I2cTransferRequest) returns (I2cTransferResponse) {
+    rpc i2cTransfer(I2cTransferRequest) returns (I2cTransferResponse) {
         option (firefly.options.v1.method_id) = 6;
     }
     
