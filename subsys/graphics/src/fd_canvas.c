@@ -95,6 +95,10 @@ void fd_canvas_update(fd_canvas_t *canvas, fd_graphics_area_t area, bool opaque)
         return;
     }
 
+    if (!fd_graphics_is_display_on(graphics)) {
+        return;
+    }
+
 #if CONFIG_FIREFLY_SUBSYS_BASE_TIMING_NRF5
     fd_timing_start(&fd_canvas_timing.update_timing);
 #endif

@@ -215,6 +215,7 @@ void fd_graphics_initialize(fd_graphics_t *graphics, int width, int height, fd_g
     graphics->height = height;
     graphics->backend = backend;
     graphics->buffer = buffer;
+    graphics->is_display_on = true;
     fd_graphics_reset(graphics);
 }
 
@@ -353,13 +354,19 @@ fd_graphics_metrics_t fd_graphics_get_string_metrics(fd_graphics_t *graphics, co
     return fd_graphics_get_string_metrics_length(graphics, string, strlen(string));
 }
 
+bool fd_graphics_is_display_on(fd_graphics_t *graphics) {
+    return graphics->is_display_on;
+}
+
 void fd_graphics_display_on(fd_graphics_t *graphics) {
     if (graphics->backend.display_on) {
         graphics->backend.display_on(graphics);
     }
+    graphics->is_display_on = true;
 }
 
 void fd_graphics_display_off(fd_graphics_t *graphics) {
+    graphics->is_display_on = false;
     if (graphics->backend.display_off) {
         graphics->backend.display_off(graphics);
     }

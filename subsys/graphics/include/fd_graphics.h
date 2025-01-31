@@ -118,6 +118,7 @@ struct fd_graphics_s {
     const fd_graphics_font_t *font;
     fd_graphics_color_t foreground;
     fd_graphics_color_t background;
+    bool is_display_on;
     void *impl;
 };
 
@@ -147,6 +148,7 @@ void fd_graphics_write_string(fd_graphics_t *graphics, int x, int y, const char 
 
 void fd_graphics_update(fd_graphics_t *graphics, fd_graphics_area_t area);
 
+bool fd_graphics_is_display_on(fd_graphics_t *graphics);
 void fd_graphics_display_on(fd_graphics_t *graphics);
 void fd_graphics_display_off(fd_graphics_t *graphics);
 
