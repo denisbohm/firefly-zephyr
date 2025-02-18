@@ -2,6 +2,8 @@
 
 #include "fd_assert.h"
 
+fd_source_push_speed()
+
 void fd_object_fifo_initialize(fd_object_fifo_t *fifo, uint8_t *buffer, size_t size, size_t object_size) {
     memset(fifo, 0, sizeof(*fifo));
     if (size == 0) {
@@ -96,3 +98,5 @@ void fd_object_fifo_deallocate(fd_object_fifo_t *fifo) {
     }
     fifo->head = head;
 }
+
+fd_source_pop()

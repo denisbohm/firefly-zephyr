@@ -1,6 +1,8 @@
 #ifndef fd_object_fifo_h
 #define fd_object_fifo_h
 
+#include "fd_source.h"
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -16,6 +18,8 @@
 // a) Be safe for passing objects from one thread to another.
 // b) Minimize buffers by allocating the object and filling its content before committing.
 // c) Support robust communications by allowing objects to be viewed for sending and later deallocated on acknowledgement of reception.
+
+fd_source_push()
 
 typedef struct {
     uint8_t *buffer;
@@ -50,5 +54,7 @@ void *fd_object_fifo_view(fd_object_fifo_t *fifo, uint32_t index);
 
 // Deallocate the first comitted object.
 void fd_object_fifo_deallocate(fd_object_fifo_t *fifo);
+
+fd_source_pop()
 
 #endif
