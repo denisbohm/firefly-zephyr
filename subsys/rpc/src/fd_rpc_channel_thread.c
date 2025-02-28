@@ -459,38 +459,38 @@ void fd_rpc_channel_thread_udp_up(void) {
 }
 
 void fd_rpc_channel_thread_up(void) {
-    uint8_t id[8];
-    ssize_t length = hwinfo_get_device_id(id, sizeof(id));
-    fd_assert(length == sizeof(id));
-    snprintf(
-        fd_rpc_channel_thread.ot.host_name,
-        sizeof(fd_rpc_channel_thread.ot.host_name),
-        "%s-%02x%02x%02x%02x%02x%02x%02x%02x",
-        fd_rpc_channel_thread.configuration.name,
-        id[0], id[1], id[2], id[3], id[4], id[5], id[6], id[7]
-    );
-    otError error = otSrpClientSetHostName(fd_rpc_channel_thread.ot.instance, fd_rpc_channel_thread.ot.host_name);
-    fd_assert((error == OT_ERROR_NONE) || (error == OT_ERROR_INVALID_STATE));
-    const otIp6Address *eid = otThreadGetMeshLocalEid(fd_rpc_channel_thread.ot.instance);
-    fd_assert(eid != NULL);
-    error = otSrpClientSetHostAddresses(fd_rpc_channel_thread.ot.instance, eid, 1);
-    otSrpClientSetCallback(fd_rpc_channel_thread.ot.instance, fd_rpc_channel_thread_ot_SrpClientCallback, NULL);
-    fd_assert(error == OT_ERROR_NONE);
-    otSrpClientEnableAutoStartMode(fd_rpc_channel_thread.ot.instance, fd_rpc_channel_thread_ot_SrpClientAutoStartCallback, NULL);
+    // uint8_t id[8];
+    // ssize_t length = hwinfo_get_device_id(id, sizeof(id));
+    // fd_assert(length == sizeof(id));
+    // snprintf(
+    //     fd_rpc_channel_thread.ot.host_name,
+    //     sizeof(fd_rpc_channel_thread.ot.host_name),
+    //     "%s-%02x%02x%02x%02x%02x%02x%02x%02x",
+    //     fd_rpc_channel_thread.configuration.name,
+    //     id[0], id[1], id[2], id[3], id[4], id[5], id[6], id[7]
+    // );
+    // otError error = otSrpClientSetHostName(fd_rpc_channel_thread.ot.instance, fd_rpc_channel_thread.ot.host_name);
+    // fd_assert((error == OT_ERROR_NONE) || (error == OT_ERROR_INVALID_STATE));
+    // const otIp6Address *eid = otThreadGetMeshLocalEid(fd_rpc_channel_thread.ot.instance);
+    // fd_assert(eid != NULL);
+    // error = otSrpClientSetHostAddresses(fd_rpc_channel_thread.ot.instance, eid, 1);
+    // otSrpClientSetCallback(fd_rpc_channel_thread.ot.instance, fd_rpc_channel_thread_ot_SrpClientCallback, NULL);
+    // fd_assert(error == OT_ERROR_NONE);
+    // otSrpClientEnableAutoStartMode(fd_rpc_channel_thread.ot.instance, fd_rpc_channel_thread_ot_SrpClientAutoStartCallback, NULL);
 
     fd_rpc_channel_thread.ot.protocol.up();
 
-    otSrpClientService *service = &fd_rpc_channel_thread.ot.service;
-    snprintf(fd_rpc_channel_thread.ot.service_name, sizeof(fd_rpc_channel_thread.ot.service_name), "_%s._tcp", fd_rpc_channel_thread.configuration.name);
-    service->mName = fd_rpc_channel_thread.ot.service_name;
-    snprintf(fd_rpc_channel_thread.ot.service_instance_name, sizeof(fd_rpc_channel_thread.ot.service_instance_name), "%s", fd_rpc_channel_thread.configuration.instance_name);
-    service->mInstanceName = fd_rpc_channel_thread.ot.service_instance_name;
-    service->mPort = fd_rpc_channel_thread.configuration.service_port;
-    service->mPriority = 1;
-    service->mWeight = 1;
-    service->mNumTxtEntries = 0;
-    error = otSrpClientAddService(fd_rpc_channel_thread.ot.instance, &fd_rpc_channel_thread.ot.service);
-    fd_assert((error == OT_ERROR_NONE) || (error == OT_ERROR_ALREADY));
+    // otSrpClientService *service = &fd_rpc_channel_thread.ot.service;
+    // snprintf(fd_rpc_channel_thread.ot.service_name, sizeof(fd_rpc_channel_thread.ot.service_name), "_%s._tcp", fd_rpc_channel_thread.configuration.name);
+    // service->mName = fd_rpc_channel_thread.ot.service_name;
+    // snprintf(fd_rpc_channel_thread.ot.service_instance_name, sizeof(fd_rpc_channel_thread.ot.service_instance_name), "%s", fd_rpc_channel_thread.configuration.instance_name);
+    // service->mInstanceName = fd_rpc_channel_thread.ot.service_instance_name;
+    // service->mPort = fd_rpc_channel_thread.configuration.service_port;
+    // service->mPriority = 1;
+    // service->mWeight = 1;
+    // service->mNumTxtEntries = 0;
+    // error = otSrpClientAddService(fd_rpc_channel_thread.ot.instance, &fd_rpc_channel_thread.ot.service);
+    // fd_assert((error == OT_ERROR_NONE) || (error == OT_ERROR_ALREADY));
 
     fd_rpc_channel_thread_set_state(fd_rpc_channel_thread_state_listening);
 }
@@ -511,7 +511,7 @@ void fd_rpc_channel_thread_udp_down(void) {
 }
 
 void fd_rpc_channel_thread_down(void) {
-    otSrpClientDisableAutoStartMode(fd_rpc_channel_thread.ot.instance);
+    // otSrpClientDisableAutoStartMode(fd_rpc_channel_thread.ot.instance);
 
     if (fd_rpc_channel_thread.state > fd_rpc_channel_thread_state_started) {
         // Removing a service is an asynchronous sequence of events.
@@ -524,7 +524,7 @@ void fd_rpc_channel_thread_down(void) {
         fd_assert(error == OT_ERROR_NONE);
         */
 
-        otSrpClientStop(fd_rpc_channel_thread.ot.instance);
+        // otSrpClientStop(fd_rpc_channel_thread.ot.instance);
 
         fd_rpc_channel_thread.ot.protocol.down();
     }
