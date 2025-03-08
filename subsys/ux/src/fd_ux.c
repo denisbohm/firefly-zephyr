@@ -239,6 +239,7 @@ static void fd_ux_set_screen_to(fd_ux_t *ux, uint32_t screen_id, bool preview) {
         ux->screen->deactivate();
     }
     
+    fd_ux_screen_t *old_screen = ux->screen;
     ux->screen = screen;
     
     fd_canvas_t *canvas = &ux->canvas;
@@ -261,6 +262,10 @@ static void fd_ux_set_screen_to(fd_ux_t *ux, uint32_t screen_id, bool preview) {
     int width = canvas->graphics->width;
     int height = canvas->graphics->height;
     fd_canvas_update(canvas, (fd_graphics_area_t) { .x = 0, .y = 0, .width = width, .height = height }, false);
+    
+    if (ux->configuration.screen_changed != NULL) {
+        ux->configuration.screen_changed(old_screen, screen);
+    }
 }
 
 uint32_t fd_ux_get_screen(fd_ux_t *ux) {

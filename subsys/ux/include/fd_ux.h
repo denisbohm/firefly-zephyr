@@ -45,6 +45,7 @@ typedef struct {
     uint32_t initial_screen;
     uint32_t idle_ticks;
     void (*state_changed)(fd_ux_state_t old_state, fd_ux_state_t new_state);
+    void (*screen_changed)(fd_ux_screen_t *old_screen, fd_ux_screen_t *new_screen);
     fd_ux_state_t (*get_idle_transition_state)(void);
     fd_drawing_plane_t *plane;
     struct k_work_q *work_queue;

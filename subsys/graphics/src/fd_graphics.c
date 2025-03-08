@@ -289,7 +289,7 @@ void fd_graphics_write_image(fd_graphics_t *graphics, int x, int y, const fd_gra
 }
 
 void fd_graphics_write_bitmap(fd_graphics_t *graphics, int x, int y, const fd_graphics_bitmap_t *bitmap) {
-    int ox = x - bitmap->origin.x;
+    int ox = x - bitmap->origin.x;      
     int oy = y - bitmap->origin.y;
     if ((ox < 0) || (oy < 0) || ((ox + bitmap->width) > graphics->width) || ((oy + bitmap->height) > graphics->height)) {
         fd_assert_fail("bitmap off screen");
