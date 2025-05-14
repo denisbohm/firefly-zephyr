@@ -34,6 +34,7 @@ void *fd_ble_get_connection(void);
 uint8_t fd_ble_get_disconnect_reason(void);
 void fd_ble_disconnect(void);
 
+bool fd_ble_is_tx_power_supported(void);
 int8_t fd_ble_get_advertising_tx_power(uint32_t id);
 void fd_ble_set_advertising_tx_power(uint32_t id, int8_t tx_power);
 int8_t fd_ble_get_connection_tx_power(void *connection);

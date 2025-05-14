@@ -37,7 +37,12 @@ typedef struct {
     char revision[32];
 } fd_ble_soft_device_t;
 
+// See the SoftDevice Controller release notes for the git hash values. -denis
+// example:
+//   2.9.1_79a310bee680b7
+//   https://github.com/nrfconnect/sdk-nrfxlib/blob/v2.9.1/softdevice_controller/lib/nrf53/soft-float/manifest.yaml
 const static fd_ble_soft_device_t fd_ble_soft_devices[] = {
+    {0x79a310bee680b7, "2.9.1_79a310bee680b7"},
     {0x2d79a1c86a40b7, "2.9.0_2d79a1c86a40b7"},
     {0xfe2cf96a7f3622, "2.8.0_fe2cf96a7f3622"},
     {0xd6dac7ae08db72, "2.7.0_d6dac7ae08db72"},
@@ -67,7 +72,6 @@ void fd_ble_get_version(char *version, size_t size) {
 	if (!buf) {
 		return;
 	}
-
 	struct net_buf *rsp = NULL;
 	int err = bt_hci_cmd_send_sync(BT_HCI_OP_VS_READ_VERSION_INFO, buf, &rsp);
     fd_assert(err == 0);
@@ -75,7 +79,6 @@ void fd_ble_get_version(char *version, size_t size) {
 		// uint8_t reason = rsp ? ((struct bt_hci_rp_vs_read_version_info *) rsp->data)->status : 0;
         return;
 	}
-
 	struct bt_hci_rp_vs_read_version_info *rp = (void *)rsp->data;
     // nRF Connect SDK Soft Device returns the git hash prefix encoded into the various fields -denis
     // see https://github.com/nrfconnect/sdk-nrfxlib/blob/v2.9.0/softdevice_controller/lib/nrf53/soft-float/manifest.yaml
@@ -87,21 +90,33 @@ void fd_ble_get_version(char *version, size_t size) {
     git_hash[4] = (rp->fw_build >> 8) & 0xff;
     git_hash[5] = (rp->fw_build >> 16) & 0xff;
     git_hash[6] = (rp->fw_build >> 24) & 0xff;
-
 	net_buf_unref(rsp);
 
     const char *revision = fd_ble_lookup_soft_device_revision(git_hash);
     if (revision != NULL) {
         strncpy(version, revision, size);
-        return;
+    } else {
+        char git_hash_revision[16];
+        git_hash_revision[0] = '_';
+        for (uint32_t i = 0; i < sizeof(git_hash); ++i) {
+            snprintf(&git_hash_revision[1 + i * 2], 3, "%02x", git_hash[i]);
+        }
+        strncpy(version, git_hash_revision, size);
     }
+}
 
-    char git_hash_revision[16];
-    git_hash_revision[0] = '_';
-    for (uint32_t i = 0; i < sizeof(git_hash); ++i) {
-        snprintf(&git_hash_revision[1 + i * 2], 3, "%02x", git_hash[i]);
+bool fd_ble_is_tx_power_supported(void) {
+    struct net_buf *rsp = NULL;
+    int err = bt_hci_cmd_send_sync(BT_HCI_OP_VS_READ_SUPPORTED_COMMANDS, NULL, &rsp);
+    fd_assert(err == 0);
+    if (err) {
+        // uint8_t reason = rsp ? ((struct bt_hci_rp_vs_read_supported_commands *) rsp->data)->status : 0;
+        return false;
     }
-    strncpy(version, git_hash_revision, size);
+    struct bt_hci_rp_vs_read_supported_commands *rp = (void *)rsp->data;
+    bool tx_power_supported = (rp->commands[1] & 0x60) == 0x60;
+    net_buf_unref(rsp);
+    return tx_power_supported;
 }
 
 void fd_ble_set_tx_power(uint8_t handle_type, uint16_t handle, int8_t tx_pwr_lvl) {
