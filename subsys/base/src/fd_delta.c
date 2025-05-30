@@ -20,21 +20,46 @@ int32_t fd_delta_zigzag_decode(uint32_t value) {
     return (int32_t)((value >> 1) ^ (-(value & 1)));
 }
 
-int32_t fd_delta_get_value(const void *objects, uint32_t index, size_t size, size_t offset) {
-    int32_t *field = (int32_t *)((uint8_t *)objects + size * index + offset);
-    return *field;
+int32_t fd_delta_get_value(const fd_delta_array_t *array, uint32_t index) {
+    uint8_t *field = (uint8_t *)array->objects + array->object_size * index + array->field_offset;
+    if (array->field_size == 4) {
+        int32_t *field_32 = (int32_t *)field;
+        return *field_32;
+    }
+    if (array->field_size == 2) {
+        int16_t *field_16 = (int16_t *)field;
+        return (int32_t)*field_16;
+    }
+    if (array->field_size == 1) {
+        return (int32_t)*field;
+    }
+    fd_assert_fail("unsupported field size");
+    return 0;
 }
 
-void fd_delta_set_value(void *objects, uint32_t index, size_t size, size_t offset, int32_t value) {
-    int32_t *field = (int32_t *)((uint8_t *)objects + size * index + offset);
-    *field = value;
+void fd_delta_set_value(fd_delta_array_t *array, uint32_t index, int32_t value) {
+    uint8_t *field = (uint8_t *)array->objects + array->object_size * index + array->field_offset;
+    if (array->field_size == 4) {
+        int32_t *field_32 = (int32_t *)field;
+        *field_32 = value;
+        return;
+    }
+    if (array->field_size == 2) {
+        int16_t *field_16 = (int16_t *)field;
+        *field_16 = (uint16_t)value;
+        return;
+    }
+    if (array->field_size == 1) {
+        *field = (uint8_t)value;
+    }
+    fd_assert_fail("unsupported field size");
 }
 
-uint32_t fd_delta_get_delta_resolution(const void *objects, uint32_t count, size_t size, size_t offset) {
+uint32_t fd_delta_get_delta_resolution(const fd_delta_array_t *array) {
     uint32_t resolution = 0;
-    int32_t previous_value = fd_delta_get_value(objects, 0, size, offset);
-    for (uint32_t i = 1; i < count; ++i) {
-        int32_t value = fd_delta_get_value(objects, i, size, offset);
+    int32_t previous_value = fd_delta_get_value(array, 0);
+    for (uint32_t i = 1; i < array->count; ++i) {
+        int32_t value = fd_delta_get_value(array, i);
         int32_t delta = value - previous_value;
         uint32_t encoded_delta = fd_delta_zigzag_encode(delta);
         uint32_t encoded_delta_resolution = fd_delta_get_resolution(encoded_delta);
@@ -46,14 +71,14 @@ uint32_t fd_delta_get_delta_resolution(const void *objects, uint32_t count, size
     return resolution;
 }
 
-bool fd_delta_encode(fd_bit_encoder_t *encoder, const void *objects, uint32_t count, size_t size, size_t offset, const fd_delta_parameters_t *parameters) {
-    int32_t previous_value = fd_delta_get_value(objects, 0, size, offset);
+bool fd_delta_encode(fd_bit_encoder_t *encoder, const fd_delta_array_t *array, const fd_delta_parameters_t *parameters) {
+    int32_t previous_value = fd_delta_get_value(array, 0);
     fd_bit_encoder_write(encoder, fd_delta_zigzag_encode(previous_value), parameters->value_resolution);
     if (parameters->delta_resolution == 0) {
         return !encoder->overflow;
     }
-    for (uint32_t i = 1; i < count; ++i) {
-        int32_t value = fd_delta_get_value(objects, i, size, offset);
+    for (uint32_t i = 1; i < array->count; ++i) {
+        int32_t value = fd_delta_get_value(array, i);
         int32_t delta = value - previous_value;
         uint32_t encoded_delta = fd_delta_zigzag_encode(delta);
         fd_assert(fd_delta_get_resolution(encoded_delta) <= parameters->delta_resolution);
@@ -63,20 +88,20 @@ bool fd_delta_encode(fd_bit_encoder_t *encoder, const void *objects, uint32_t co
     return !encoder->overflow;
 }
 
-bool fd_delta_decode(fd_bit_decoder_t *decoder, void *objects, uint32_t count, size_t size, size_t offset, const fd_delta_parameters_t *parameters) {
+bool fd_delta_decode(fd_bit_decoder_t *decoder, fd_delta_array_t *array, const fd_delta_parameters_t *parameters) {
     int32_t previous_value = fd_delta_zigzag_decode(fd_bit_decoder_read(decoder, parameters->value_resolution));
-    fd_delta_set_value(objects, 0, size, offset, previous_value);
+    fd_delta_set_value(array, 0, previous_value);
     if (parameters->delta_resolution == 0) {
-        for (uint32_t i = 1; i < count; ++i) {
-            fd_delta_set_value(objects, i, size, offset, previous_value);
+        for (uint32_t i = 1; i < array->count; ++i) {
+            fd_delta_set_value(array, i, previous_value);
         }
         return true;
     }
-    for (uint32_t i = 1; i < count; ++i) {
+    for (uint32_t i = 1; i < array->count; ++i) {
         uint32_t encoded_delta = fd_bit_decoder_read(decoder, parameters->delta_resolution);
         int32_t delta = fd_delta_zigzag_decode(encoded_delta);
         int32_t value = previous_value + delta;
-        fd_delta_set_value(objects, i, size, offset, value);
+        fd_delta_set_value(array, i, value);
         previous_value = value;
     }
     return true;
