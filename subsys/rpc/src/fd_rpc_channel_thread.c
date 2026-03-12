@@ -203,7 +203,7 @@ void fd_rpc_channel_thread_disconnected(void) {
     fd_rpc_channel_thread_reset_buffers();
 
     k_work_submit_to_queue(fd_rpc_channel_thread.configuration.work_queue, &fd_rpc_channel_thread.disconnected_work);
-}   
+}
 
 void fd_rpc_channel_thread_send_done(void) {
     fd_assert(fd_rpc_channel_thread.ot.is_send_pending);
@@ -363,15 +363,15 @@ void fd_rpc_channel_thread_ot_TcpAcceptDone(otTcpListener *aListener, otTcpEndpo
 
 void fd_rpc_channel_thread_ot_TcpEstablished(otTcpEndpoint *aEndpoint) {
 }
-            
+
 void fd_rpc_channel_thread_ot_TcpForwardProgress(otTcpEndpoint *aEndpoint, size_t aInSendBuffer, size_t aBacklog) {
 }
 
-void fd_rpc_channel_thread_ot_TcpSendDone(otTcpEndpoint *aEndpoint, otLinkedBuffer *aData) {   
+void fd_rpc_channel_thread_ot_TcpSendDone(otTcpEndpoint *aEndpoint, otLinkedBuffer *aData) {
     fd_rpc_channel_thread_send_done();
 }
 
-void fd_rpc_channel_thread_ot_TcpReceiveAvailable(otTcpEndpoint *aEndpoint, size_t aBytesAvailable, bool aEndOfStream, size_t aBytesRemaining) {           
+void fd_rpc_channel_thread_ot_TcpReceiveAvailable(otTcpEndpoint *aEndpoint, size_t aBytesAvailable, bool aEndOfStream, size_t aBytesRemaining) {
     const otLinkedBuffer *data = NULL;
     otTcpReceiveByReference(aEndpoint, &data);
     size_t totalReceived = 0;
@@ -459,38 +459,38 @@ void fd_rpc_channel_thread_udp_up(void) {
 }
 
 void fd_rpc_channel_thread_up(void) {
-    uint8_t id[8];
-    ssize_t length = hwinfo_get_device_id(id, sizeof(id));
-    fd_assert(length == sizeof(id));
-    snprintf(
-        fd_rpc_channel_thread.ot.host_name,
-        sizeof(fd_rpc_channel_thread.ot.host_name),
-        "%s-%02x%02x%02x%02x%02x%02x%02x%02x",
-        fd_rpc_channel_thread.configuration.name,
-        id[0], id[1], id[2], id[3], id[4], id[5], id[6], id[7]
-    );
-    otError error = otSrpClientSetHostName(fd_rpc_channel_thread.ot.instance, fd_rpc_channel_thread.ot.host_name);
-    fd_assert((error == OT_ERROR_NONE) || (error == OT_ERROR_INVALID_STATE));
-    const otIp6Address *eid = otThreadGetMeshLocalEid(fd_rpc_channel_thread.ot.instance);
-    fd_assert(eid != NULL);
-    error = otSrpClientSetHostAddresses(fd_rpc_channel_thread.ot.instance, eid, 1);
-    otSrpClientSetCallback(fd_rpc_channel_thread.ot.instance, fd_rpc_channel_thread_ot_SrpClientCallback, NULL);
-    fd_assert(error == OT_ERROR_NONE);
-    otSrpClientEnableAutoStartMode(fd_rpc_channel_thread.ot.instance, fd_rpc_channel_thread_ot_SrpClientAutoStartCallback, NULL);
+    // uint8_t id[8];
+    // ssize_t length = hwinfo_get_device_id(id, sizeof(id));
+    // fd_assert(length == sizeof(id));
+    // snprintf(
+    //     fd_rpc_channel_thread.ot.host_name,
+    //     sizeof(fd_rpc_channel_thread.ot.host_name),
+    //     "%s-%02x%02x%02x%02x%02x%02x%02x%02x",
+    //     fd_rpc_channel_thread.configuration.name,
+    //     id[0], id[1], id[2], id[3], id[4], id[5], id[6], id[7]
+    // );
+    // otError error = otSrpClientSetHostName(fd_rpc_channel_thread.ot.instance, fd_rpc_channel_thread.ot.host_name);
+    // fd_assert((error == OT_ERROR_NONE) || (error == OT_ERROR_INVALID_STATE));
+    // const otIp6Address *eid = otThreadGetMeshLocalEid(fd_rpc_channel_thread.ot.instance);
+    // fd_assert(eid != NULL);
+    // error = otSrpClientSetHostAddresses(fd_rpc_channel_thread.ot.instance, eid, 1);
+    // otSrpClientSetCallback(fd_rpc_channel_thread.ot.instance, fd_rpc_channel_thread_ot_SrpClientCallback, NULL);
+    // fd_assert(error == OT_ERROR_NONE);
+    // otSrpClientEnableAutoStartMode(fd_rpc_channel_thread.ot.instance, fd_rpc_channel_thread_ot_SrpClientAutoStartCallback, NULL);
 
     fd_rpc_channel_thread.ot.protocol.up();
 
-    otSrpClientService *service = &fd_rpc_channel_thread.ot.service;
-    snprintf(fd_rpc_channel_thread.ot.service_name, sizeof(fd_rpc_channel_thread.ot.service_name), "_%s._tcp", fd_rpc_channel_thread.configuration.name);
-    service->mName = fd_rpc_channel_thread.ot.service_name;
-    snprintf(fd_rpc_channel_thread.ot.service_instance_name, sizeof(fd_rpc_channel_thread.ot.service_instance_name), "%s", fd_rpc_channel_thread.configuration.instance_name);
-    service->mInstanceName = fd_rpc_channel_thread.ot.service_instance_name;
-    service->mPort = fd_rpc_channel_thread.configuration.service_port;
-    service->mPriority = 1;
-    service->mWeight = 1;
-    service->mNumTxtEntries = 0;
-    error = otSrpClientAddService(fd_rpc_channel_thread.ot.instance, &fd_rpc_channel_thread.ot.service);
-    fd_assert((error == OT_ERROR_NONE) || (error == OT_ERROR_ALREADY));
+    // otSrpClientService *service = &fd_rpc_channel_thread.ot.service;
+    // snprintf(fd_rpc_channel_thread.ot.service_name, sizeof(fd_rpc_channel_thread.ot.service_name), "_%s._tcp", fd_rpc_channel_thread.configuration.name);
+    // service->mName = fd_rpc_channel_thread.ot.service_name;
+    // snprintf(fd_rpc_channel_thread.ot.service_instance_name, sizeof(fd_rpc_channel_thread.ot.service_instance_name), "%s", fd_rpc_channel_thread.configuration.instance_name);
+    // service->mInstanceName = fd_rpc_channel_thread.ot.service_instance_name;
+    // service->mPort = fd_rpc_channel_thread.configuration.service_port;
+    // service->mPriority = 1;
+    // service->mWeight = 1;
+    // service->mNumTxtEntries = 0;
+    // error = otSrpClientAddService(fd_rpc_channel_thread.ot.instance, &fd_rpc_channel_thread.ot.service);
+    // fd_assert((error == OT_ERROR_NONE) || (error == OT_ERROR_ALREADY));
 
     fd_rpc_channel_thread_set_state(fd_rpc_channel_thread_state_listening);
 }
@@ -511,7 +511,7 @@ void fd_rpc_channel_thread_udp_down(void) {
 }
 
 void fd_rpc_channel_thread_down(void) {
-    otSrpClientDisableAutoStartMode(fd_rpc_channel_thread.ot.instance);
+    // otSrpClientDisableAutoStartMode(fd_rpc_channel_thread.ot.instance);
 
     if (fd_rpc_channel_thread.state > fd_rpc_channel_thread_state_started) {
         // Removing a service is an asynchronous sequence of events.
@@ -524,7 +524,7 @@ void fd_rpc_channel_thread_down(void) {
         fd_assert(error == OT_ERROR_NONE);
         */
 
-        otSrpClientStop(fd_rpc_channel_thread.ot.instance);
+        // otSrpClientStop(fd_rpc_channel_thread.ot.instance);
 
         fd_rpc_channel_thread.ot.protocol.down();
     }
@@ -555,7 +555,7 @@ void fd_rpc_channel_thread_set_dataset(otOperationalDataset dataset) {
        Warning: For demo purposes only - not to be used in a real product */
     uint8_t jitterValue = 20;
     otThreadSetRouterSelectionJitter(ot_instance, jitterValue);
-    
+
     otError error = otDatasetSetActive(ot_instance, &dataset);
     fd_assert(error == OT_ERROR_NONE);
 
@@ -609,6 +609,17 @@ void fd_rpc_channel_thread_udp_stream_received_disconnect(struct fd_rpc_stream_s
 }
 
 void fd_rpc_channel_thread_udp_stream_received_keep_alive(struct fd_rpc_stream_s *stream) {
+    // really connected
+    if (fd_rpc_channel_thread.state != fd_rpc_channel_thread_state_connected) {
+        fd_rpc_channel_thread_set_state(fd_rpc_channel_thread_state_connected);
+
+        for (uint32_t i = 0; i < fd_rpc_channel_thread.listener_count; ++i) {
+            const fd_rpc_channel_thread_listener_t *listener = fd_rpc_channel_thread.listeners[i];
+            if (listener->connected != NULL) {
+                listener->connected();
+            }
+        }
+    }
 }
 
 void fd_rpc_channel_thread_udp_stream_received_data(struct fd_rpc_stream_s *stream, const uint8_t *data, size_t length) {
@@ -698,7 +709,7 @@ void fd_rpc_channel_thread_initialize(const fd_rpc_channel_thread_configuration_
     fd_rpc_channel_thread.ot.udp.send_delay = K_MSEC(10);
     k_work_init_delayable(&fd_rpc_channel_thread.ot.udp.send_done_work, fd_rpc_channel_thread_udp_send_done_work);
 
-    fd_rpc_channel_thread.channel = (fd_rpc_channel_t) { 
+    fd_rpc_channel_thread.channel = (fd_rpc_channel_t) {
         .packet_write = fd_rpc_channel_thread_packet_write,
         .get_free_space = fd_rpc_channel_thread_get_free_space,
         .get_rx_free_space = fd_rpc_channel_thread_get_rx_free_space,
@@ -706,7 +717,7 @@ void fd_rpc_channel_thread_initialize(const fd_rpc_channel_thread_configuration_
     };
 
     fd_binary_initialize(&fd_rpc_channel_thread.rx_packet, fd_rpc_channel_thread.rx_packet_buffer, sizeof(fd_rpc_channel_thread.rx_packet_buffer));
-    
+
     k_timer_init(&fd_rpc_channel_thread.timer, fd_rpc_channel_thread_timer, 0);
     k_work_init(&fd_rpc_channel_thread.timer_work, fd_rpc_channel_thread_timer_work);
 
